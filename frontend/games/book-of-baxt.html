@@ -1592,40 +1592,48 @@ function animateReel(reelIdx, finalSymbols, delay) {
     const strip = reelStrips[reelIdx];
     const col = strip.parentElement;
     const cellH = col.clientHeight / VISIBLE_ROWS;
-    const totalCells = BUFFER + VISIBLE_ROWS;
 
-    // Set final symbols at the bottom of the strip
+    // STEP 1: Copy CURRENT visible symbols to the top cells (0,1,2)
+    // so there is NO visual jump when we reset translateY to 0
     for (let row = 0; row < VISIBLE_ROWS; row++) {
-      const cell = strip.children[BUFFER + row];
-      cell.querySelector('.sym-img').innerHTML = SVG[finalSymbols[row].id] || '';
+      const currentSym = grid[reelIdx][row];
+      strip.children[row].querySelector('.sym-img').innerHTML = SVG[currentSym.id] || '';
+      strip.children[row].style.height = cellH + 'px';
     }
 
-    // Fill buffer with random symbols
-    for (let i = 0; i < BUFFER; i++) {
+    // STEP 2: Fill the scrolling buffer (cells 3..BUFFER-1) with random symbols
+    for (let i = VISIBLE_ROWS; i < BUFFER; i++) {
       const sym = randomSymbol();
       strip.children[i].querySelector('.sym-img').innerHTML = SVG[sym.id] || '';
+      strip.children[i].style.height = cellH + 'px';
     }
 
-    // Start position: all buffer visible (scrolled up)
+    // STEP 3: Set final result symbols at the bottom (cells BUFFER..BUFFER+2)
+    for (let row = 0; row < VISIBLE_ROWS; row++) {
+      strip.children[BUFFER + row].querySelector('.sym-img').innerHTML = SVG[finalSymbols[row].id] || '';
+      strip.children[BUFFER + row].style.height = cellH + 'px';
+    }
+
+    // STEP 4: Position at top - shows cells 0,1,2 = CURRENT symbols (NO JUMP!)
     strip.style.transition = 'none';
-    strip.style.transform = `translateY(0px)`;
+    strip.style.transform = 'translateY(0px)';
+    strip.offsetHeight; // force reflow
 
     // Reel spin tick sounds
     let tickInterval;
     setTimeout(() => {
       tickInterval = setInterval(() => SFX.reelSpin(), 80);
 
-      // Animate to final position
-      const spinDuration = 600 + delay;
-      strip.style.transition = `transform ${spinDuration}ms cubic-bezier(.2,.8,.3,1)`;
+      // STEP 5: Animate scrolling to final position (reveals cells BUFFER..BUFFER+2)
+      const spinDuration = 800 + delay;
+      strip.style.transition = `transform ${spinDuration}ms cubic-bezier(.1,.7,.3,1)`;
       strip.style.transform = `translateY(-${BUFFER * cellH}px)`;
 
       setTimeout(() => {
         clearInterval(tickInterval);
         SFX.reelStop(reelIdx);
-        // Add landing bounce class
         col.classList.add('reel-landing');
-        setTimeout(() => col.classList.remove('reel-landing'), 200);
+        setTimeout(() => col.classList.remove('reel-landing'), 250);
         strip.style.transition = 'none';
         resolve();
       }, spinDuration + 50);
