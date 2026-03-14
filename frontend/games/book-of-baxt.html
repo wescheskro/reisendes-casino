@@ -5,1383 +5,1595 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Buch des Baxt - Reisendes Casino</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=MedievalSharp&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Uncial+Antiqua&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#000}
+body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justify-content:center;user-select:none}
 
-:root{
-  --gold:#D4AF37;--gold-light:#F4D03F;--gold-dark:#B8860B;
-  --dark:#080510;--panel:#0c0818;--reel-bg:#0a0714;
-  --crimson:#8B0000;--crimson-dark:#5a0000;
-  --green:#1a6b1a;--green-light:#2a9b2a;
+/* ========== EPIC BACKGROUND - Egyptian sunset with pyramids ========== */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+.bg-sky{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,
+    #0a0520 0%,#1a0a35 15%,#3d1155 28%,#7a2040 42%,
+    #c4522a 55%,#e8913a 65%,#f4c84a 75%,#eedd77 85%,
+    #c4a03a 92%,#8a6020 100%
+  );
 }
-
-html,body{height:100%;overflow:hidden}
-
-body{
-  background:var(--dark);font-family:'Cinzel',serif;color:#fff;
-  display:flex;align-items:center;justify-content:center;
-  user-select:none;-webkit-user-select:none;
+/* Stars */
+.bg-stars{position:absolute;inset:0;z-index:1}
+.bg-stars::before,.bg-stars::after{
+  content:'';position:absolute;border-radius:50%;background:#fff;
 }
-
-/* ========== BACKGROUND ========== */
-.bg-layer{
-  position:fixed;inset:0;z-index:0;
-  background:
-    radial-gradient(ellipse at 50% 20%,rgba(139,0,0,.12) 0%,transparent 50%),
-    radial-gradient(ellipse at 20% 80%,rgba(212,175,55,.05) 0%,transparent 40%),
-    radial-gradient(ellipse at 80% 80%,rgba(212,175,55,.05) 0%,transparent 40%),
-    linear-gradient(180deg,#080510 0%,#0d0820 50%,#080510 100%);
+/* Pyramids silhouette */
+.bg-pyramids{
+  position:absolute;bottom:5%;left:0;right:0;height:35%;z-index:2;
 }
-/* Animated sand particles */
-.bg-layer::after{
-  content:'';position:absolute;inset:0;
-  background-image:
-    radial-gradient(1px 1px at 10% 20%,rgba(212,175,55,.3),transparent),
-    radial-gradient(1px 1px at 30% 60%,rgba(212,175,55,.2),transparent),
-    radial-gradient(1px 1px at 50% 10%,rgba(212,175,55,.25),transparent),
-    radial-gradient(1px 1px at 70% 40%,rgba(212,175,55,.15),transparent),
-    radial-gradient(1px 1px at 90% 70%,rgba(212,175,55,.3),transparent),
-    radial-gradient(1px 1px at 15% 85%,rgba(212,175,55,.2),transparent),
-    radial-gradient(1px 1px at 65% 90%,rgba(212,175,55,.25),transparent),
-    radial-gradient(1.5px 1.5px at 25% 35%,rgba(255,215,0,.15),transparent),
-    radial-gradient(1.5px 1.5px at 85% 15%,rgba(255,215,0,.15),transparent);
-  animation:twinkle 4s ease-in-out infinite alternate;
+.pyramid{position:absolute;bottom:0}
+.pyramid.p1{left:5%;width:0;height:0;border-left:120px solid transparent;border-right:120px solid transparent;border-bottom:150px solid #1a1020;filter:brightness(.7)}
+.pyramid.p2{left:18%;width:0;height:0;border-left:200px solid transparent;border-right:200px solid transparent;border-bottom:250px solid #15081a;filter:brightness(.5)}
+.pyramid.p3{right:15%;width:0;height:0;border-left:150px solid transparent;border-right:150px solid transparent;border-bottom:180px solid #18091e;filter:brightness(.6)}
+/* Sand dunes */
+.bg-sand{
+  position:absolute;bottom:0;left:0;right:0;height:12%;z-index:3;
+  background:linear-gradient(180deg,#5a3a15,#3d2810,#2a1a08);
+  border-radius:100% 100% 0 0 / 60% 60% 0 0;
 }
-@keyframes twinkle{from{opacity:.5}to{opacity:1}}
+/* Animated floating particles */
+.bg-particles{position:absolute;inset:0;z-index:4;opacity:.6}
+@keyframes float{0%{transform:translateY(100vh) rotate(0deg);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) rotate(720deg);opacity:0}}
 
-/* ========== GAME CONTAINER ========== */
-.game-container{
-  position:relative;z-index:1;width:100%;max-width:960px;
-  height:100vh;max-height:700px;
+/* ========== GAME WRAPPER ========== */
+.game-wrap{
+  position:relative;z-index:10;
+  width:min(98vw,900px);
+  aspect-ratio:16/10;
+  max-height:96vh;
   display:flex;flex-direction:column;
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 0 60px rgba(0,0,0,.8),0 0 120px rgba(139,69,0,.2);
 }
 
-/* ========== HEADER ========== */
-.header{
+/* ========== TOP BAR - Title ========== */
+.top-bar{
+  height:56px;
+  background:linear-gradient(180deg,#2a1a05 0%,#1a0e02 40%,#0f0800 100%);
   display:flex;align-items:center;justify-content:space-between;
-  padding:6px 12px;
-  background:linear-gradient(180deg,rgba(212,175,55,.15),rgba(212,175,55,.02));
-  border-bottom:2px solid rgba(212,175,55,.3);
+  padding:0 16px;
+  border-bottom:3px solid;
+  border-image:linear-gradient(90deg,#8B6914,#D4AF37,#F4D03F,#D4AF37,#8B6914) 1;
+  position:relative;
+}
+.top-bar::after{
+  content:'';position:absolute;bottom:-5px;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(244,208,63,.3),transparent);
 }
 .back-btn{
-  background:none;border:1px solid rgba(212,175,55,.4);color:var(--gold);
-  padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;
-  font-size:12px;transition:.2s;letter-spacing:.5px;
+  background:none;border:1px solid rgba(212,175,55,.3);color:#D4AF37;
+  padding:6px 14px;border-radius:6px;cursor:pointer;font-family:inherit;
+  font-size:11px;transition:.2s;letter-spacing:1px;
 }
-.back-btn:hover{background:rgba(212,175,55,.15);border-color:var(--gold)}
-
-.logo{text-align:center;flex:1}
-.logo h1{
-  font-size:clamp(18px,3.5vw,32px);font-weight:900;letter-spacing:3px;
-  background:linear-gradient(180deg,#fff5cc,var(--gold-light),var(--gold),var(--gold-dark));
+.back-btn:hover{background:rgba(212,175,55,.15);border-color:#D4AF37}
+.title-area{text-align:center;flex:1}
+.title-area h1{
+  font-family:'Uncial Antiqua',serif;
+  font-size:clamp(16px,3vw,28px);letter-spacing:3px;
+  background:linear-gradient(180deg,#fff5cc 0%,#F4D03F 30%,#D4AF37 60%,#B8860B 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 2px 6px rgba(212,175,55,.4));
-  line-height:1.1;
+  filter:drop-shadow(0 2px 4px rgba(212,175,55,.5));
+  text-transform:uppercase;
 }
-.logo .subtitle{
-  font-size:clamp(8px,1.2vw,11px);color:rgba(212,175,55,.6);
-  letter-spacing:4px;text-transform:uppercase;
+.title-area .sub{font-size:9px;color:rgba(212,175,55,.5);letter-spacing:5px}
+.bal-display{
+  background:rgba(0,0,0,.4);border:1px solid rgba(212,175,55,.25);
+  border-radius:6px;padding:4px 12px;text-align:center;
+}
+.bal-display .bl{font-size:8px;color:rgba(255,255,255,.3);letter-spacing:1px}
+.bal-display .bv{font-size:16px;color:#F4D03F;font-weight:700}
+
+/* ========== MAIN GAME AREA ========== */
+.game-main{
+  flex:1;display:flex;position:relative;
+  background:linear-gradient(180deg,#0a0510,#050208);
 }
 
-.balance-box{
-  background:linear-gradient(180deg,rgba(212,175,55,.1),rgba(212,175,55,.02));
-  border:1px solid rgba(212,175,55,.3);border-radius:8px;
-  padding:4px 12px;text-align:center;
+/* ========== GOLDEN FRAME - 3D beveled ========== */
+.gold-frame-l,.gold-frame-r{
+  width:40px;z-index:5;position:relative;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:space-around;
+  padding:4px 0;
 }
-.balance-box .label{font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1px}
-.balance-box .value{font-size:clamp(14px,2vw,20px);color:var(--gold-light);font-weight:700}
-
-/* ========== GAME AREA ========== */
-.game-area{
-  flex:1;display:flex;flex-direction:column;
-  position:relative;overflow:hidden;
-  background:linear-gradient(180deg,var(--panel),var(--dark));
+.gold-frame-l{
+  background:linear-gradient(90deg,#4a3010,#8B6914,#B8960B,#D4AF37,#B8960B,#8B6914 85%,#5a3a10);
+  border-right:2px solid #3a2505;
+  box-shadow:inset -3px 0 8px rgba(0,0,0,.4);
 }
-
-/* Romani-styled frame decoration */
-.frame-deco{
-  position:absolute;z-index:3;pointer-events:none;
+.gold-frame-r{
+  background:linear-gradient(270deg,#4a3010,#8B6914,#B8960B,#D4AF37,#B8960B,#8B6914 85%,#5a3a10);
+  border-left:2px solid #3a2505;
+  box-shadow:inset 3px 0 8px rgba(0,0,0,.4);
 }
-.frame-deco.left,.frame-deco.right{
-  top:0;bottom:0;width:28px;
-  background:linear-gradient(180deg,var(--gold-dark),var(--gold),var(--gold-dark));
+/* Hieroglyph pattern on frame */
+.gold-frame-l::before,.gold-frame-r::before{
+  content:'𓂀 𓃭 𓁹 𓋴 𓊝 𓂋 𓃀 𓇳 𓁿 𓃠';
+  position:absolute;top:5px;bottom:5px;width:100%;
+  font-size:10px;line-height:20px;text-align:center;color:rgba(60,30,5,.35);
+  writing-mode:vertical-lr;overflow:hidden;pointer-events:none;z-index:0;
 }
-.frame-deco.left{left:0;border-right:2px solid rgba(0,0,0,.3)}
-.frame-deco.right{right:0;border-left:2px solid rgba(0,0,0,.3)}
-.frame-deco.top,.frame-deco.bottom{
-  left:0;right:0;height:6px;
-  background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-dark));
-}
-.frame-deco.top{top:0}
-.frame-deco.bottom{bottom:0}
-
-/* Romani pattern on side frames - Wagen wheel, horseshoe, stars, fortune */
-.frame-deco.left::after,.frame-deco.right::after{
-  content:'☆ 🔮 ☽ ♠ ☆ 🐴 ☽ ♦ ☆ ✧';
-  position:absolute;top:10px;width:100%;
-  font-size:11px;line-height:24px;text-align:center;
-  color:rgba(0,0,0,.25);writing-mode:vertical-lr;
-  overflow:hidden;height:calc(100% - 20px);
-}
-
-/* Payline numbers */
-.payline-nums{
-  position:absolute;z-index:4;top:6px;bottom:6px;
-  display:flex;flex-direction:column;justify-content:space-around;
-}
-.payline-nums.left{left:2px}
-.payline-nums.right{right:2px}
+/* Payline number buttons */
 .pln{
-  width:22px;height:22px;border-radius:50%;
+  width:28px;height:22px;border-radius:4px;z-index:1;
   display:flex;align-items:center;justify-content:center;
-  font-size:9px;font-weight:900;cursor:pointer;
-  border:1px solid rgba(0,0,0,.3);
-  transition:.2s;color:#000;
+  font-size:10px;font-weight:900;cursor:pointer;
+  color:#000;text-shadow:0 1px 0 rgba(255,255,255,.3);
+  border:1px solid rgba(0,0,0,.4);
+  box-shadow:0 2px 4px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.2);
+  transition:.15s;position:relative;
 }
-.pln:hover{transform:scale(1.2);filter:brightness(1.3)}
+.pln:hover{transform:scale(1.15);filter:brightness(1.3)}
 
-/* ========== REELS ========== */
-.reels-viewport{
-  flex:1;display:flex;gap:3px;
-  margin:6px 28px;position:relative;z-index:2;
-  background:rgba(0,0,0,.4);border-radius:4px;
-  overflow:hidden;
+/* ========== REELS AREA ========== */
+.reels-area{
+  flex:1;display:flex;flex-direction:column;position:relative;
+}
+/* Top/bottom frame bars */
+.frame-bar{
+  height:6px;flex-shrink:0;
+  background:linear-gradient(180deg,#D4AF37,#8B6914);
+  box-shadow:0 2px 6px rgba(0,0,0,.5);position:relative;z-index:3;
+}
+.frame-bar.bottom{background:linear-gradient(180deg,#8B6914,#D4AF37)}
+
+/* Reels viewport */
+.reels-vp{
+  flex:1;display:flex;gap:2px;position:relative;overflow:hidden;
+  background:#080412;
 }
 
 .reel-col{
-  flex:1;display:flex;flex-direction:column;gap:3px;
-  position:relative;overflow:hidden;
-  padding:2px;
+  flex:1;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,rgba(20,10,35,.8),rgba(10,5,20,.9));
+  border-left:1px solid rgba(212,175,55,.08);
+  border-right:1px solid rgba(212,175,55,.08);
 }
-
+/* Reel shine overlay */
 .reel-col::before{
-  content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
   background:linear-gradient(180deg,
-    rgba(0,0,0,.5) 0%,transparent 12%,
-    transparent 88%,rgba(0,0,0,.5) 100%
+    rgba(0,0,0,.6) 0%,rgba(0,0,0,.15) 8%,
+    transparent 15%,transparent 85%,
+    rgba(0,0,0,.15) 92%,rgba(0,0,0,.6) 100%
   );
 }
-
-.reel-sym{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  position:relative;min-height:0;
+.reel-col::after{
+  content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,.02),rgba(255,255,255,.06) 50%,rgba(255,255,255,.02));
 }
 
-/* Symbol styling */
-.sym-inner{
-  width:85%;height:85%;
+/* Reel strip - contains symbols for scrolling animation */
+.reel-strip{
+  position:absolute;left:0;right:0;
+  display:flex;flex-direction:column;
+  transition:none;
+}
+.reel-strip.landing{
+  transition:transform .15s cubic-bezier(.17,.67,.35,1.3);
+}
+
+/* Individual symbol cell */
+.sym-cell{
+  width:100%;aspect-ratio:1/0.85;
   display:flex;align-items:center;justify-content:center;
-  border-radius:8px;position:relative;
-  background:linear-gradient(180deg,rgba(30,20,50,.4),rgba(10,5,25,.6));
-  border:1px solid rgba(212,175,55,.08);
-  transition:all .3s;
+  position:relative;flex-shrink:0;
 }
-
-/* Premium symbol icons via CSS */
-.sym-icon{
-  width:80%;height:80%;
+.sym-cell .sym-wrap{
+  width:88%;height:88%;position:relative;
   display:flex;align-items:center;justify-content:center;
-  filter:drop-shadow(0 3px 6px rgba(0,0,0,.7));
-  transition:transform .3s;
+  border-radius:6px;
+  background:radial-gradient(ellipse at 50% 40%,rgba(40,20,60,.3),rgba(10,5,20,.5));
+  border:1px solid rgba(212,175,55,.06);
+  overflow:hidden;
 }
-.sym-icon svg{width:100%;height:100%}
+/* Symbol image */
+.sym-cell .sym-img{
+  width:82%;height:82%;
+  display:flex;align-items:center;justify-content:center;
+  filter:drop-shadow(0 3px 8px rgba(0,0,0,.6));
+}
+.sym-cell .sym-img svg{width:100%;height:100%}
 
-/* Letter symbols - styled cards */
-.sym-inner.letter{
-  background:linear-gradient(135deg,rgba(40,20,70,.6),rgba(20,10,40,.8));
-  border:1.5px solid rgba(212,175,55,.15);
+/* Win highlighting */
+.sym-cell.win-hl .sym-wrap{
+  border:2px solid #F4D03F !important;
+  box-shadow:0 0 15px rgba(244,208,63,.5),0 0 30px rgba(244,208,63,.25),inset 0 0 15px rgba(244,208,63,.15);
+  animation:symGlow .5s ease-in-out infinite alternate;
 }
-.sym-inner.letter .sym-icon{
-  font-family:'Cinzel',serif;font-weight:900;
-  font-size:clamp(28px,5vw,48px);
-  -webkit-text-stroke:1px rgba(0,0,0,.3);
+@keyframes symGlow{
+  from{box-shadow:0 0 15px rgba(244,208,63,.5),0 0 30px rgba(244,208,63,.25)}
+  to{box-shadow:0 0 25px rgba(244,208,63,.7),0 0 50px rgba(244,208,63,.4),0 0 80px rgba(244,208,63,.15)}
 }
+.sym-cell.win-hl .sym-img{animation:symPulse .4s ease-in-out infinite alternate}
+@keyframes symPulse{from{transform:scale(1)}to{transform:scale(1.08)}}
 
-/* High value symbol backgrounds */
-.sym-inner.premium{
-  background:linear-gradient(135deg,rgba(60,30,10,.5),rgba(30,15,5,.7));
-  border:1.5px solid rgba(212,175,55,.2);
+/* ========== WIN LINE SVG OVERLAY ========== */
+.winline-svg{
+  position:absolute;inset:0;z-index:10;pointer-events:none;
 }
-.sym-inner.book-sym{
-  background:linear-gradient(135deg,rgba(139,0,0,.3),rgba(60,10,10,.5));
-  border:1.5px solid rgba(212,175,55,.35);
-  box-shadow:0 0 12px rgba(212,175,55,.15);
+.winline-svg svg{width:100%;height:100%}
+.wl-path{
+  fill:none;stroke-width:3;stroke-linecap:round;
+  filter:drop-shadow(0 0 4px currentColor);
+  animation:wlFlash .6s ease-in-out infinite alternate;
 }
-
-/* Win highlight */
-.reel-sym.winning .sym-inner{
-  border-color:var(--gold) !important;
-  box-shadow:0 0 20px rgba(212,175,55,.5),0 0 40px rgba(212,175,55,.2);
-  animation:winGlow .6s ease-in-out infinite alternate;
-}
-@keyframes winGlow{
-  from{box-shadow:0 0 15px rgba(212,175,55,.4)}
-  to{box-shadow:0 0 30px rgba(212,175,55,.7),0 0 60px rgba(212,175,55,.3)}
-}
-
-.reel-sym.winning .sym-icon{animation:winBounce .5s ease infinite alternate}
-@keyframes winBounce{from{transform:scale(1)}to{transform:scale(1.12)}}
-
-.reel-sym.expanding .sym-inner{
-  animation:expandFlash .4s ease;
-}
-@keyframes expandFlash{
-  0%{transform:scale(1);filter:brightness(1)}
-  50%{transform:scale(1.2);filter:brightness(2)}
-  100%{transform:scale(1);filter:brightness(1)}
-}
-
-/* Spinning reel blur effect */
-.reel-col.spinning .reel-sym .sym-inner{
-  animation:reelBlur .08s linear infinite;
-}
-@keyframes reelBlur{
-  0%{transform:translateY(-40%);opacity:.3;filter:blur(2px)}
-  50%{transform:translateY(0);opacity:.6;filter:blur(1px)}
-  100%{transform:translateY(40%);opacity:.3;filter:blur(2px)}
-}
-.reel-col.landing .reel-sym .sym-inner{
-  animation:reelLand .25s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes reelLand{
-  from{transform:translateY(-15px);opacity:.7}
-  to{transform:translateY(0);opacity:1}
-}
-
-/* ========== WIN LINE OVERLAY ========== */
-.winline-overlay{
-  position:absolute;inset:0;z-index:5;pointer-events:none;
-  margin:6px 28px;
-}
-.winline-overlay svg{width:100%;height:100%}
+@keyframes wlFlash{from{opacity:1}to{opacity:.5}}
 
 /* ========== INFO BAR ========== */
 .info-bar{
   height:32px;display:flex;align-items:center;justify-content:center;
-  font-size:clamp(12px,1.8vw,16px);letter-spacing:1px;
-  background:linear-gradient(90deg,transparent,rgba(212,175,55,.06),transparent);
-  position:relative;z-index:3;
+  background:linear-gradient(180deg,#0a0510,#12081e);
+  border-top:1px solid rgba(212,175,55,.1);
+  font-size:clamp(11px,1.5vw,15px);letter-spacing:1px;color:rgba(255,255,255,.7);
+  position:relative;z-index:5;
 }
-.info-bar.win{color:var(--gold-light);font-weight:700;animation:infoFlash .5s ease 3}
-.info-bar.freespin{color:#ff6b6b;font-weight:700}
-@keyframes infoFlash{50%{opacity:.4}}
+.info-bar.win-msg{color:#F4D03F;font-weight:700;text-shadow:0 0 10px rgba(244,208,63,.5)}
+.info-bar.fs-msg{color:#ff5555;font-weight:700}
 
 /* ========== CONTROL PANEL ========== */
-.control-panel{
-  display:flex;align-items:center;justify-content:center;gap:3px;
-  padding:8px 6px;
-  background:linear-gradient(180deg,#12091e,#0a0514);
-  border-top:2px solid rgba(212,175,55,.2);
+.ctrl-panel{
+  height:52px;display:flex;align-items:center;justify-content:center;gap:4px;
+  padding:0 8px;
+  background:linear-gradient(180deg,#1a0e05 0%,#120a02 50%,#0a0500 100%);
+  border-top:3px solid;
+  border-image:linear-gradient(90deg,#8B6914,#D4AF37,#F4D03F,#D4AF37,#8B6914) 1;
+  position:relative;
+}
+.ctrl-panel::before{
+  content:'';position:absolute;top:-5px;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(244,208,63,.2),transparent);
 }
 
-.ctrl-box{
+/* Control group box */
+.cg{
   display:flex;flex-direction:column;align-items:center;
-  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
-  border:1px solid rgba(212,175,55,.12);border-radius:8px;
-  padding:4px 8px;min-width:70px;
+  background:linear-gradient(180deg,rgba(0,0,0,.4),rgba(0,0,0,.2));
+  border:1px solid rgba(212,175,55,.15);border-radius:6px;
+  padding:2px 6px;min-width:65px;
 }
-.ctrl-box .label{
-  font-size:8px;color:rgba(255,255,255,.35);
-  text-transform:uppercase;letter-spacing:1.5px;
+.cg .cg-label{font-size:7px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase}
+.cg .cg-val{font-size:clamp(13px,1.8vw,17px);color:#F4D03F;font-weight:700}
+.cg-btns{display:flex;gap:2px;margin-top:1px}
+.cg-btns button{
+  width:22px;height:18px;border-radius:3px;border:1px solid rgba(212,175,55,.2);
+  background:linear-gradient(180deg,rgba(212,175,55,.12),rgba(212,175,55,.04));
+  color:#D4AF37;font-size:13px;cursor:pointer;font-weight:700;
+  display:flex;align-items:center;justify-content:center;transition:.1s;
 }
-.ctrl-box .val{
-  font-size:clamp(14px,2vw,18px);color:var(--gold-light);font-weight:700;
-}
+.cg-btns button:hover{background:rgba(212,175,55,.2);border-color:#D4AF37}
+.cg-btns button:active{transform:scale(.9)}
+.cg.win-cg{border-color:rgba(139,0,0,.3)}
+.cg.win-cg .cg-val{color:#ff4444}
+.cg.win-cg.has-win .cg-val{color:#F4D03F;text-shadow:0 0 8px rgba(244,208,63,.5)}
 
-.ctrl-pm{
-  display:flex;gap:2px;margin-top:2px;
-}
-.ctrl-pm button{
-  width:24px;height:20px;border-radius:4px;
-  border:1px solid rgba(212,175,55,.25);
-  background:rgba(212,175,55,.08);color:var(--gold);
-  font-size:14px;cursor:pointer;font-family:inherit;
-  display:flex;align-items:center;justify-content:center;
-  transition:.15s;
-}
-.ctrl-pm button:hover{background:rgba(212,175,55,.2)}
-.ctrl-pm button:active{transform:scale(.9)}
-
-/* Spin button */
-.spin-btn-wrap{margin:0 6px}
+/* SPIN button */
+.spin-wrap{margin:0 8px}
 .spin-btn{
-  width:clamp(56px,9vw,72px);height:clamp(56px,9vw,72px);
-  border-radius:50%;cursor:pointer;position:relative;
-  border:none;outline:none;
-  background:radial-gradient(circle at 35% 35%,#22aa22,var(--green),var(--green) 60%,#0d4d0d);
-  box-shadow:
-    0 0 0 3px var(--gold-dark),
-    0 0 0 5px rgba(0,0,0,.5),
-    0 4px 15px rgba(0,0,0,.6),
-    0 0 20px rgba(26,107,26,.3);
-  transition:.15s;
-  display:flex;align-items:center;justify-content:center;
+  width:clamp(44px,7vw,58px);height:clamp(44px,7vw,58px);
+  border-radius:50%;cursor:pointer;border:none;
+  background:radial-gradient(circle at 35% 30%,#33cc33,#1a8a1a,#0d5a0d 70%,#063a06);
+  box-shadow:0 0 0 2px #D4AF37,0 0 0 4px rgba(0,0,0,.6),0 4px 12px rgba(0,0,0,.5),0 0 15px rgba(26,140,26,.3);
+  transition:.15s;display:flex;align-items:center;justify-content:center;
+  position:relative;
 }
-.spin-btn::after{
-  content:'';position:absolute;inset:4px;border-radius:50%;
-  border:1.5px solid rgba(255,255,255,.15);
-  background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.1),transparent);
+.spin-btn::before{
+  content:'';position:absolute;inset:3px;border-radius:50%;
+  background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.15),transparent 60%);
+  border:1px solid rgba(255,255,255,.1);
 }
 .spin-btn:hover:not(:disabled){
-  transform:scale(1.06);
-  box-shadow:
-    0 0 0 3px var(--gold),
-    0 0 0 5px rgba(0,0,0,.5),
-    0 4px 20px rgba(0,0,0,.6),
-    0 0 25px rgba(26,107,26,.5);
+  transform:scale(1.08);
+  box-shadow:0 0 0 2px #F4D03F,0 0 0 4px rgba(0,0,0,.6),0 4px 15px rgba(0,0,0,.5),0 0 25px rgba(26,140,26,.5);
 }
-.spin-btn:active:not(:disabled){transform:scale(.95)}
-.spin-btn:disabled{opacity:.4;cursor:not-allowed}
-
-.spin-btn .spin-icon{
-  position:relative;z-index:1;
-  width:clamp(24px,4vw,32px);height:clamp(24px,4vw,32px);
+.spin-btn:active:not(:disabled){transform:scale(.93)}
+.spin-btn:disabled{opacity:.35;cursor:not-allowed}
+.spin-btn .play-tri{
+  width:0;height:0;position:relative;z-index:1;margin-left:3px;
+  border-top:clamp(10px,1.5vw,14px) solid transparent;
+  border-bottom:clamp(10px,1.5vw,14px) solid transparent;
+  border-left:clamp(16px,2.5vw,20px) solid #fff;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));
 }
-/* CSS triangle play icon */
-.spin-icon::before{
-  content:'';display:block;
-  width:0;height:0;
-  border-top:clamp(12px,2vw,16px) solid transparent;
-  border-bottom:clamp(12px,2vw,16px) solid transparent;
-  border-left:clamp(18px,3vw,24px) solid #fff;
-  filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));
-  margin-left:4px;
+.spin-btn.is-stop .play-tri{
+  border:none;width:clamp(16px,2.5vw,20px);height:clamp(16px,2.5vw,20px);
+  background:#fff;border-radius:2px;margin-left:0;
 }
 
-/* Stop icon during spin */
-.spin-btn.stopping .spin-icon::before{
-  border:none;width:clamp(18px,3vw,22px);height:clamp(18px,3vw,22px);
-  background:#fff;border-radius:3px;margin-left:0;
-}
-
-/* Auto & Gamble buttons */
+/* Side buttons */
 .side-btn{
-  padding:6px 10px;border-radius:6px;
-  border:1px solid rgba(212,175,55,.2);
-  background:rgba(212,175,55,.06);color:var(--gold);
-  font-size:10px;cursor:pointer;font-family:inherit;
-  letter-spacing:1px;transition:.15s;
-  text-transform:uppercase;
+  padding:5px 8px;border-radius:5px;
+  border:1px solid rgba(212,175,55,.15);
+  background:linear-gradient(180deg,rgba(212,175,55,.08),rgba(212,175,55,.02));
+  color:#D4AF37;font-size:9px;cursor:pointer;font-family:inherit;
+  letter-spacing:.5px;text-transform:uppercase;transition:.15s;
 }
 .side-btn:hover{background:rgba(212,175,55,.15);border-color:rgba(212,175,55,.4)}
-.side-btn.active{
-  background:linear-gradient(180deg,var(--gold),var(--gold-dark));
-  color:#000;font-weight:700;border-color:var(--gold);
-}
+.side-btn.active{background:linear-gradient(180deg,#D4AF37,#8B6914);color:#000;font-weight:700;border-color:#D4AF37}
 
-/* Win display in panel */
-.win-box{
-  background:linear-gradient(180deg,rgba(139,0,0,.15),rgba(139,0,0,.05));
-  border-color:rgba(139,0,0,.3);
-}
-.win-box .val{color:#ff4444}
-.win-box.has-win .val{color:var(--gold-light);animation:winCountUp .3s ease}
-@keyframes winCountUp{from{transform:scale(1.3)}to{transform:scale(1)}}
-
-/* ========== FREE SPINS BANNER ========== */
+/* ========== FREE SPINS OVERLAY ========== */
 .fs-overlay{
-  display:none;position:absolute;inset:0;z-index:20;
-  background:rgba(8,5,16,.92);
+  display:none;position:absolute;inset:0;z-index:50;
+  background:rgba(0,0,0,.9);
   flex-direction:column;align-items:center;justify-content:center;
 }
 .fs-overlay.show{display:flex}
-
-.fs-banner{
-  text-align:center;animation:fsBannerIn .6s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes fsBannerIn{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
-
-.fs-banner h2{
-  font-size:clamp(28px,5vw,48px);font-weight:900;letter-spacing:4px;
-  background:linear-gradient(180deg,#fff5cc,var(--gold-light),var(--gold));
+.fs-overlay h2{
+  font-family:'Uncial Antiqua',serif;
+  font-size:clamp(24px,5vw,44px);letter-spacing:4px;
+  background:linear-gradient(180deg,#fff5cc,#F4D03F,#D4AF37);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 3px 8px rgba(212,175,55,.5));
-  margin-bottom:12px;
+  filter:drop-shadow(0 3px 8px rgba(212,175,55,.6));
+  animation:fsBounce .6s cubic-bezier(.34,1.56,.64,1);
 }
-.fs-expanding{font-size:clamp(50px,8vw,80px);margin:10px 0}
-.fs-expanding-label{font-size:14px;color:rgba(255,255,255,.6);margin-bottom:8px;letter-spacing:2px}
-.fs-count-big{
-  font-size:clamp(40px,7vw,70px);font-weight:900;
-  color:var(--gold-light);
-  text-shadow:0 0 30px rgba(212,175,55,.5);
-}
-.fs-start-btn{
-  margin-top:20px;padding:12px 40px;border-radius:30px;
-  border:2px solid var(--gold);
-  background:linear-gradient(180deg,var(--crimson),var(--crimson-dark));
-  color:var(--gold-light);font-size:18px;font-weight:700;
-  cursor:pointer;font-family:inherit;letter-spacing:2px;
-  box-shadow:0 0 20px rgba(139,0,0,.5);transition:.2s;
-}
-.fs-start-btn:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(139,0,0,.7)}
+@keyframes fsBounce{from{transform:scale(0) rotate(-8deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.fs-overlay p{color:#D4AF37;font-size:clamp(14px,2vw,20px);margin-top:8px;letter-spacing:2px}
+.fs-overlay .fs-sym{font-size:48px;margin-top:12px;animation:fsSpin 1s ease}
+@keyframes fsSpin{from{transform:rotateY(0)}to{transform:rotateY(720deg)}}
 
-/* Free spin counter badge */
-.fs-badge{
-  display:none;position:absolute;top:10px;right:32px;z-index:6;
-  background:linear-gradient(180deg,var(--crimson),var(--crimson-dark));
-  border:2px solid var(--gold);border-radius:10px;padding:4px 12px;
-  text-align:center;
-}
-.fs-badge.show{display:block}
-.fs-badge .fl{font-size:8px;color:rgba(255,255,255,.5);letter-spacing:1px}
-.fs-badge .fn{font-size:20px;color:var(--gold-light);font-weight:900}
-
-/* ========== BIG WIN ========== */
+/* ========== BIG WIN OVERLAY ========== */
 .bigwin-overlay{
-  display:none;position:absolute;inset:0;z-index:25;
-  background:rgba(8,5,16,.88);
+  display:none;position:absolute;inset:0;z-index:60;
+  background:rgba(0,0,0,.85);
   flex-direction:column;align-items:center;justify-content:center;
 }
 .bigwin-overlay.show{display:flex}
-.bigwin-title{
-  font-size:clamp(36px,7vw,72px);font-weight:900;letter-spacing:4px;
-  background:linear-gradient(180deg,#fff5cc,var(--gold-light),var(--gold),var(--gold-dark));
+.bigwin-overlay h2{
+  font-size:clamp(36px,7vw,64px);font-weight:900;letter-spacing:6px;
+  background:linear-gradient(180deg,#fff,#F4D03F,#D4AF37,#8B6914);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 4px 12px rgba(212,175,55,.6));
-  animation:bigWinPulse .8s ease-in-out infinite alternate;
+  filter:drop-shadow(0 4px 12px rgba(212,175,55,.8));
+  animation:bigwinPop 1s cubic-bezier(.34,1.56,.64,1);
 }
-@keyframes bigWinPulse{from{transform:scale(1)}to{transform:scale(1.08);filter:drop-shadow(0 4px 20px rgba(212,175,55,.8))}}
-.bigwin-amount{
-  font-size:clamp(28px,5vw,56px);color:var(--gold-light);
-  font-weight:900;margin-top:8px;
-  text-shadow:0 0 20px rgba(212,175,55,.5);
+@keyframes bigwinPop{0%{transform:scale(0) rotate(-15deg)}60%{transform:scale(1.15) rotate(3deg)}100%{transform:scale(1) rotate(0)}}
+.bigwin-overlay .bw-amount{
+  font-size:clamp(28px,5vw,52px);color:#F4D03F;font-weight:900;margin-top:8px;
+  text-shadow:0 0 20px rgba(244,208,63,.6);
+  animation:bwCount 2s ease-out;
 }
+@keyframes bwCount{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
 
-/* ========== GAMBLE ========== */
+/* ========== PAYTABLE MODAL ========== */
+.paytable-modal{
+  display:none;position:absolute;inset:0;z-index:70;
+  background:rgba(0,0,0,.95);overflow-y:auto;
+  padding:20px;
+}
+.paytable-modal.show{display:block}
+.paytable-modal h2{
+  text-align:center;font-size:24px;color:#D4AF37;margin-bottom:16px;letter-spacing:3px;
+}
+.pt-close{
+  position:absolute;top:10px;right:16px;font-size:28px;color:#D4AF37;
+  cursor:pointer;background:none;border:none;z-index:1;
+}
+.pt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.pt-item{
+  background:rgba(212,175,55,.05);border:1px solid rgba(212,175,55,.15);
+  border-radius:8px;padding:10px;text-align:center;
+}
+.pt-item .pt-sym{width:50px;height:50px;margin:0 auto 6px}
+.pt-item .pt-sym svg{width:100%;height:100%}
+.pt-item .pt-pays{font-size:11px;color:rgba(255,255,255,.6);line-height:1.6}
+.pt-item .pt-pays span{color:#F4D03F;font-weight:700}
+
+/* ========== GAMBLE OVERLAY ========== */
 .gamble-overlay{
-  display:none;position:absolute;inset:0;z-index:22;
-  background:rgba(8,5,16,.95);
+  display:none;position:absolute;inset:0;z-index:55;
+  background:rgba(5,2,10,.97);
   flex-direction:column;align-items:center;justify-content:center;
 }
 .gamble-overlay.show{display:flex}
-.gamble-title{font-size:18px;color:var(--gold);letter-spacing:3px;margin-bottom:4px}
-.gamble-amount{font-size:28px;color:var(--gold-light);font-weight:900;margin-bottom:16px}
 .gamble-card{
-  width:90px;height:130px;border-radius:10px;
+  width:120px;height:170px;background:#fff;border-radius:10px;
   display:flex;align-items:center;justify-content:center;
-  font-size:54px;margin-bottom:20px;
-  box-shadow:0 8px 25px rgba(0,0,0,.6);
-  transition:.4s;
+  font-size:72px;margin:16px;
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+  transition:transform .3s;perspective:600px;
 }
-.gamble-card.face-down{
-  background:linear-gradient(135deg,#1a0a2e,#2a1040);
-  border:2px solid var(--gold-dark);color:var(--gold-dark);
-}
-.gamble-card.red{background:#fff;color:#cc0000;border:2px solid #cc0000}
-.gamble-card.black{background:#fff;color:#111;border:2px solid #333}
-.gamble-btns{display:flex;gap:12px}
+.gamble-card.flip{animation:cardFlip .5s ease}
+@keyframes cardFlip{0%{transform:rotateY(0)}50%{transform:rotateY(90deg)}100%{transform:rotateY(0)}}
+.gamble-btns{display:flex;gap:16px;margin-top:20px}
 .gamble-btns button{
-  padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;
-  cursor:pointer;font-family:inherit;transition:.15s;border:2px solid;
+  padding:12px 32px;border-radius:8px;border:2px solid;
+  font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;
+  transition:.2s;letter-spacing:1px;
 }
-.gamble-btns .g-red{border-color:#cc0000;background:rgba(204,0,0,.15);color:#ff4444}
-.gamble-btns .g-collect{border-color:var(--gold);background:rgba(212,175,55,.15);color:var(--gold)}
-.gamble-btns .g-black{border-color:#555;background:rgba(0,0,0,.3);color:#ccc}
-.gamble-btns button:hover{transform:scale(1.05)}
-
-/* ========== PAYTABLE ========== */
-.paytable-overlay{
-  display:none;position:absolute;inset:0;z-index:30;
-  background:rgba(8,5,16,.97);overflow-y:auto;
-  padding:20px;
-}
-.paytable-overlay.show{display:block}
-.pt-close{text-align:right;position:sticky;top:0;z-index:1;padding-bottom:8px}
-.pt-close button{
-  background:none;border:1px solid var(--gold);color:var(--gold);
-  padding:6px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px;
-}
-.pt-title{text-align:center;color:var(--gold);font-size:22px;margin-bottom:16px;letter-spacing:2px}
-.pt-row{
-  display:flex;align-items:center;gap:12px;padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,.04);
-}
-.pt-sym{font-size:36px;width:50px;text-align:center;flex-shrink:0}
-.pt-info{flex:1}
-.pt-name{font-size:14px;font-weight:700;margin-bottom:2px}
-.pt-pays{font-size:12px;color:rgba(255,255,255,.5)}
-.pt-pays b{color:var(--gold-light)}
-.pt-footer{
-  text-align:center;padding:16px 0;font-size:12px;
-  color:rgba(255,255,255,.35);line-height:2;
-}
-.pt-footer strong{color:var(--gold)}
-
-/* Info button */
-.info-btn{
-  position:absolute;top:10px;left:32px;z-index:6;
-  background:none;border:1px solid rgba(212,175,55,.3);
-  color:var(--gold);width:28px;height:28px;border-radius:50%;
-  cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;transition:.2s;
-}
-.info-btn:hover{background:rgba(212,175,55,.15);border-color:var(--gold)}
+.g-red{background:linear-gradient(180deg,#cc0000,#880000);border-color:#ff3333;color:#fff}
+.g-red:hover{background:linear-gradient(180deg,#ee2222,#aa0000)}
+.g-black{background:linear-gradient(180deg,#333,#111);border-color:#666;color:#fff}
+.g-black:hover{background:linear-gradient(180deg,#555,#222)}
+.g-collect{background:linear-gradient(180deg,#D4AF37,#8B6914);border-color:#F4D03F;color:#000}
+.gamble-info{color:rgba(255,255,255,.5);font-size:13px;margin-top:16px;letter-spacing:1px}
+.gamble-stake{color:#F4D03F;font-size:20px;font-weight:700;margin-bottom:8px}
 
 /* ========== RESPONSIVE ========== */
 @media(max-width:600px){
-  .game-container{max-height:none;height:100vh;height:100dvh}
-  .frame-deco.left,.frame-deco.right{width:20px}
-  .frame-deco.left::after,.frame-deco.right::after{font-size:9px;line-height:18px}
-  .payline-nums.left{left:0}.payline-nums.right{right:0}
-  .pln{width:17px;height:17px;font-size:7px}
-  .reels-viewport{margin:4px 20px}
-  .ctrl-box{min-width:55px;padding:3px 5px}
-  .ctrl-box .label{font-size:7px}
-  .control-panel{gap:2px;padding:6px 4px}
-}
-@media(max-width:380px){
-  .frame-deco.left,.frame-deco.right{width:16px}
-  .reels-viewport{margin:3px 16px}
+  .game-wrap{border-radius:0;width:100vw;height:100vh;max-height:none;aspect-ratio:auto}
+  .gold-frame-l,.gold-frame-r{width:28px}
+  .pln{width:22px;height:18px;font-size:8px}
+  .top-bar{height:44px}
+  .ctrl-panel{height:48px}
+  .cg{min-width:50px;padding:2px 4px}
 }
 </style>
 </head>
 <body>
 
-<div class="bg-layer"></div>
-<!-- Romani Wheel watermark -->
-<svg class="romani-wheel" viewBox="0 0 200 200" style="position:fixed;bottom:-30px;right:-30px;width:220px;height:220px;opacity:.03;z-index:0;pointer-events:none">
-  <circle cx="100" cy="100" r="90" fill="none" stroke="#D4AF37" stroke-width="4"/>
-  <circle cx="100" cy="100" r="70" fill="none" stroke="#D4AF37" stroke-width="2"/>
-  <circle cx="100" cy="100" r="15" fill="#D4AF37"/>
-  <line x1="100" y1="10" x2="100" y2="190" stroke="#D4AF37" stroke-width="2"/>
-  <line x1="10" y1="100" x2="190" y2="100" stroke="#D4AF37" stroke-width="2"/>
-  <line x1="36" y1="36" x2="164" y2="164" stroke="#D4AF37" stroke-width="2"/>
-  <line x1="164" y1="36" x2="36" y2="164" stroke="#D4AF37" stroke-width="2"/>
-  <line x1="100" y1="10" x2="81" y2="30" stroke="#D4AF37" stroke-width="2"/>
-  <line x1="100" y1="10" x2="119" y2="30" stroke="#D4AF37" stroke-width="2"/>
-  <line x1="190" y1="100" x2="170" y2="81" stroke="#D4AF37" stroke-width="2"/>
-  <line x1="190" y1="100" x2="170" y2="119" stroke="#D4AF37" stroke-width="2"/>
-</svg>
+<!-- ========== BACKGROUND ========== -->
+<div class="bg">
+  <div class="bg-sky"></div>
+  <div class="bg-stars" id="bgStars"></div>
+  <div class="bg-pyramids">
+    <div class="pyramid p1"></div>
+    <div class="pyramid p2"></div>
+    <div class="pyramid p3"></div>
+  </div>
+  <div class="bg-sand"></div>
+  <div class="bg-particles" id="bgPart"></div>
+</div>
 
-<div class="game-container" id="game">
-  <!-- Header -->
-  <div class="header">
-    <button class="back-btn" onclick="goBack()">&#8592; LOBBY</button>
-    <div class="logo">
-      <h1>BUCH DES BAXT</h1>
-      <div class="subtitle">Put Baxt &#9733; Reisendes Casino</div>
+<!-- ========== GAME ========== -->
+<div class="game-wrap" id="gameWrap">
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <button class="back-btn" onclick="location.href='/'">◄ LOBBY</button>
+    <div class="title-area">
+      <h1>Buch des Baxt</h1>
+      <div class="sub">REISENDES CASINO</div>
     </div>
-    <div class="balance-box">
-      <div class="label">GUTHABEN</div>
-      <div class="value" id="balVal">0.00 &euro;</div>
+    <div class="bal-display">
+      <div class="bl">GUTHABEN</div>
+      <div class="bv" id="balVal">10000</div>
     </div>
   </div>
 
-  <!-- Game Area -->
-  <div class="game-area">
-    <!-- Frame decorations -->
-    <div class="frame-deco left"></div>
-    <div class="frame-deco right"></div>
-    <div class="frame-deco top"></div>
-    <div class="frame-deco bottom"></div>
+  <!-- Main game area -->
+  <div class="game-main">
+    <!-- Left gold frame with payline numbers -->
+    <div class="gold-frame-l" id="frameL"></div>
 
-    <!-- Payline numbers left -->
-    <div class="payline-nums left" id="plnLeft"></div>
-    <div class="payline-nums right" id="plnRight"></div>
-
-    <!-- Reels -->
-    <div class="reels-viewport" id="reelsViewport"></div>
-
-    <!-- Win lines SVG -->
-    <div class="winline-overlay" id="winlineOverlay">
-      <svg id="winlineSvg" preserveAspectRatio="none"></svg>
-    </div>
-
-    <!-- Info button -->
-    <button class="info-btn" onclick="togglePaytable()">i</button>
-
-    <!-- Free spin badge -->
-    <div class="fs-badge" id="fsBadge">
-      <div class="fl">FREE</div>
-      <div class="fn" id="fsNum">0</div>
-    </div>
-
-    <!-- Free Spins Overlay -->
-    <div class="fs-overlay" id="fsOverlay">
-      <div class="fs-banner">
-        <h2>FREISPIELE!</h2>
-        <div style="font-size:12px;color:rgba(255,255,255,.5);letter-spacing:2px;margin-bottom:6px">O BAXT SI TUHA!</div>
-        <div class="fs-expanding-label">EXPANDING SYMBOL</div>
-        <div class="fs-expanding" id="fsExpandSym"></div>
-        <div class="fs-count-big" id="fsBigCount">10</div>
-        <div style="color:rgba(255,255,255,.5);font-size:13px;margin-top:4px">FREISPIELE</div>
-        <button class="fs-start-btn" onclick="startFreeSpins()">START</button>
+    <!-- Reels area -->
+    <div class="reels-area">
+      <div class="frame-bar top"></div>
+      <div class="reels-vp" id="reelsVP">
+        <!-- 5 reel columns generated by JS -->
+        <!-- Win line overlay -->
+        <div class="winline-svg" id="winlineSvg"></div>
       </div>
+      <div class="frame-bar bottom"></div>
     </div>
 
-    <!-- Big Win Overlay -->
-    <div class="bigwin-overlay" id="bigwinOverlay">
-      <div class="bigwin-title" id="bigwinTitle">BARO GEWINN!</div>
-      <div class="bigwin-amount" id="bigwinAmount"></div>
-    </div>
-
-    <!-- Gamble Overlay -->
-    <div class="gamble-overlay" id="gambleOverlay">
-      <div class="gamble-title">RISIKO</div>
-      <div class="gamble-amount" id="gambleAmt">0.00 &euro;</div>
-      <div class="gamble-card face-down" id="gambleCard">&#x2748;</div>
-      <div class="gamble-btns">
-        <button class="g-red" onclick="doGamble('red')">ROT</button>
-        <button class="g-collect" onclick="collectGamble()">NEHMEN</button>
-        <button class="g-black" onclick="doGamble('black')">SCHWARZ</button>
-      </div>
-    </div>
-
-    <!-- Paytable -->
-    <div class="paytable-overlay" id="paytableOverlay">
-      <div class="pt-close"><button onclick="togglePaytable()">SCHLIESSEN &times;</button></div>
-      <div class="pt-title">&#9776; AUSZAHLUNGSTABELLE</div>
-      <div id="ptContent"></div>
-      <div class="pt-footer">
-        <strong>&#x1F4D6; BUCH DES BAXT</strong> = Wild &amp; Scatter<br>
-        3+ B&uuml;cher = <strong>10 Freispiele</strong> mit Expanding Symbol<br>
-        Wild ersetzt alle Symbole auf der Gewinnlinie<br>
-        Gewinne werden von links nach rechts ausgewertet<br>
-        <strong>RTP: 96.21%</strong> &bull; <strong>10 Gewinnlinien</strong><br>
-        <br><em style="color:rgba(212,175,55,.5)">Put Baxt! &mdash; Sar san, latsche Diwes!</em>
-      </div>
-    </div>
+    <!-- Right gold frame with payline numbers -->
+    <div class="gold-frame-r" id="frameR"></div>
   </div>
 
-  <!-- Info Bar -->
-  <div class="info-bar" id="infoBar">Put Baxt! &mdash; O Baxt si tuha &mdash; Dr&uuml;cke START</div>
+  <!-- Info bar -->
+  <div class="info-bar" id="infoBar">Drücke SPIN zum Spielen</div>
 
-  <!-- Control Panel -->
-  <div class="control-panel">
-    <div class="ctrl-box">
-      <div class="label">LINIEN</div>
-      <div class="val" id="linesVal">10</div>
-      <div class="ctrl-pm">
-        <button onclick="chgLines(-1)">-</button>
-        <button onclick="chgLines(1)">+</button>
+  <!-- Control panel -->
+  <div class="ctrl-panel">
+    <div class="cg">
+      <div class="cg-label">LINIEN</div>
+      <div class="cg-val" id="linesVal">10</div>
+      <div class="cg-btns">
+        <button onclick="adjLines(-1)">−</button>
+        <button onclick="adjLines(1)">+</button>
       </div>
     </div>
-    <div class="ctrl-box">
-      <div class="label">EINSATZ</div>
-      <div class="val" id="betVal">1.00</div>
-      <div class="ctrl-pm">
-        <button onclick="chgBet(-1)">-</button>
-        <button onclick="chgBet(1)">+</button>
+    <div class="cg">
+      <div class="cg-label">EINSATZ</div>
+      <div class="cg-val" id="betVal">20</div>
+      <div class="cg-btns">
+        <button onclick="adjBet(-1)">−</button>
+        <button onclick="adjBet(1)">+</button>
       </div>
     </div>
-    <div class="spin-btn-wrap">
-      <button class="spin-btn" id="spinBtn" onclick="spin()">
-        <div class="spin-icon"></div>
+    <div class="cg">
+      <div class="cg-label">GESAMT</div>
+      <div class="cg-val" id="totalBetVal">200</div>
+    </div>
+
+    <button class="side-btn" id="ptBtn" onclick="togglePaytable()">TABELLE</button>
+
+    <div class="spin-wrap">
+      <button class="spin-btn" id="spinBtn" onclick="doSpin()">
+        <div class="play-tri"></div>
       </button>
     </div>
+
     <button class="side-btn" id="autoBtn" onclick="toggleAuto()">AUTO</button>
-    <div class="ctrl-box win-box" id="winBox">
-      <div class="label">GEWINN</div>
-      <div class="val" id="winVal">0.00</div>
+    <button class="side-btn" id="gambleBtn" onclick="startGamble()" style="display:none">RISIKO</button>
+
+    <div class="cg win-cg" id="winCg">
+      <div class="cg-label">GEWINN</div>
+      <div class="cg-val" id="winVal">0</div>
     </div>
-    <button class="side-btn" id="gambleBtn" onclick="showGamble()" style="display:none">RISIKO</button>
   </div>
+
+  <!-- Free spins overlay -->
+  <div class="fs-overlay" id="fsOverlay">
+    <h2>FREISPIELE!</h2>
+    <p id="fsText">10 Freispiele gewonnen!</p>
+    <div class="fs-sym" id="fsSym"></div>
+  </div>
+
+  <!-- Big win overlay -->
+  <div class="bigwin-overlay" id="bigwinOverlay">
+    <h2>MEGA GEWINN!</h2>
+    <div class="bw-amount" id="bwAmount"></div>
+  </div>
+
+  <!-- Gamble overlay -->
+  <div class="gamble-overlay" id="gambleOverlay">
+    <div class="gamble-stake">Gewinn: <span id="gambleStake">0</span></div>
+    <div class="gamble-card" id="gambleCard">?</div>
+    <div class="gamble-btns">
+      <button class="g-red" onclick="gamblePick('red')">ROT ♥</button>
+      <button class="g-black" onclick="gamblePick('black')">SCHWARZ ♠</button>
+      <button class="g-collect" onclick="collectGamble()">EINLÖSEN</button>
+    </div>
+    <div class="gamble-info">Verdopple deinen Gewinn oder verliere alles!</div>
+  </div>
+
+  <!-- Paytable modal -->
+  <div class="paytable-modal" id="paytableModal">
+    <button class="pt-close" onclick="togglePaytable()">✕</button>
+    <h2>AUSZAHLUNGSTABELLE</h2>
+    <div class="pt-grid" id="ptGrid"></div>
+  </div>
+
 </div>
 
 <script>
 // ============================================================
-// BUCH DES BAXT - Premium Book of Ra Style Slot
+//  BUCH DES BAXT - Professional Slot Engine
+//  Reisendes Casino © 2026
 // ============================================================
 
-const API = window.location.origin + '/api';
-const TK = localStorage.getItem('rc_token');
+// ===== SYMBOL DEFINITIONS =====
+// HD SVG symbols with rich gradients and detail
+const SYMBOLS = [
+  {id:'book',   name:'Buch des Baxt', cls:'premium book-sym', mult:[0,0,2,20,200], scatter:true, wild:true},
+  {id:'mann',   name:'Reisender',     cls:'premium', mult:[0,0,1,10,100]},
+  {id:'wagen',  name:'Wagen',         cls:'premium', mult:[0,0,1,10,75]},
+  {id:'pferd',  name:'Grast',         cls:'premium', mult:[0,0,1,8,50]},
+  {id:'geige',  name:'Geige',         cls:'premium', mult:[0,0,1,5,40]},
+  {id:'eye',    name:'Auge',          cls:'premium', mult:[0,0,1,5,30]},
+  {id:'A',      name:'A',             cls:'letter',  mult:[0,0,0,5,15]},
+  {id:'K',      name:'K',             cls:'letter',  mult:[0,0,0,5,12]},
+  {id:'Q',      name:'Q',             cls:'letter',  mult:[0,0,0,3,10]},
+  {id:'J',      name:'J',             cls:'letter',  mult:[0,0,0,3,8]},
+  {id:'10',     name:'10',            cls:'letter',  mult:[0,0,0,3,5]},
+];
 
-// ========== HD SVG SYMBOLS ==========
-const SVG_ICONS = {
-  book: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#D4AF37"/><stop offset="50%" stop-color="#B8860B"/><stop offset="100%" stop-color="#8B6914"/></linearGradient>
-    <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFF8DC"/><stop offset="100%" stop-color="#F5DEB3"/></linearGradient>
-    <filter id="gl"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-    <rect x="18" y="12" width="64" height="76" rx="4" fill="url(#bg)" stroke="#FFD700" stroke-width="2" filter="url(#gl)"/>
-    <rect x="24" y="18" width="52" height="64" rx="2" fill="url(#pg)" opacity=".9"/>
-    <line x1="30" y1="32" x2="70" y2="32" stroke="#B8860B" stroke-width="1.5" opacity=".5"/>
-    <line x1="30" y1="42" x2="70" y2="42" stroke="#B8860B" stroke-width="1.5" opacity=".5"/>
-    <line x1="30" y1="52" x2="65" y2="52" stroke="#B8860B" stroke-width="1.5" opacity=".5"/>
-    <line x1="30" y1="62" x2="60" y2="62" stroke="#B8860B" stroke-width="1.5" opacity=".5"/>
-    <circle cx="50" cy="47" r="14" fill="none" stroke="#D4AF37" stroke-width="2.5" opacity=".4"/>
-    <path d="M44 47 L50 38 L56 47 L50 56Z" fill="#D4AF37" opacity=".5"/>
-    <rect x="16" y="15" width="5" height="70" rx="2" fill="url(#bg)" stroke="#FFD700" stroke-width="1"/>
-    <text x="50" y="26" text-anchor="middle" font-size="7" fill="#8B6914" font-weight="bold" font-family="serif">BAXT</text>
-  </svg>`,
-  pharao: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="ph" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD700"/><stop offset="50%" stop-color="#D4AF37"/><stop offset="100%" stop-color="#B8860B"/></linearGradient>
-    <linearGradient id="str" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a3a8a"/><stop offset="100%" stop-color="#0d1f5c"/></linearGradient></defs>
-    <path d="M50 8 L30 28 L22 55 L30 75 L40 85 L60 85 L70 75 L78 55 L70 28Z" fill="url(#ph)" stroke="#FFD700" stroke-width="1.5"/>
-    <path d="M35 28 L50 12 L65 28 L65 38 L35 38Z" fill="url(#str)"/>
-    <rect x="35" y="38" width="30" height="5" fill="#FFD700"/>
-    <rect x="35" y="46" width="30" height="3" fill="url(#str)"/>
-    <rect x="35" y="52" width="30" height="3" fill="#FFD700"/>
-    <rect x="35" y="58" width="30" height="3" fill="url(#str)"/>
-    <ellipse cx="40" cy="42" rx="5" ry="3" fill="#fff" opacity=".9"/>
-    <ellipse cx="60" cy="42" rx="5" ry="3" fill="#fff" opacity=".9"/>
-    <circle cx="40" cy="42" r="2" fill="#1a1a1a"/>
-    <circle cx="60" cy="42" r="2" fill="#1a1a1a"/>
-    <path d="M44 52 Q50 56 56 52" fill="none" stroke="#8B0000" stroke-width="1.5"/>
-    <path d="M22 55 L15 65 L22 62" fill="url(#ph)" stroke="#FFD700" stroke-width="1"/>
-    <path d="M78 55 L85 65 L78 62" fill="url(#ph)" stroke="#FFD700" stroke-width="1"/>
-    <path d="M45 65 L50 75 L55 65" fill="url(#ph)" stroke="#B8860B" stroke-width="1"/>
-    <circle cx="50" cy="30" r="4" fill="#8B0000" stroke="#FFD700" stroke-width="1.5"/>
-  </svg>`,
-  scarab: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="hr" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4a2810"/><stop offset="50%" stop-color="#2c1608"/><stop offset="100%" stop-color="#1a0c04"/></linearGradient>
-    <linearGradient id="mn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD700"/><stop offset="100%" stop-color="#B8860B"/></linearGradient></defs>
-    <!-- Romani Horse / Pferd -->
-    <path d="M30 75 Q28 55 32 42 Q35 32 42 25 L48 18 Q50 15 52 18 L52 28 Q55 22 60 20 Q65 18 68 22 Q66 28 62 32 Q58 36 55 38 L55 42 Q60 48 62 55 Q65 62 68 72 L72 80" fill="url(#hr)" stroke="#D4AF37" stroke-width="1.5"/>
-    <path d="M32 42 Q36 50 35 60 L28 80" fill="url(#hr)" stroke="#D4AF37" stroke-width="1"/>
-    <circle cx="58" cy="26" r="2" fill="#FFD700"/>
-    <path d="M48 18 Q45 12 48 8 Q52 10 52 18" fill="url(#hr)" stroke="#D4AF37" stroke-width="1"/>
-    <!-- Golden mane -->
-    <path d="M50 18 Q46 22 44 28 Q42 34 40 38" fill="none" stroke="url(#mn)" stroke-width="2.5"/>
-    <path d="M52 20 Q48 25 47 30 Q45 36 43 40" fill="none" stroke="url(#mn)" stroke-width="2" opacity=".7"/>
-    <!-- Golden hooves -->
-    <rect x="26" y="78" width="6" height="6" rx="1" fill="#FFD700"/>
-    <rect x="33" y="78" width="6" height="6" rx="1" fill="#FFD700"/>
-    <rect x="66" y="78" width="6" height="6" rx="1" fill="#FFD700"/>
-    <rect x="70" y="78" width="6" height="6" rx="1" fill="#FFD700"/>
-    <!-- Decorative text -->
-    <text x="50" y="96" text-anchor="middle" font-size="7" fill="#D4AF37" font-family="serif" font-weight="bold">GRAST</text>
-  </svg>`,
-  ankh: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="wn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8B4513"/><stop offset="50%" stop-color="#654321"/><stop offset="100%" stop-color="#3e2712"/></linearGradient>
-    <linearGradient id="wgd" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD700"/><stop offset="100%" stop-color="#B8860B"/></linearGradient></defs>
-    <!-- Romani Wagen / Caravan -->
-    <rect x="18" y="30" width="64" height="38" rx="4" fill="url(#wn)" stroke="#D4AF37" stroke-width="1.5"/>
-    <!-- Roof - curved -->
-    <path d="M16 30 Q50 8 84 30" fill="#654321" stroke="#D4AF37" stroke-width="1.5"/>
-    <!-- Window -->
-    <rect x="52" y="38" width="20" height="14" rx="2" fill="#1a3a8a" stroke="#D4AF37" stroke-width="1" opacity=".8"/>
-    <line x1="62" y1="38" x2="62" y2="52" stroke="#D4AF37" stroke-width=".5"/>
-    <line x1="52" y1="45" x2="72" y2="45" stroke="#D4AF37" stroke-width=".5"/>
-    <!-- Door -->
-    <rect x="28" y="40" width="14" height="24" rx="2" fill="#3e2712" stroke="#D4AF37" stroke-width="1"/>
-    <circle cx="39" cy="52" r="1.5" fill="#FFD700"/>
-    <!-- Gold trim -->
-    <line x1="18" y1="44" x2="82" y2="44" stroke="#D4AF37" stroke-width="1" opacity=".5"/>
-    <path d="M22 22 Q50 12 78 22" fill="none" stroke="#FFD700" stroke-width="1" opacity=".4"/>
-    <!-- Wheels -->
-    <circle cx="30" cy="72" r="10" fill="none" stroke="url(#wgd)" stroke-width="3"/>
-    <circle cx="30" cy="72" r="3" fill="#FFD700"/>
-    <line x1="30" y1="62" x2="30" y2="82" stroke="#B8860B" stroke-width="1"/>
-    <line x1="20" y1="72" x2="40" y2="72" stroke="#B8860B" stroke-width="1"/>
-    <line x1="23" y1="65" x2="37" y2="79" stroke="#B8860B" stroke-width="1"/>
-    <line x1="23" y1="79" x2="37" y2="65" stroke="#B8860B" stroke-width="1"/>
-    <circle cx="70" cy="72" r="10" fill="none" stroke="url(#wgd)" stroke-width="3"/>
-    <circle cx="70" cy="72" r="3" fill="#FFD700"/>
-    <line x1="70" y1="62" x2="70" y2="82" stroke="#B8860B" stroke-width="1"/>
-    <line x1="60" y1="72" x2="80" y2="72" stroke="#B8860B" stroke-width="1"/>
-    <line x1="63" y1="65" x2="77" y2="79" stroke="#B8860B" stroke-width="1"/>
-    <line x1="63" y1="79" x2="77" y2="65" stroke="#B8860B" stroke-width="1"/>
-    <!-- Chimney -->
-    <rect x="68" y="14" width="5" height="12" rx="1" fill="#3e2712" stroke="#D4AF37" stroke-width=".5"/>
-    <text x="50" y="96" text-anchor="middle" font-size="7" fill="#D4AF37" font-family="serif" font-weight="bold">WAGEN</text>
-  </svg>`,
-  eye: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="ey" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD700"/><stop offset="100%" stop-color="#B8860B"/></linearGradient>
-    <linearGradient id="ir" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a8aff"/><stop offset="100%" stop-color="#0044aa"/></linearGradient></defs>
-    <path d="M10 42 Q30 20 50 22 Q70 20 90 42 Q70 58 50 56 Q30 58 10 42Z" fill="none" stroke="url(#ey)" stroke-width="4"/>
-    <path d="M10 42 Q30 22 50 24 Q70 22 90 42" fill="#fff" opacity=".15"/>
-    <circle cx="50" cy="40" r="14" fill="#fff"/>
-    <circle cx="50" cy="40" r="10" fill="url(#ir)"/>
-    <circle cx="50" cy="40" r="5" fill="#111"/>
-    <circle cx="47" cy="37" r="2.5" fill="#fff" opacity=".7"/>
-    <path d="M50 56 Q50 75 42 85" fill="none" stroke="url(#ey)" stroke-width="3.5" stroke-linecap="round"/>
-    <path d="M50 56 Q55 65 65 68 Q72 70 70 75" fill="none" stroke="url(#ey)" stroke-width="2.5" stroke-linecap="round"/>
-    <path d="M42 85 Q38 88 35 86" fill="none" stroke="url(#ey)" stroke-width="2.5" stroke-linecap="round"/>
-    <path d="M18 42 Q12 38 8 40" fill="none" stroke="url(#ey)" stroke-width="2" stroke-linecap="round"/>
-  </svg>`
-};
+// HD Images from AI generation + SVG letters
+const IMG_PATH = '/games/img/';
+const SVG = {};
 
-// Letter symbols with ornate styling
-const LETTER_SVGS = {};
-['A','K','Q','J','10'].forEach((l,i) => {
-  const colors = [['#ff3333','#cc0000'],['#3388ff','#1155cc'],['#33dd55','#11aa33'],['#ff8833','#cc5500'],['#dd33ff','#9911cc']];
-  const ids = ['ace','king','queen','jack','ten'];
-  const c = colors[i];
-  LETTER_SVGS[ids[i]] = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="lt${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${c[0]}"/><stop offset="100%" stop-color="${c[1]}"/></linearGradient>
-    <filter id="ltg${i}"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-    <text x="50" y="68" text-anchor="middle" font-size="58" font-weight="900" font-family="Cinzel,serif" fill="url(#lt${i})" stroke="${c[0]}" stroke-width="1" filter="url(#ltg${i})">${l}</text>
-    <text x="50" y="68" text-anchor="middle" font-size="58" font-weight="900" font-family="Cinzel,serif" fill="url(#lt${i})" opacity=".8">${l}</text>
-    <line x1="20" y1="78" x2="80" y2="78" stroke="${c[0]}" stroke-width="1.5" opacity=".3"/>
-    <line x1="25" y1="82" x2="75" y2="82" stroke="${c[0]}" stroke-width="1" opacity=".2"/>
-    <circle cx="50" cy="16" r="3" fill="${c[0]}" opacity=".3"/>
-    <path d="M35 14 Q50 8 65 14" fill="none" stroke="${c[0]}" stroke-width="1" opacity=".25"/>
+// Premium symbols use <img> tags
+function makeImgTag(id) {
+  return `<img src="${IMG_PATH}${id}.png" alt="${id}" style="width:100%;height:100%;object-fit:contain;border-radius:4px">`;
+}
+
+SVG.book = makeImgTag('book');
+SVG.mann = makeImgTag('mann');
+SVG.wagen = makeImgTag('wagen');
+SVG.pferd = makeImgTag('pferd');
+SVG.geige = makeImgTag('geige');
+SVG.eye = makeImgTag('eye');
+
+// Keep the old SVG as dead code reference
+const _OLD_SVG_book = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bookCover" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8B0000"/><stop offset="40%" stop-color="#cc1111"/>
+      <stop offset="70%" stop-color="#8B0000"/><stop offset="100%" stop-color="#5a0000"/>
+    </linearGradient>
+    <linearGradient id="bookGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff5cc"/><stop offset="30%" stop-color="#F4D03F"/>
+      <stop offset="70%" stop-color="#D4AF37"/><stop offset="100%" stop-color="#8B6914"/>
+    </linearGradient>
+    <linearGradient id="bookPages" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f5f0e0"/><stop offset="100%" stop-color="#d4c8a0"/>
+    </linearGradient>
+    <filter id="bookGlow"><feGaussianBlur stdDeviation="2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <!-- Book body -->
+  <rect x="22" y="18" width="76" height="88" rx="4" fill="url(#bookCover)" stroke="#3a0000" stroke-width="2"/>
+  <!-- Spine -->
+  <rect x="22" y="18" width="10" height="88" rx="2" fill="#5a0000" opacity=".6"/>
+  <!-- Pages visible from side -->
+  <rect x="28" y="22" width="66" height="80" rx="2" fill="url(#bookPages)" opacity=".9"/>
+  <!-- Cover front -->
+  <rect x="30" y="20" width="66" height="84" rx="3" fill="url(#bookCover)" stroke="#8B6914" stroke-width="1.5"/>
+  <!-- Gold decorative border on cover -->
+  <rect x="36" y="26" width="54" height="72" rx="2" fill="none" stroke="url(#bookGold)" stroke-width="2"/>
+  <rect x="40" y="30" width="46" height="64" rx="1" fill="none" stroke="url(#bookGold)" stroke-width="1" opacity=".5"/>
+  <!-- Ankh symbol on cover -->
+  <g filter="url(#bookGlow)" transform="translate(60,58)">
+    <ellipse cx="0" cy="-12" rx="8" ry="10" fill="none" stroke="url(#bookGold)" stroke-width="2.5"/>
+    <line x1="0" y1="-2" x2="0" y2="18" stroke="url(#bookGold)" stroke-width="2.5"/>
+    <line x1="-10" y1="6" x2="10" y2="6" stroke="url(#bookGold)" stroke-width="2.5"/>
+  </g>
+  <!-- BAXT text -->
+  <text x="60" y="88" text-anchor="middle" font-family="serif" font-size="11" font-weight="bold" fill="#F4D03F" opacity=".8">BAXT</text>
+  <!-- Glow effect -->
+  <rect x="30" y="20" width="66" height="84" rx="3" fill="none" stroke="#F4D03F" stroke-width="1" opacity=".3">
+    <animate attributeName="opacity" values=".1;.5;.1" dur="2s" repeatCount="indefinite"/>
+  </rect>
+</svg>`;
+
+// OLD SVG DEFINITIONS REMOVED - now using AI-generated PNG images
+// See makeImgTag() above
+const _UNUSED_mann = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d4a574"/><stop offset="100%" stop-color="#b8845a"/>
+    </linearGradient>
+    <linearGradient id="vest" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8B0000"/><stop offset="50%" stop-color="#660000"/>
+      <stop offset="100%" stop-color="#440000"/>
+    </linearGradient>
+    <linearGradient id="hat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a2a2a"/><stop offset="100%" stop-color="#111"/>
+    </linearGradient>
+    <radialGradient id="skinFace" cx=".5" cy=".4" r=".5">
+      <stop offset="0%" stop-color="#ddb88a"/><stop offset="100%" stop-color="#c49060"/>
+    </radialGradient>
+  </defs>
+  <!-- Body/Shirt -->
+  <path d="M36,80 Q36,65 44,60 L60,55 L76,60 Q84,65 84,80 L84,110 L36,110 Z" fill="url(#vest)"/>
+  <!-- Gold shirt trim -->
+  <path d="M52,58 L60,55 L68,58 L64,72 L56,72 Z" fill="#1a1a2e"/>
+  <path d="M52,58 L56,72 L54,73 L50,59Z" fill="#D4AF37" opacity=".6"/>
+  <path d="M68,58 L64,72 L66,73 L70,59Z" fill="#D4AF37" opacity=".6"/>
+  <!-- Gold necklace/chain -->
+  <ellipse cx="60" cy="62" rx="12" ry="4" fill="none" stroke="#D4AF37" stroke-width="1.5"/>
+  <circle cx="60" cy="66" r="3" fill="#F4D03F"/>
+  <!-- Neck -->
+  <rect x="54" y="44" width="12" height="14" rx="3" fill="url(#skin)"/>
+  <!-- Head -->
+  <ellipse cx="60" cy="34" rx="18" ry="20" fill="url(#skinFace)"/>
+  <!-- Hair -->
+  <path d="M42,30 Q42,14 60,12 Q78,14 78,30 Q78,22 72,18 Q60,14 48,18 Q42,22 42,30Z" fill="#1a0a00"/>
+  <!-- Sideburns -->
+  <path d="M42,30 L42,42 Q44,40 44,34Z" fill="#1a0a00"/>
+  <path d="M78,30 L78,42 Q76,40 76,34Z" fill="#1a0a00"/>
+  <!-- Mustache -->
+  <path d="M50,40 Q55,43 60,40 Q65,43 70,40 Q65,45 60,43 Q55,45 50,40Z" fill="#1a0a00"/>
+  <!-- Eyes -->
+  <ellipse cx="52" cy="32" rx="4" ry="3" fill="#fff"/>
+  <circle cx="53" cy="32" r="2" fill="#3a2010"/>
+  <circle cx="53.5" cy="31.5" r=".8" fill="#000"/>
+  <ellipse cx="68" cy="32" rx="4" ry="3" fill="#fff"/>
+  <circle cx="67" cy="32" r="2" fill="#3a2010"/>
+  <circle cx="66.5" cy="31.5" r=".8" fill="#000"/>
+  <!-- Eyebrows -->
+  <path d="M48,28 Q52,26 56,28" fill="none" stroke="#1a0a00" stroke-width="1.5"/>
+  <path d="M64,28 Q68,26 72,28" fill="none" stroke="#1a0a00" stroke-width="1.5"/>
+  <!-- Nose -->
+  <path d="M58,34 Q60,38 62,34" fill="none" stroke="#b88050" stroke-width="1"/>
+  <!-- Ear ring -->
+  <circle cx="42" cy="38" r="2.5" fill="none" stroke="#F4D03F" stroke-width="1.5"/>
+  <circle cx="42" cy="40.5" r="1" fill="#F4D03F"/>
+  <!-- Hat -->
+  <path d="M38,24 Q38,10 60,8 Q82,10 82,24Z" fill="url(#hat)"/>
+  <rect x="34" y="22" width="52" height="5" rx="2" fill="#222" stroke="#D4AF37" stroke-width=".5"/>
+  <rect x="34" y="22" width="52" height="2" rx="1" fill="#D4AF37" opacity=".4"/>
+</svg>`;
+
+const _UNUSED_wagen = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wagon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#228B22"/><stop offset="50%" stop-color="#1a6b1a"/>
+      <stop offset="100%" stop-color="#0d4a0d"/>
+    </linearGradient>
+    <linearGradient id="wagonRoof" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f5f0e0"/><stop offset="100%" stop-color="#c4b88a"/>
+    </linearGradient>
+    <linearGradient id="wheelGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5a3a15"/><stop offset="100%" stop-color="#3a2008"/>
+    </linearGradient>
+  </defs>
+  <!-- Wagon body -->
+  <rect x="18" y="38" width="84" height="42" rx="4" fill="url(#wagon)" stroke="#0d3d0d" stroke-width="2"/>
+  <!-- Wood plank lines -->
+  <line x1="18" y1="50" x2="102" y2="50" stroke="#0d3d0d" stroke-width=".8" opacity=".4"/>
+  <line x1="18" y1="62" x2="102" y2="62" stroke="#0d3d0d" stroke-width=".8" opacity=".4"/>
+  <!-- Decorative border - gold trim -->
+  <rect x="22" y="42" width="76" height="34" rx="2" fill="none" stroke="#D4AF37" stroke-width="1.5"/>
+  <!-- Romani patterns on wagon -->
+  <circle cx="40" cy="56" r="6" fill="none" stroke="#F4D03F" stroke-width="1" opacity=".6"/>
+  <circle cx="60" cy="56" r="6" fill="none" stroke="#F4D03F" stroke-width="1" opacity=".6"/>
+  <circle cx="80" cy="56" r="6" fill="none" stroke="#F4D03F" stroke-width="1" opacity=".6"/>
+  <!-- Small flowers -->
+  <circle cx="40" cy="56" r="2" fill="#ff6b6b" opacity=".7"/>
+  <circle cx="60" cy="56" r="2" fill="#6bcaff" opacity=".7"/>
+  <circle cx="80" cy="56" r="2" fill="#ff6b6b" opacity=".7"/>
+  <!-- Window -->
+  <rect x="46" y="44" width="12" height="10" rx="1" fill="#87CEEB" opacity=".5" stroke="#D4AF37" stroke-width=".8"/>
+  <line x1="52" y1="44" x2="52" y2="54" stroke="#D4AF37" stroke-width=".5"/>
+  <rect x="64" y="44" width="12" height="10" rx="1" fill="#87CEEB" opacity=".5" stroke="#D4AF37" stroke-width=".8"/>
+  <line x1="70" y1="44" x2="70" y2="54" stroke="#D4AF37" stroke-width=".5"/>
+  <!-- Door -->
+  <rect x="26" y="45" width="12" height="18" rx="1" fill="#145a14" stroke="#D4AF37" stroke-width=".8"/>
+  <circle cx="36" cy="55" r="1.2" fill="#D4AF37"/>
+  <!-- Roof - curved canvas top -->
+  <path d="M14,40 Q14,20 60,16 Q106,20 106,40Z" fill="url(#wagonRoof)" stroke="#8a7a5a" stroke-width="1.5"/>
+  <path d="M14,40 Q14,24 60,20 Q106,24 106,40" fill="none" stroke="#D4AF37" stroke-width=".8" opacity=".4"/>
+  <!-- Chimney -->
+  <rect x="80" y="14" width="6" height="12" fill="#555" stroke="#333" stroke-width=".5"/>
+  <!-- Axle -->
+  <rect x="24" y="78" width="72" height="4" rx="2" fill="#3a2510"/>
+  <!-- Wheels -->
+  <g transform="translate(32,86)">
+    <circle r="14" fill="url(#wheelGrad)" stroke="#2a1505" stroke-width="2"/>
+    <circle r="10" fill="none" stroke="#5a3a15" stroke-width="1.5"/>
+    <circle r="3" fill="#D4AF37"/>
+    <line x1="-12" y1="0" x2="12" y2="0" stroke="#5a3a15" stroke-width="1.5"/>
+    <line x1="0" y1="-12" x2="0" y2="12" stroke="#5a3a15" stroke-width="1.5"/>
+    <line x1="-8.5" y1="-8.5" x2="8.5" y2="8.5" stroke="#5a3a15" stroke-width="1.5"/>
+    <line x1="-8.5" y1="8.5" x2="8.5" y2="-8.5" stroke="#5a3a15" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(88,86)">
+    <circle r="14" fill="url(#wheelGrad)" stroke="#2a1505" stroke-width="2"/>
+    <circle r="10" fill="none" stroke="#5a3a15" stroke-width="1.5"/>
+    <circle r="3" fill="#D4AF37"/>
+    <line x1="-12" y1="0" x2="12" y2="0" stroke="#5a3a15" stroke-width="1.5"/>
+    <line x1="0" y1="-12" x2="0" y2="12" stroke="#5a3a15" stroke-width="1.5"/>
+    <line x1="-8.5" y1="-8.5" x2="8.5" y2="8.5" stroke="#5a3a15" stroke-width="1.5"/>
+    <line x1="-8.5" y1="8.5" x2="8.5" y2="-8.5" stroke="#5a3a15" stroke-width="1.5"/>
+  </g>
+  <!-- Steps -->
+  <rect x="22" y="70" width="14" height="3" rx="1" fill="#5a3a15"/>
+</svg>`;
+
+const _UNUSED_pferd = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="horse" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6a4a25"/><stop offset="40%" stop-color="#5a3a15"/>
+      <stop offset="100%" stop-color="#3a1a00"/>
+    </linearGradient>
+    <radialGradient id="horseBody" cx=".4" cy=".4" r=".6">
+      <stop offset="0%" stop-color="#7a5a30"/><stop offset="100%" stop-color="#4a2a0a"/>
+    </radialGradient>
+  </defs>
+  <!-- Body - large barrel chest -->
+  <ellipse cx="62" cy="58" rx="28" ry="20" fill="url(#horseBody)"/>
+  <!-- Hindquarters -->
+  <ellipse cx="78" cy="55" rx="16" ry="18" fill="#5a3a15"/>
+  <!-- Body highlight -->
+  <ellipse cx="55" cy="52" rx="14" ry="10" fill="#7a5a30" opacity=".3"/>
+  <!-- Neck - thick, angled properly -->
+  <path d="M40,48 L32,28 Q30,22 34,20 L44,22 L48,42Z" fill="url(#horse)"/>
+  <!-- Neck highlight -->
+  <path d="M38,44 L33,30 L38,28 L42,40Z" fill="#7a5a30" opacity=".3"/>
+  <!-- Head - proper horse shape -->
+  <path d="M26,26 Q18,22 16,16 Q16,10 22,8 Q28,6 34,8 Q38,12 36,18 L34,20 L32,28Z" fill="#5a3a15"/>
+  <!-- Jaw -->
+  <path d="M18,20 Q22,24 28,24 L26,26 Q20,24 16,20Z" fill="#4a2a0a"/>
+  <!-- Muzzle -->
+  <path d="M16,16 Q14,14 16,11 Q18,9 22,8" fill="none" stroke="#4a2a0a" stroke-width="1.5"/>
+  <!-- Nostril -->
+  <ellipse cx="18" cy="14" rx="2" ry="1.5" fill="#2a0800"/>
+  <!-- Ear 1 -->
+  <path d="M28,8 L26,0 L30,4Z" fill="#5a3a15" stroke="#4a2a0a" stroke-width=".5"/>
+  <!-- Ear 2 -->
+  <path d="M32,7 L31,0 L35,3Z" fill="#4a2a0a" stroke="#3a1a00" stroke-width=".5"/>
+  <!-- Eye -->
+  <ellipse cx="26" cy="14" rx="3" ry="2.5" fill="#fff"/>
+  <circle cx="26.5" cy="14" r="1.8" fill="#1a0500"/>
+  <circle cx="27" cy="13.5" r=".6" fill="#fff"/>
+  <!-- Mane - flowing -->
+  <path d="M30,6 Q34,10 32,18 Q36,14 34,24 Q38,20 36,30 Q40,26 38,36 Q42,32 40,42" fill="none" stroke="#1a0800" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+  <path d="M28,5 Q32,8 30,16 Q34,12 32,22" fill="none" stroke="#2a1200" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+  <!-- Bridle - gold decorative -->
+  <path d="M20,10 L30,9 L34,14" fill="none" stroke="#D4AF37" stroke-width="1.5"/>
+  <path d="M24,12 L24,20" fill="none" stroke="#D4AF37" stroke-width="1"/>
+  <circle cx="20" cy="10" r="1.5" fill="#F4D03F"/>
+  <circle cx="24" cy="16" r="1" fill="#F4D03F"/>
+  <!-- Red feather plume -->
+  <path d="M27,4 Q24,-4 28,-2 Q30,0 28,4" fill="#cc0000" opacity=".8"/>
+  <path d="M29,3 Q28,-5 32,-2 Q33,0 30,4" fill="#ff3333" opacity=".6"/>
+  <!-- Front legs -->
+  <rect x="40" y="72" width="6" height="26" rx="2" fill="#4a2a0a"/>
+  <rect x="48" y="74" width="6" height="24" rx="2" fill="#5a3a15"/>
+  <!-- Back legs -->
+  <path d="M74,68 L72,76 L70,98 L76,98 L78,76Z" fill="#4a2a0a"/>
+  <path d="M82,64 L84,76 L82,98 L88,98 L86,74Z" fill="#3a1a00"/>
+  <!-- Knee joints -->
+  <circle cx="43" cy="86" r="2" fill="#5a3a15"/>
+  <circle cx="51" cy="86" r="2" fill="#6a4a25"/>
+  <circle cx="73" cy="84" r="2" fill="#5a3a15"/>
+  <circle cx="85" cy="82" r="2" fill="#4a2a0a"/>
+  <!-- Hooves -->
+  <rect x="39" y="96" width="8" height="5" rx="2" fill="#111"/>
+  <rect x="47" y="96" width="8" height="5" rx="2" fill="#111"/>
+  <rect x="69" y="96" width="8" height="5" rx="2" fill="#111"/>
+  <rect x="81" y="96" width="8" height="5" rx="2" fill="#111"/>
+  <!-- Tail - flowing -->
+  <path d="M92,44 Q102,40 104,50 Q106,42 108,54 Q110,46 106,62 Q108,54 104,70" fill="none" stroke="#1a0800" stroke-width="4" stroke-linecap="round"/>
+  <path d="M92,46 Q100,44 102,52 Q104,46 106,58" fill="none" stroke="#2a1200" stroke-width="2.5" stroke-linecap="round" opacity=".6"/>
+  <!-- Saddle blanket - Romani colors -->
+  <path d="M48,42 L76,42 L78,46 L76,64 L48,64 L46,46Z" fill="#8B0000" stroke="#D4AF37" stroke-width="1.2"/>
+  <rect x="50" y="46" width="24" height="3" fill="#D4AF37" opacity=".5"/>
+  <rect x="50" y="52" width="24" height="3" fill="#228B22" opacity=".5"/>
+  <rect x="50" y="58" width="24" height="3" fill="#D4AF37" opacity=".5"/>
+  <!-- Saddle -->
+  <path d="M54,40 Q62,36 70,40 L68,46 L56,46Z" fill="#3a1a00" stroke="#D4AF37" stroke-width=".8"/>
+</svg>`;
+
+const _UNUSED_geige = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="violin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a0522d"/><stop offset="30%" stop-color="#8B4513"/>
+      <stop offset="70%" stop-color="#6d3410"/><stop offset="100%" stop-color="#4a2008"/>
+    </linearGradient>
+    <linearGradient id="violinDark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6d3410"/><stop offset="100%" stop-color="#3a1a05"/>
+    </linearGradient>
+    <radialGradient id="violinShine" cx=".35" cy=".3" r=".5">
+      <stop offset="0%" stop-color="#c07040" stop-opacity=".6"/><stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+  </defs>
+  <!-- Violin body - upper bout -->
+  <ellipse cx="52" cy="44" rx="20" ry="18" fill="url(#violin)" stroke="#3a1a05" stroke-width="1.5"/>
+  <!-- Violin body - lower bout (bigger) -->
+  <ellipse cx="52" cy="80" rx="24" ry="22" fill="url(#violin)" stroke="#3a1a05" stroke-width="1.5"/>
+  <!-- Waist (C-bouts) -->
+  <path d="M32,58 Q42,62 32,68" fill="none" stroke="#3a1a05" stroke-width="1.5"/>
+  <path d="M72,58 Q62,62 72,68" fill="none" stroke="#3a1a05" stroke-width="1.5"/>
+  <!-- Fill between bouts -->
+  <rect x="34" y="54" width="36" height="18" fill="url(#violin)"/>
+  <!-- F-holes -->
+  <path d="M40,50 Q38,58 42,66" fill="none" stroke="#2a0a00" stroke-width="2" stroke-linecap="round"/>
+  <path d="M64,50 Q66,58 62,66" fill="none" stroke="#2a0a00" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="40" cy="50" r="1.5" fill="#2a0a00"/>
+  <circle cx="64" cy="50" r="1.5" fill="#2a0a00"/>
+  <circle cx="42" cy="67" r="1.5" fill="#2a0a00"/>
+  <circle cx="62" cy="67" r="1.5" fill="#2a0a00"/>
+  <!-- Shine -->
+  <ellipse cx="48" cy="50" rx="14" ry="28" fill="url(#violinShine)"/>
+  <!-- Bridge -->
+  <rect x="44" y="68" width="16" height="3" rx="1" fill="#5a3a15"/>
+  <!-- Tailpiece -->
+  <path d="M48,86 L52,100 L56,86Z" fill="url(#violinDark)" stroke="#D4AF37" stroke-width=".5"/>
+  <!-- Chin rest -->
+  <ellipse cx="42" cy="92" rx="8" ry="5" fill="#2a1005"/>
+  <!-- Strings -->
+  <line x1="47" y1="24" x2="49" y2="90" stroke="#F4D03F" stroke-width=".8" opacity=".8"/>
+  <line x1="50" y1="24" x2="51" y2="90" stroke="#ddd" stroke-width=".6" opacity=".7"/>
+  <line x1="53" y1="24" x2="53" y2="90" stroke="#ddd" stroke-width=".6" opacity=".7"/>
+  <line x1="56" y1="24" x2="55" y2="90" stroke="#F4D03F" stroke-width=".8" opacity=".8"/>
+  <!-- Neck/Fingerboard -->
+  <rect x="48" y="8" width="8" height="36" rx="2" fill="url(#violinDark)"/>
+  <rect x="49" y="8" width="6" height="36" rx="1" fill="#1a0a00"/>
+  <!-- Scroll (top) -->
+  <path d="M52,10 Q52,2 46,2 Q40,2 40,8 Q40,12 44,12" fill="none" stroke="#6d3410" stroke-width="3"/>
+  <circle cx="42" cy="8" r="3" fill="#6d3410" stroke="#3a1a05" stroke-width="1"/>
+  <!-- Pegs -->
+  <rect x="44" y="12" width="3" height="8" rx="1" fill="#1a0a00" transform="rotate(-15,45,16)"/>
+  <rect x="56" y="14" width="3" height="8" rx="1" fill="#1a0a00" transform="rotate(15,57,18)"/>
+  <rect x="44" y="18" width="3" height="8" rx="1" fill="#1a0a00" transform="rotate(-10,45,22)"/>
+  <rect x="56" y="20" width="3" height="8" rx="1" fill="#1a0a00" transform="rotate(10,57,24)"/>
+  <!-- Bow -->
+  <line x1="78" y1="10" x2="88" y2="105" stroke="#6d3410" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M78,12 Q90,55 88,103" fill="none" stroke="#f5f0e0" stroke-width=".6" opacity=".6"/>
+  <!-- Bow frog -->
+  <rect x="84" y="98" width="8" height="10" rx="2" fill="#1a0a00"/>
+  <rect x="85" y="100" width="6" height="3" rx="1" fill="#D4AF37" opacity=".6"/>
+</svg>`;
+
+const _UNUSED_eye = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="eyeGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F4D03F"/><stop offset="50%" stop-color="#D4AF37"/>
+      <stop offset="100%" stop-color="#8B6914"/>
+    </linearGradient>
+    <radialGradient id="iris" cx=".5" cy=".5" r=".5">
+      <stop offset="0%" stop-color="#00bfff"/><stop offset="40%" stop-color="#0077cc"/>
+      <stop offset="80%" stop-color="#004488"/><stop offset="100%" stop-color="#002244"/>
+    </radialGradient>
+    <filter id="eyeGlow"><feGaussianBlur stdDeviation="3" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <!-- Eye of Horus / Evil eye with Romani twist -->
+  <!-- Outer decorative circle -->
+  <circle cx="60" cy="55" r="42" fill="none" stroke="url(#eyeGold)" stroke-width="2" opacity=".4"/>
+  <!-- Eye shape -->
+  <path d="M16,55 Q38,28 60,28 Q82,28 104,55 Q82,82 60,82 Q38,82 16,55Z" fill="#f0e8d0" stroke="url(#eyeGold)" stroke-width="2"/>
+  <!-- Iris -->
+  <circle cx="60" cy="55" r="20" fill="url(#iris)" filter="url(#eyeGlow)"/>
+  <!-- Iris detail -->
+  <circle cx="60" cy="55" r="16" fill="none" stroke="#0099dd" stroke-width=".5" opacity=".5"/>
+  <circle cx="60" cy="55" r="12" fill="none" stroke="#00bbff" stroke-width=".3" opacity=".4"/>
+  <!-- Pupil -->
+  <circle cx="60" cy="55" r="8" fill="#000"/>
+  <!-- Pupil highlight -->
+  <circle cx="56" cy="51" r="3" fill="#fff" opacity=".7"/>
+  <circle cx="64" cy="58" r="1.5" fill="#fff" opacity=".4"/>
+  <!-- Eye decorative lines (horus-style) -->
+  <path d="M16,55 L8,60 Q4,68 10,76 L20,70" fill="none" stroke="url(#eyeGold)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M104,55 L112,60 Q116,68 110,76 L100,70" fill="none" stroke="url(#eyeGold)" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Teardrop below (evil eye / Nazar style) -->
+  <path d="M60,82 Q56,96 60,108 Q64,96 60,82Z" fill="url(#eyeGold)" opacity=".6"/>
+  <!-- Eyebrow arch -->
+  <path d="M20,42 Q40,20 60,18 Q80,20 100,42" fill="none" stroke="url(#eyeGold)" stroke-width="3" stroke-linecap="round"/>
+  <!-- Small decorative dots -->
+  <circle cx="30" cy="38" r="2" fill="#F4D03F" opacity=".5"/>
+  <circle cx="90" cy="38" r="2" fill="#F4D03F" opacity=".5"/>
+  <circle cx="60" cy="18" r="2" fill="#F4D03F" opacity=".6"/>
+  <!-- Animated glow -->
+  <circle cx="60" cy="55" r="20" fill="none" stroke="#00bfff" stroke-width="1" opacity=".4">
+    <animate attributeName="r" values="18;22;18" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values=".2;.5;.2" dur="2s" repeatCount="indefinite"/>
+  </circle>
+</svg>`;
+
+// Letter SVGs - ornate golden playing card style
+function makeLetterSVG(letter, color1, color2) {
+  return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="lg${letter}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color1}"/><stop offset="50%" stop-color="${color2}"/>
+        <stop offset="100%" stop-color="${color1}"/>
+      </linearGradient>
+      <filter id="ls${letter}"><feGaussianBlur stdDeviation="2" result="g"/>
+        <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <rect x="15" y="10" width="90" height="100" rx="8" fill="rgba(20,10,40,.5)" stroke="url(#lg${letter})" stroke-width="2"/>
+    <rect x="20" y="15" width="80" height="90" rx="5" fill="none" stroke="url(#lg${letter})" stroke-width="1" opacity=".3"/>
+    <text x="60" y="78" text-anchor="middle" font-family="Cinzel,serif" font-size="58" font-weight="900" fill="url(#lg${letter})" filter="url(#ls${letter})">${letter}</text>
+    <text x="26" y="30" font-family="Cinzel,serif" font-size="16" font-weight="700" fill="url(#lg${letter})" opacity=".5">${letter}</text>
+    <text x="94" y="100" text-anchor="end" font-family="Cinzel,serif" font-size="16" font-weight="700" fill="url(#lg${letter})" opacity=".5" transform="rotate(180,94,93)">${letter}</text>
   </svg>`;
-});
+}
+SVG['A']  = makeLetterSVG('A',  '#00ccff', '#0088aa');
+SVG['K']  = makeLetterSVG('K',  '#ff5555', '#aa2222');
+SVG['Q']  = makeLetterSVG('Q',  '#44ff44', '#22aa22');
+SVG['J']  = makeLetterSVG('J',  '#ffaa00', '#aa7700');
+SVG['10'] = makeLetterSVG('10', '#cc88ff', '#8844aa');
 
-const SYM = [
-  { id:'book',   svg:'book',   name:'Buch des Baxt', cls:'book-sym', wild:true, scatter:true },
-  { id:'pharao', svg:'pharao', name:'Pharao',         cls:'premium' },
-  { id:'scarab', svg:'scarab', name:'Grast (Pferd)', cls:'premium' },
-  { id:'ankh',   svg:'ankh',   name:'Wagen',           cls:'premium' },
-  { id:'eye',    svg:'eye',    name:'Diklo (Das Auge)', cls:'premium' },
-  { id:'ace',    svg:'ace',    name:'Ass',    cls:'letter', color:'#ff3333' },
-  { id:'king',   svg:'king',   name:'K\u00f6nig', cls:'letter', color:'#3388ff' },
-  { id:'queen',  svg:'queen',  name:'Dame',   cls:'letter', color:'#33dd55' },
-  { id:'jack',   svg:'jack',   name:'Bube',   cls:'letter', color:'#ff8833' },
-  { id:'ten',    svg:'ten',    name:'Zehn',   cls:'letter', color:'#dd33ff' }
+// ===== PAYLINES (10 lines, classic Book of Ra pattern) =====
+const PAYLINE_COLORS = ['#ff0000','#00ff00','#0000ff','#ffff00','#ff00ff','#00ffff','#ff8800','#88ff00','#ff0088','#8800ff'];
+const PAYLINES = [
+  [1,1,1,1,1],  // line 1: middle row
+  [0,0,0,0,0],  // line 2: top row
+  [2,2,2,2,2],  // line 3: bottom row
+  [0,1,2,1,0],  // line 4: V shape
+  [2,1,0,1,2],  // line 5: ^ shape
+  [0,0,1,2,2],  // line 6: descending
+  [2,2,1,0,0],  // line 7: ascending
+  [1,0,0,0,1],  // line 8: top dip
+  [1,2,2,2,1],  // line 9: bottom dip
+  [0,1,0,1,0],  // line 10: zigzag
 ];
 
-const PAY = {
-  pharao:[50,200,500], scarab:[20,80,200], ankh:[15,50,150],
-  eye:[10,40,100], book:[10,40,100],
-  ace:[5,20,50], king:[5,20,50], queen:[3,15,40], jack:[3,15,40], ten:[3,15,40]
-};
-const SCATTER_PAY = {3:2, 4:20, 5:200};
+// ===== GAME STATE =====
+let balance = 10000;
+let betPerLine = 20;
+let lines = 10;
+let lastWin = 0;
+let spinning = false;
+let autoPlay = false;
+let freeSpins = 0;
+let freeSpinSymbol = null;
+let freeSpinTotalWin = 0;
+let gambleWin = 0;
 
-const W = { ten:25,jack:25,queen:22,king:20,ace:18,eye:12,ankh:10,scarab:8,pharao:5,book:6 };
+// Grid: 5 reels x 3 rows (visible)
+const grid = Array.from({length:5}, () => Array(3).fill(null));
+// DOM references for reel strips
+const reelStrips = [];
+// Reel symbol counts for animation (visible + buffer)
+const VISIBLE_ROWS = 3;
+const BUFFER = 20; // symbols above visible area for spin animation
 
-const LINES = [
-  [1,1,1,1,1],[0,0,0,0,0],[2,2,2,2,2],[0,1,2,1,0],[2,1,0,1,2],
-  [0,0,1,2,2],[2,2,1,0,0],[1,0,0,0,1],[1,2,2,2,1],[1,0,1,0,1]
-];
-const LINE_COLORS = [
-  '#ff0000','#00dd00','#3366ff','#ff00ff','#ffdd00',
-  '#00dddd','#ff7700','#88ff00','#ff0088','#ffffff'
-];
-
-// ========== STATE ==========
-let bal=0, betPer=0.10, nLines=10, spinning=false, autoOn=false;
-let freeSpins=0, fsExpand=null, fsTotalWin=0;
-let lastWin=0, gambleAmt=0;
-const BETS=[0.02,0.05,0.10,0.20,0.50,1.00,2.00,5.00];
-
-let grid = [[],[],[],[],[]]; // visible 3x5 grid
-
-// ========== INIT ==========
-document.addEventListener('DOMContentLoaded', () => {
-  buildReels();
-  buildPaylineNums();
-  buildPaytable();
-  loadBal();
-});
-
-function rndSym() {
-  const tot = Object.values(W).reduce((a,b)=>a+b,0);
-  let r = Math.random()*tot;
-  for (const s of SYM) { r -= W[s.id]; if (r<=0) return s; }
-  return SYM[SYM.length-1];
+// ===== INITIALIZATION =====
+function init() {
+  createBackground();
+  createPaylineButtons();
+  createReels();
+  fillInitialGrid();
+  updateUI();
 }
 
-// ========== BUILD UI ==========
-function buildReels() {
-  const vp = document.getElementById('reelsViewport');
-  vp.innerHTML = '';
-  for (let r = 0; r < 5; r++) {
-    const col = document.createElement('div');
-    col.className = 'reel-col';
-    col.id = 'reel-'+r;
-
-    grid[r] = [];
-    for (let row = 0; row < 3; row++) {
-      const sym = rndSym();
-      grid[r].push(sym);
-      const el = makeSymEl(sym);
-      el.id = 'c-'+r+'-'+row;
-      col.appendChild(el);
-    }
-    vp.appendChild(col);
+function createBackground() {
+  // Create floating particles
+  const cont = document.getElementById('bgPart');
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.style.cssText = `position:absolute;width:${1+Math.random()*2}px;height:${1+Math.random()*2}px;
+      background:rgba(244,208,63,${.2+Math.random()*.3});border-radius:50%;
+      left:${Math.random()*100}%;animation:float ${6+Math.random()*10}s linear ${Math.random()*10}s infinite`;
+    cont.appendChild(p);
+  }
+  // Create stars
+  const stars = document.getElementById('bgStars');
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    const size = .5 + Math.random() * 2;
+    s.style.cssText = `position:absolute;width:${size}px;height:${size}px;background:#fff;border-radius:50%;
+      left:${Math.random()*100}%;top:${Math.random()*40}%;opacity:${.2+Math.random()*.6};
+      animation:twinkle ${2+Math.random()*3}s ease-in-out ${Math.random()*3}s infinite alternate`;
+    stars.appendChild(s);
   }
 }
 
-function makeSymEl(sym) {
-  const el = document.createElement('div');
-  el.className = 'reel-sym';
-  el.dataset.id = sym.id;
-
-  const inner = document.createElement('div');
-  inner.className = 'sym-inner ' + sym.cls;
-
-  const icon = document.createElement('div');
-  icon.className = 'sym-icon';
-  // Use SVG graphics
-  const svgSrc = SVG_ICONS[sym.svg] || LETTER_SVGS[sym.svg] || '';
-  icon.innerHTML = svgSrc;
-
-  inner.appendChild(icon);
-  el.appendChild(inner);
-  return el;
-}
-
-function setCell(r, row, sym) {
-  grid[r][row] = sym;
-  const el = document.getElementById('c-'+r+'-'+row);
-  const newEl = makeSymEl(sym);
-  newEl.id = 'c-'+r+'-'+row;
-  el.replaceWith(newEl);
-}
-
-function buildPaylineNums() {
-  const left = document.getElementById('plnLeft');
-  const right = document.getElementById('plnRight');
-  // Left: lines 1-5, Right: lines 6-10
-  for (let i = 0; i < 5; i++) {
-    const pl = document.createElement('div');
-    pl.className = 'pln';
-    pl.textContent = i+1;
-    pl.style.background = LINE_COLORS[i];
-    left.appendChild(pl);
-  }
-  for (let i = 5; i < 10; i++) {
-    const pr = document.createElement('div');
-    pr.className = 'pln';
-    pr.textContent = i+1;
-    pr.style.background = LINE_COLORS[i];
-    right.appendChild(pr);
-  }
-}
-
-function buildPaytable() {
-  const c = document.getElementById('ptContent');
-  let h = '';
-  for (const s of SYM) {
-    const p = PAY[s.id];
-    const svgHtml = '<div style="width:45px;height:45px">'+(SVG_ICONS[s.svg]||LETTER_SVGS[s.svg]||'')+'</div>';
-    h += '<div class="pt-row"><div class="pt-sym">'+svgHtml+'</div><div class="pt-info">' +
-      '<div class="pt-name">'+s.name+(s.wild?' (Wild+Scatter)':'')+'</div>' +
-      '<div class="pt-pays">3x <b>'+p[0]+'</b> &bull; 4x <b>'+p[1]+'</b> &bull; 5x <b>'+p[2]+'</b></div>' +
-      '</div></div>';
-  }
-  c.innerHTML = h;
-}
-
-// ========== BALANCE ==========
-async function loadBal() {
-  if (!TK) { bal=100; updDisp(); return; }
-  try {
-    const r = await fetch(API+'/wallet/balance',{headers:{'Authorization':'Bearer '+TK}});
-    const d = await r.json();
-    bal = d.balance !== undefined ? d.balance : 100;
-  } catch(e) { bal=100; }
-  updDisp();
-}
-
-async function syncBal(amt) {
-  if (!TK) return;
-  try {
-    const endpoint = amt>0 ? '/wallet/deposit' : '/wallet/withdraw';
-    await fetch(API+endpoint, {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+TK},
-      body:JSON.stringify({amount:Math.abs(amt)})
-    });
-  } catch(e){}
-}
-
-// ========== CONTROLS ==========
-function totalBet() { return Math.round(betPer*nLines*100)/100; }
-
-function chgBet(d) {
-  if (spinning) return;
-  const i = BETS.indexOf(betPer);
-  betPer = BETS[Math.max(0,Math.min(BETS.length-1,i+d))];
-  updDisp();
-}
-
-function chgLines(d) {
-  if (spinning) return;
-  nLines = Math.max(1,Math.min(10,nLines+d));
-  updDisp();
-}
-
-function updDisp() {
-  document.getElementById('balVal').textContent = bal.toFixed(2)+' \u20AC';
-  document.getElementById('betVal').textContent = totalBet().toFixed(2);
-  document.getElementById('linesVal').textContent = nLines;
-  document.getElementById('winVal').textContent = lastWin.toFixed(2);
-}
-
-function toggleAuto() {
-  autoOn=!autoOn;
-  document.getElementById('autoBtn').classList.toggle('active',autoOn);
-  if (autoOn && !spinning) spin();
-}
-
-function togglePaytable() {
-  document.getElementById('paytableOverlay').classList.toggle('show');
-}
-
-function goBack() { window.location.href='/'; }
-
-// ========== SPIN ==========
-async function spin() {
-  if (spinning) return;
-  const tb = totalBet();
-
-  if (freeSpins<=0 && bal<tb) {
-    setInfo('Nane Love — Nicht genug Guthaben!');
-    autoOn=false; document.getElementById('autoBtn').classList.remove('active');
-    return;
-  }
-
-  spinning=true;
-  lastWin=0;
-  document.getElementById('spinBtn').disabled=true;
-  document.getElementById('spinBtn').classList.add('stopping');
-  document.getElementById('gambleBtn').style.display='none';
-  clearWins();
-  clearWinlines();
-
-  // Deduct
-  if (freeSpins>0) {
-    freeSpins--;
-    document.getElementById('fsNum').textContent=freeSpins;
-    if (freeSpins<=0) document.getElementById('fsBadge').classList.remove('show');
-  } else {
-    bal-=tb; syncBal(-tb);
-  }
-  updDisp(); setInfo(rndPhrase(ROMANI_IDLE));
-
-  // Generate results
-  const results = [];
-  for (let r=0; r<5; r++) {
-    results.push([rndSym(), rndSym(), rndSym()]);
-  }
-
-  // Animate reels - start all spinning
-  const reels = document.querySelectorAll('.reel-col');
-  reels.forEach(r => r.classList.add('spinning'));
-
-  // Rapidly shuffle symbols during spin
-  const shuffleInterval = setInterval(() => {
-    reels.forEach((reel, r) => {
-      if (reel.classList.contains('spinning')) {
-        for (let row=0; row<3; row++) {
-          const el = document.getElementById('c-'+r+'-'+row);
-          if (el) {
-            const s = rndSym();
-            const iconEl = el.querySelector('.sym-icon');
-            if (iconEl) iconEl.innerHTML = SVG_ICONS[s.svg] || LETTER_SVGS[s.svg] || '';
-          }
-        }
-      }
-    });
-  }, 80);
-
-  // Stop reels one by one
-  for (let r=0; r<5; r++) {
-    await sleep(350 + r*220);
-    reels[r].classList.remove('spinning');
-    reels[r].classList.add('landing');
-    for (let row=0; row<3; row++) {
-      setCell(r, row, results[r][row]);
-    }
-    grid[r] = results[r];
-    setTimeout(() => reels[r].classList.remove('landing'), 300);
-  }
-  clearInterval(shuffleInterval);
-  await sleep(150);
-
-  // Free spin expand
-  if (fsExpand) await doExpand();
-
-  // Evaluate
-  let totalW = 0;
-  const winCells = new Set();
-  const winLines = [];
-
-  for (let l=0; l<nLines; l++) {
-    const res = evalLine(l);
-    if (res.win>0) {
-      totalW += res.win * betPer;
-      res.cells.forEach(c => winCells.add(c));
-      winLines.push({line:l, cells:res.cells});
-    }
-  }
-
-  // Scatter
-  let scatN=0; const scatCells=[];
-  for (let r=0;r<5;r++) for (let row=0;row<3;row++) {
-    if (grid[r][row].id==='book') { scatN++; scatCells.push(r+'-'+row); }
-  }
-  if (scatN>=3 && SCATTER_PAY[scatN]) {
-    totalW += SCATTER_PAY[scatN]*tb;
-    scatCells.forEach(c => winCells.add(c));
-  }
-
-  totalW = Math.round(totalW*100)/100;
-
-  // Show wins
-  highlightWins(winCells);
-  if (winLines.length>0) drawWinlines(winLines);
-
-  if (totalW>0) {
-    lastWin=totalW; bal+=totalW; syncBal(totalW);
-    document.getElementById('winBox').classList.add('has-win');
-    updDisp();
-
-    if (totalW >= tb*20) {
-      await showBigWin(totalW);
-    } else {
-      setInfo(rndPhrase(ROMANI_WIN)+' +'+totalW.toFixed(2)+'\u20AC','win');
-    }
-    if (fsExpand) fsTotalWin+=totalW;
-  } else {
-    document.getElementById('winBox').classList.remove('has-win');
-  }
-
-  // Trigger free spins
-  if (scatN>=3 && freeSpins<=0 && !fsExpand) {
-    await triggerFS();
-    spinning=false;
-    document.getElementById('spinBtn').disabled=false;
-    document.getElementById('spinBtn').classList.remove('stopping');
-    return;
-  }
-
-  // Re-trigger during FS
-  if (scatN>=3 && fsExpand) {
-    freeSpins+=10;
-    document.getElementById('fsNum').textContent=freeSpins;
-    document.getElementById('fsBadge').classList.add('show');
-    setInfo('+10 Freispiele! Opre Sinti! 🎉','freespin');
-  }
-
-  // FS ended
-  if (fsExpand && freeSpins<=0) {
-    fsExpand=null;
-    setInfo(fsTotalWin>0 ?
-      'Freispiele vorbei! Gesamt: '+fsTotalWin.toFixed(2)+'\u20AC' :
-      'Freispiele vorbei.', fsTotalWin>0?'win':'');
-    fsTotalWin=0;
-  }
-
-  spinning=false;
-  document.getElementById('spinBtn').disabled=false;
-  document.getElementById('spinBtn').classList.remove('stopping');
-
-  // Show gamble option
-  if (totalW>0 && !fsExpand && !autoOn) {
-    gambleAmt=totalW;
-    document.getElementById('gambleBtn').style.display='';
-  }
-
-  // Auto / Free spin continue
-  if (autoOn && freeSpins<=0) { await sleep(600); spin(); }
-  else if (freeSpins>0) { await sleep(500); spin(); }
-}
-
-// ========== EXPAND (Free Spins) ==========
-async function doExpand() {
-  if (!fsExpand) return;
-  let expanded = false;
-
-  for (let r=0; r<5; r++) {
-    let has = false;
-    for (let row=0; row<3; row++) {
-      if (grid[r][row].id===fsExpand.id || grid[r][row].id==='book') { has=true; break; }
-    }
-    if (has) {
-      for (let row=0; row<3; row++) {
-        grid[r][row] = fsExpand;
-        setCell(r, row, fsExpand);
-        document.getElementById('c-'+r+'-'+row)?.classList.add('expanding');
-        expanded = true;
-      }
-    }
-  }
-
-  if (expanded) {
-    await sleep(700);
-    document.querySelectorAll('.expanding').forEach(e=>e.classList.remove('expanding'));
-  }
-}
-
-// ========== PAYLINE EVAL ==========
-function evalLine(li) {
-  const line = LINES[li];
-  const syms = line.map((row,r)=>grid[r][row]);
-  const cells = line.map((row,r)=>r+'-'+row);
-
-  let match=null, count=0;
-  for (let i=0;i<5;i++) {
-    const s=syms[i];
-    if (i===0) {
-      count=1;
-      match=s.wild?null:s;
-    } else {
-      if (s.wild || (match && s.id===match.id)) {
-        count++;
-        if (!match && !s.wild) match=s;
-      } else if (!match && !s.wild) {
-        match=s; count++;
-      } else break;
-    }
-  }
-  if (!match) match=SYM[0]; // all wilds = book
-  if (count>=3 && PAY[match.id]) {
-    return {win:PAY[match.id][count-3], cells:cells.slice(0,count)};
-  }
-  return {win:0,cells:[]};
-}
-
-// ========== WIN DISPLAY ==========
-function highlightWins(cells) {
-  cells.forEach(key => {
-    document.getElementById('c-'+key)?.classList.add('winning');
+function createPaylineButtons() {
+  const frameL = document.getElementById('frameL');
+  const frameR = document.getElementById('frameR');
+  // Lines are displayed in specific order matching Book of Ra
+  const leftOrder  = [4,2,9,6,1,7,8,3,5,10];
+  const rightOrder = [4,2,8,6,1,7,9,3,5,10];
+  leftOrder.forEach(n => {
+    const btn = document.createElement('div');
+    btn.className = 'pln';
+    btn.textContent = n;
+    btn.style.background = `linear-gradient(180deg,${PAYLINE_COLORS[n-1]},${darken(PAYLINE_COLORS[n-1])})`;
+    btn.onclick = () => flashPayline(n-1);
+    frameL.appendChild(btn);
+  });
+  rightOrder.forEach(n => {
+    const btn = document.createElement('div');
+    btn.className = 'pln';
+    btn.textContent = n;
+    btn.style.background = `linear-gradient(180deg,${PAYLINE_COLORS[n-1]},${darken(PAYLINE_COLORS[n-1])})`;
+    btn.onclick = () => flashPayline(n-1);
+    frameR.appendChild(btn);
   });
 }
 
-function clearWins() {
-  document.querySelectorAll('.reel-sym.winning').forEach(e=>e.classList.remove('winning'));
+function darken(hex) {
+  const r = Math.max(0, parseInt(hex.slice(1,3),16) - 80);
+  const g = Math.max(0, parseInt(hex.slice(3,5),16) - 80);
+  const b = Math.max(0, parseInt(hex.slice(5,7),16) - 80);
+  return `rgb(${r},${g},${b})`;
 }
 
-function drawWinlines(winLines) {
-  const svg = document.getElementById('winlineSvg');
-  const vp = document.getElementById('reelsViewport');
-  const w = vp.clientWidth;
-  const h = vp.clientHeight;
-  svg.setAttribute('viewBox','0 0 '+w+' '+h);
+function createReels() {
+  const vp = document.getElementById('reelsVP');
+  for (let r = 0; r < 5; r++) {
+    const col = document.createElement('div');
+    col.className = 'reel-col';
+    col.id = 'reel-' + r;
 
-  let html = '';
-  for (const wl of winLines) {
-    const line = LINES[wl.line];
-    const color = LINE_COLORS[wl.line];
-    const colW = w/5;
-    const rowH = h/3;
-    let d = '';
-    for (let i=0; i<5; i++) {
-      const x = colW*i + colW/2;
-      const y = rowH*line[i] + rowH/2;
-      d += (i===0?'M':'L')+x+','+y;
+    const strip = document.createElement('div');
+    strip.className = 'reel-strip';
+    strip.id = 'strip-' + r;
+
+    // Create BUFFER + VISIBLE_ROWS cells
+    for (let i = 0; i < BUFFER + VISIBLE_ROWS; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'sym-cell';
+      cell.id = `c-${r}-${i}`;
+      const wrap = document.createElement('div');
+      wrap.className = 'sym-wrap';
+      const img = document.createElement('div');
+      img.className = 'sym-img';
+      wrap.appendChild(img);
+      cell.appendChild(wrap);
+      strip.appendChild(cell);
     }
-    html += '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="3" opacity="0.7" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="opacity" values="0.7;0.3;0.7" dur="1s" repeatCount="indefinite"/></path>';
+
+    col.appendChild(strip);
+    vp.appendChild(col);
+    reelStrips.push(strip);
   }
-  svg.innerHTML = html;
 }
 
-function clearWinlines() {
+function fillInitialGrid() {
+  for (let r = 0; r < 5; r++) {
+    for (let row = 0; row < VISIBLE_ROWS; row++) {
+      const sym = randomSymbol();
+      grid[r][row] = sym;
+    }
+    renderReel(r);
+  }
+}
+
+function renderReel(r) {
+  const strip = reelStrips[r];
+  const cellH = strip.parentElement.clientHeight / VISIBLE_ROWS;
+
+  // Fill buffer cells with random symbols
+  for (let i = 0; i < BUFFER; i++) {
+    const cell = strip.children[i];
+    const sym = randomSymbol();
+    cell.querySelector('.sym-img').innerHTML = SVG[sym.id] || '';
+    cell.style.height = cellH + 'px';
+  }
+
+  // Fill visible cells with grid data
+  for (let row = 0; row < VISIBLE_ROWS; row++) {
+    const cell = strip.children[BUFFER + row];
+    const sym = grid[r][row];
+    cell.querySelector('.sym-img').innerHTML = SVG[sym.id] || '';
+    cell.style.height = cellH + 'px';
+  }
+
+  // Position strip so visible rows are showing
+  strip.style.transform = `translateY(-${BUFFER * cellH}px)`;
+}
+
+function randomSymbol() {
+  // Weighted random - lower value symbols more frequent
+  const weights = [2, 3, 4, 5, 5, 6, 10, 10, 12, 12, 14];
+  const total = weights.reduce((a,b) => a+b, 0);
+  let rand = Math.random() * total;
+  for (let i = 0; i < SYMBOLS.length; i++) {
+    rand -= weights[i];
+    if (rand <= 0) return SYMBOLS[i];
+  }
+  return SYMBOLS[SYMBOLS.length - 1];
+}
+
+// ===== SPIN LOGIC =====
+async function doSpin() {
+  if (spinning) return;
+
+  const totalBet = betPerLine * lines;
+  if (freeSpins <= 0 && balance < totalBet) {
+    setInfo('Nicht genug Guthaben!');
+    return;
+  }
+
+  spinning = true;
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('gambleBtn').style.display = 'none';
+  clearWinHighlights();
+  clearWinLines();
+
+  if (freeSpins > 0) {
+    freeSpins--;
+    setInfo(`Freispiel ${10 - freeSpins} von 10`, 'fs-msg');
+  } else {
+    balance -= totalBet;
+  }
+  lastWin = 0;
+  updateUI();
+
+  // Generate results
+  const results = [];
+  for (let r = 0; r < 5; r++) {
+    const col = [];
+    for (let row = 0; row < VISIBLE_ROWS; row++) {
+      col.push(randomSymbol());
+    }
+    results.push(col);
+  }
+
+  // Animate reels
+  await animateReels(results);
+
+  // Set final grid
+  for (let r = 0; r < 5; r++) {
+    for (let row = 0; row < VISIBLE_ROWS; row++) {
+      grid[r][row] = results[r][row];
+    }
+  }
+
+  // Check wins
+  const wins = checkWins();
+
+  if (wins.totalWin > 0) {
+    lastWin = wins.totalWin;
+    balance += lastWin;
+
+    if (freeSpins > 0) freeSpinTotalWin += lastWin;
+
+    // Show win effects
+    highlightWins(wins);
+    drawWinLines(wins);
+
+    if (lastWin >= totalBet * 10) {
+      showBigWin(lastWin);
+    } else {
+      // Romani win phrases
+      const phrases = ['Baxtalo!','Latscho!','Kushti!','Opre!','Sastipen!'];
+      setInfo(`${phrases[Math.floor(Math.random()*phrases.length)]} GEWINN: ${lastWin}`, 'win-msg');
+    }
+
+    if (freeSpins <= 0) {
+      document.getElementById('gambleBtn').style.display = '';
+      gambleWin = lastWin;
+    }
+  } else {
+    setInfo(freeSpins > 0 ? `Noch ${freeSpins} Freispiele` : 'Kein Gewinn');
+  }
+
+  // Check for scatter (3+ books = free spins)
+  if (wins.scatterCount >= 3 && freeSpins <= 0) {
+    await startFreeSpins();
+  }
+
+  updateUI();
+  spinning = false;
+  document.getElementById('spinBtn').disabled = false;
+
+  // Free spins ended?
+  if (freeSpins === 0 && freeSpinTotalWin > 0) {
+    setInfo(`Freispiele beendet! Gesamtgewinn: ${freeSpinTotalWin}`, 'win-msg');
+    freeSpinTotalWin = 0;
+    freeSpinSymbol = null;
+  }
+
+  // Auto play
+  if (autoPlay && (freeSpins > 0 || balance >= betPerLine * lines)) {
+    setTimeout(doSpin, 800);
+  }
+}
+
+async function animateReels(results) {
+  const promises = [];
+
+  for (let r = 0; r < 5; r++) {
+    promises.push(animateReel(r, results[r], r * 150)); // stagger 150ms
+  }
+
+  await Promise.all(promises);
+}
+
+function animateReel(reelIdx, finalSymbols, delay) {
+  return new Promise(resolve => {
+    const strip = reelStrips[reelIdx];
+    const col = strip.parentElement;
+    const cellH = col.clientHeight / VISIBLE_ROWS;
+    const totalCells = BUFFER + VISIBLE_ROWS;
+
+    // Set final symbols at the bottom of the strip
+    for (let row = 0; row < VISIBLE_ROWS; row++) {
+      const cell = strip.children[BUFFER + row];
+      cell.querySelector('.sym-img').innerHTML = SVG[finalSymbols[row].id] || '';
+    }
+
+    // Fill buffer with random symbols
+    for (let i = 0; i < BUFFER; i++) {
+      const sym = randomSymbol();
+      strip.children[i].querySelector('.sym-img').innerHTML = SVG[sym.id] || '';
+    }
+
+    // Start position: all buffer visible (scrolled up)
+    strip.style.transition = 'none';
+    strip.style.transform = `translateY(0px)`;
+
+    setTimeout(() => {
+      // Animate to final position
+      const spinDuration = 600 + delay;
+      strip.style.transition = `transform ${spinDuration}ms cubic-bezier(.2,.8,.3,1)`;
+      strip.style.transform = `translateY(-${BUFFER * cellH}px)`;
+
+      setTimeout(() => {
+        strip.style.transition = 'none';
+        resolve();
+      }, spinDuration + 50);
+    }, delay);
+  });
+}
+
+// ===== WIN CHECKING =====
+function checkWins() {
+  const result = { lines: [], totalWin: 0, scatterCount: 0, scatterPositions: [] };
+
+  // Count scatters (books)
+  const bookPositions = [];
+  for (let r = 0; r < 5; r++) {
+    for (let row = 0; row < 3; row++) {
+      if (grid[r][row].id === 'book') {
+        bookPositions.push([r, row]);
+      }
+    }
+  }
+  result.scatterCount = bookPositions.length;
+  result.scatterPositions = bookPositions;
+
+  // Scatter pays
+  if (bookPositions.length >= 3) {
+    const bookSym = SYMBOLS[0];
+    const scatterPay = bookSym.mult[bookPositions.length - 1] * betPerLine * lines;
+    result.totalWin += scatterPay;
+  }
+
+  // Check each payline
+  for (let l = 0; l < lines; l++) {
+    const line = PAYLINES[l];
+    const syms = line.map((row, r) => grid[r][row]);
+
+    // Find leftmost symbol (ignore book as wild if another sym starts)
+    let matchSym = null;
+    let count = 0;
+    let positions = [];
+
+    for (let r = 0; r < 5; r++) {
+      const s = syms[r];
+      const isWild = s.id === 'book';
+
+      if (matchSym === null) {
+        if (!isWild) matchSym = s;
+        positions.push([r, line[r]]);
+        count++;
+      } else if (s.id === matchSym.id || isWild) {
+        positions.push([r, line[r]]);
+        count++;
+      } else {
+        break;
+      }
+    }
+
+    // If all wilds, match as book
+    if (matchSym === null) matchSym = SYMBOLS[0];
+
+    // Free spin expanding symbol
+    if (freeSpinSymbol && freeSpins >= 0) {
+      // Check if expanding symbol appears on payline
+      const expandCount = syms.filter(s => s.id === freeSpinSymbol.id || s.id === 'book').length;
+      if (expandCount >= 3) {
+        count = expandCount;
+        positions = [];
+        for (let r = 0; r < 5; r++) {
+          if (syms[r].id === freeSpinSymbol.id || syms[r].id === 'book') {
+            positions.push([r, line[r]]);
+          }
+        }
+        matchSym = freeSpinSymbol;
+      }
+    }
+
+    if (count >= 3 && matchSym.mult[count - 1] > 0) {
+      const win = matchSym.mult[count - 1] * betPerLine;
+      result.lines.push({ lineIdx: l, symbol: matchSym, count, positions, win });
+      result.totalWin += win;
+    }
+  }
+
+  return result;
+}
+
+// ===== WIN DISPLAY =====
+function highlightWins(wins) {
+  const allPos = new Set();
+  wins.lines.forEach(w => w.positions.forEach(([r,row]) => allPos.add(`${r}-${row}`)));
+  wins.scatterPositions.forEach(([r,row]) => allPos.add(`${r}-${row}`));
+
+  allPos.forEach(key => {
+    const [r, row] = key.split('-').map(Number);
+    const cell = reelStrips[r].children[BUFFER + row];
+    cell.classList.add('win-hl');
+  });
+}
+
+function clearWinHighlights() {
+  document.querySelectorAll('.win-hl').forEach(el => el.classList.remove('win-hl'));
+}
+
+function drawWinLines(wins) {
+  const svgCont = document.getElementById('winlineSvg');
+  const vp = document.getElementById('reelsVP');
+  const vpW = vp.clientWidth;
+  const vpH = vp.clientHeight;
+  const colW = vpW / 5;
+  const rowH = vpH / 3;
+
+  let svgStr = `<svg viewBox="0 0 ${vpW} ${vpH}" preserveAspectRatio="none">`;
+
+  wins.lines.forEach(w => {
+    const color = PAYLINE_COLORS[w.lineIdx];
+    const points = w.positions.map(([r, row]) => {
+      return `${r * colW + colW/2},${row * rowH + rowH/2}`;
+    }).join(' ');
+    svgStr += `<polyline points="${points}" class="wl-path" stroke="${color}" stroke-opacity=".8"/>`;
+  });
+
+  svgStr += '</svg>';
+  svgCont.innerHTML = svgStr;
+}
+
+function clearWinLines() {
   document.getElementById('winlineSvg').innerHTML = '';
 }
 
-// ========== FREE SPINS ==========
-async function triggerFS() {
-  const sym = SYM[Math.floor(Math.random()*SYM.length)];
-  fsExpand=sym; freeSpins=10; fsTotalWin=0;
+function flashPayline(idx) {
+  clearWinLines();
+  const vp = document.getElementById('reelsVP');
+  const vpW = vp.clientWidth;
+  const vpH = vp.clientHeight;
+  const colW = vpW / 5;
+  const rowH = vpH / 3;
+  const color = PAYLINE_COLORS[idx];
+  const line = PAYLINES[idx];
+
+  const points = line.map((row, r) => `${r * colW + colW/2},${row * rowH + rowH/2}`).join(' ');
+  const svgStr = `<svg viewBox="0 0 ${vpW} ${vpH}" preserveAspectRatio="none">
+    <polyline points="${points}" class="wl-path" stroke="${color}" stroke-width="4" stroke-opacity=".9"/>
+  </svg>`;
+  document.getElementById('winlineSvg').innerHTML = svgStr;
+
+  setTimeout(clearWinLines, 1500);
+}
+
+// ===== FREE SPINS =====
+async function startFreeSpins() {
+  // Pick random expanding symbol (not book)
+  const expandable = SYMBOLS.filter(s => !s.scatter);
+  freeSpinSymbol = expandable[Math.floor(Math.random() * expandable.length)];
+  freeSpins = 10;
+  freeSpinTotalWin = 0;
 
   const overlay = document.getElementById('fsOverlay');
-  const symEl = document.getElementById('fsExpandSym');
-  symEl.innerHTML = '<div style="width:80px;height:80px;margin:0 auto">'+(SVG_ICONS[sym.svg]||LETTER_SVGS[sym.svg]||'')+'</div>';
-  document.getElementById('fsBigCount').textContent='10';
+  document.getElementById('fsText').textContent = '10 Freispiele gewonnen!';
+  document.getElementById('fsSym').innerHTML = SVG[freeSpinSymbol.id] || freeSpinSymbol.name;
+  document.getElementById('fsSym').style.width = '60px';
+  document.getElementById('fsSym').style.height = '60px';
   overlay.classList.add('show');
+
+  await new Promise(r => setTimeout(r, 2500));
+  overlay.classList.remove('show');
 }
 
-function startFreeSpins() {
-  document.getElementById('fsOverlay').classList.remove('show');
-  document.getElementById('fsBadge').classList.add('show');
-  document.getElementById('fsNum').textContent=freeSpins;
-  setInfo('Freispiele! '+fsExpand.name+' — Opre!','freespin');
-  spin();
+// ===== BIG WIN =====
+function showBigWin(amount) {
+  const overlay = document.getElementById('bigwinOverlay');
+  document.getElementById('bwAmount').textContent = amount + ' Punkte!';
+  overlay.classList.add('show');
+  setTimeout(() => overlay.classList.remove('show'), 3000);
 }
 
-// ========== GAMBLE ==========
-function showGamble() {
-  if (gambleAmt<=0) return;
-  document.getElementById('gambleAmt').textContent=gambleAmt.toFixed(2)+' \u20AC';
-  document.getElementById('gambleCard').className='gamble-card face-down';
-  document.getElementById('gambleCard').textContent='\u2748';
+// ===== GAMBLE =====
+function startGamble() {
+  if (gambleWin <= 0) return;
+  document.getElementById('gambleStake').textContent = gambleWin;
+  document.getElementById('gambleCard').textContent = '?';
+  document.getElementById('gambleCard').style.color = '#333';
   document.getElementById('gambleOverlay').classList.add('show');
-  document.getElementById('gambleBtn').style.display='none';
 }
 
-function doGamble(choice) {
+function gamblePick(choice) {
+  const isRed = Math.random() < 0.5;
   const card = document.getElementById('gambleCard');
-  const isRed = Math.random()<0.5;
-  const suits = isRed ? ['\u2665','\u2666'] : ['\u2660','\u2663'];
-  const vals = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-  const s = suits[Math.floor(Math.random()*2)];
-  const v = vals[Math.floor(Math.random()*vals.length)];
+  const suits = isRed ? ['♥','♦'] : ['♠','♣'];
+  card.textContent = suits[Math.floor(Math.random() * 2)];
+  card.style.color = isRed ? '#cc0000' : '#000';
+  card.classList.add('flip');
+  setTimeout(() => card.classList.remove('flip'), 500);
 
-  card.className = 'gamble-card '+(isRed?'red':'black');
-  card.textContent = v+s;
+  const won = (choice === 'red' && isRed) || (choice === 'black' && !isRed);
 
-  const won = (choice==='red'&&isRed)||(choice==='black'&&!isRed);
-
-  setTimeout(()=>{
+  setTimeout(() => {
     if (won) {
-      const extra = gambleAmt;
-      gambleAmt*=2;
-      bal+=extra; syncBal(extra);
-      lastWin=gambleAmt;
-      document.getElementById('gambleAmt').textContent=gambleAmt.toFixed(2)+' \u20AC';
-      updDisp();
-      card.className='gamble-card face-down';
-      card.textContent='\u2748';
+      gambleWin *= 2;
+      balance += gambleWin / 2; // add the doubled portion
+      document.getElementById('gambleStake').textContent = gambleWin;
+      setInfo(`Verdoppelt! ${gambleWin} Punkte!`, 'win-msg');
     } else {
-      bal-=gambleAmt; syncBal(-gambleAmt);
-      lastWin=0; gambleAmt=0;
-      updDisp();
-      setTimeout(()=>collectGamble(),800);
+      balance -= gambleWin;
+      gambleWin = 0;
+      lastWin = 0;
+      setInfo('Verloren!');
+      document.getElementById('gambleOverlay').classList.remove('show');
+      document.getElementById('gambleBtn').style.display = 'none';
     }
-  },1200);
+    updateUI();
+  }, 600);
 }
 
 function collectGamble() {
   document.getElementById('gambleOverlay').classList.remove('show');
-  gambleAmt=0;
+  document.getElementById('gambleBtn').style.display = 'none';
+  setInfo(`${gambleWin} Punkte eingelöst!`, 'win-msg');
+  gambleWin = 0;
 }
 
-// ========== BIG WIN ==========
-async function showBigWin(amt) {
-  const o = document.getElementById('bigwinOverlay');
-  const t = document.getElementById('bigwinTitle');
-  t.textContent = amt >= totalBet()*50 ? rndPhrase(ROMANI_BIG) : amt >= totalBet()*30 ? 'BARO BARO BAXT!' : 'BARO GEWINN!';
-  document.getElementById('bigwinAmount').textContent = amt.toFixed(2)+' \u20AC';
-  o.classList.add('show');
-  burstParticles();
-  await sleep(3500);
-  o.classList.remove('show');
+// ===== PAYTABLE =====
+function togglePaytable() {
+  const modal = document.getElementById('paytableModal');
+  if (modal.classList.contains('show')) {
+    modal.classList.remove('show');
+    return;
+  }
+
+  const grid = document.getElementById('ptGrid');
+  grid.innerHTML = '';
+
+  SYMBOLS.forEach(sym => {
+    const item = document.createElement('div');
+    item.className = 'pt-item';
+
+    const symDiv = document.createElement('div');
+    symDiv.className = 'pt-sym';
+    symDiv.innerHTML = SVG[sym.id] || '';
+    item.appendChild(symDiv);
+
+    const name = document.createElement('div');
+    name.style.cssText = 'color:#D4AF37;font-size:12px;font-weight:700;margin-bottom:4px';
+    name.textContent = sym.name;
+    item.appendChild(name);
+
+    const pays = document.createElement('div');
+    pays.className = 'pt-pays';
+    const labels = ['×2','×3','×4','×5'];
+    for (let i = 1; i < 5; i++) {
+      if (sym.mult[i] > 0) {
+        pays.innerHTML += `${labels[i-1]}: <span>${sym.mult[i]}×</span><br>`;
+      }
+    }
+    if (sym.scatter) pays.innerHTML += '<br><span style="color:#ff5555">SCATTER + WILD</span>';
+    item.appendChild(pays);
+
+    grid.appendChild(item);
+  });
+
+  modal.classList.add('show');
 }
 
-function burstParticles() {
-  for (let i=0;i<50;i++) {
-    const p=document.createElement('div');
-    const colors=['#D4AF37','#F4D03F','#FFD700','#fff','#ff4444'];
-    p.style.cssText='position:fixed;top:50%;left:50%;width:'+(4+Math.random()*6)+'px;height:'+(4+Math.random()*6)+'px;background:'+colors[Math.floor(Math.random()*colors.length)]+';border-radius:50%;pointer-events:none;z-index:9999';
-    document.body.appendChild(p);
-    const a=Math.PI*2*i/50, d=100+Math.random()*250;
-    p.animate([
-      {transform:'translate(-50%,-50%) scale(1)',opacity:1},
-      {transform:'translate('+(Math.cos(a)*d)+'px,'+(Math.sin(a)*d)+'px) scale(0)',opacity:0}
-    ],{duration:1200+Math.random()*600,easing:'ease-out'});
-    setTimeout(()=>p.remove(),2000);
+// ===== CONTROLS =====
+function adjBet(d) {
+  const bets = [1,2,5,10,20,50,100,200];
+  let idx = bets.indexOf(betPerLine);
+  idx = Math.max(0, Math.min(bets.length - 1, idx + d));
+  betPerLine = bets[idx];
+  updateUI();
+}
+
+function adjLines(d) {
+  lines = Math.max(1, Math.min(10, lines + d));
+  updateUI();
+}
+
+function toggleAuto() {
+  autoPlay = !autoPlay;
+  document.getElementById('autoBtn').classList.toggle('active', autoPlay);
+  if (autoPlay && !spinning) doSpin();
+}
+
+function setInfo(text, cls) {
+  const bar = document.getElementById('infoBar');
+  bar.textContent = text;
+  bar.className = 'info-bar' + (cls ? ' ' + cls : '');
+}
+
+function updateUI() {
+  document.getElementById('balVal').textContent = balance;
+  document.getElementById('betVal').textContent = betPerLine;
+  document.getElementById('linesVal').textContent = lines;
+  document.getElementById('totalBetVal').textContent = betPerLine * lines;
+  document.getElementById('winVal').textContent = lastWin;
+  const winCg = document.getElementById('winCg');
+  winCg.classList.toggle('has-win', lastWin > 0);
+}
+
+// ===== RESIZE HANDLER =====
+function onResize() {
+  for (let r = 0; r < 5; r++) {
+    const strip = reelStrips[r];
+    if (!strip || !strip.parentElement) continue;
+    const cellH = strip.parentElement.clientHeight / VISIBLE_ROWS;
+    for (let i = 0; i < strip.children.length; i++) {
+      strip.children[i].style.height = cellH + 'px';
+    }
+    strip.style.transition = 'none';
+    strip.style.transform = `translateY(-${BUFFER * cellH}px)`;
   }
 }
+window.addEventListener('resize', onResize);
 
-// ========== ROMANI WIN PHRASES ==========
-const ROMANI_WIN = [
-  'Baxt! 🍀','Baro Baxt!','Opre! 🎉','Baxtalo! ☆','Bachtalo!',
-  'Gudlo Baxt!','Diklo Latscho! ✨','Opre Sinti!','Latscho Diwes!','Kushti Bok!'
-];
-const ROMANI_BIG = ['BARO BARO BAXT!','OPRE SINTI!','MEGA BAXT!','BAXTALO!'];
-const ROMANI_IDLE = [
-  'Put Baxt! — Drücke START','Sar san? — Viel Glück!',
-  'O Baxt si tuha — Das Glück ist mit dir','Dža devleha! — Geh mit Gott',
-  'Latsche Diwes — Schöner Tag zum Gewinnen'
-];
+// Add CSS animation for twinkle
+const style = document.createElement('style');
+style.textContent = `@keyframes twinkle{from{opacity:.3}to{opacity:1}}`;
+document.head.appendChild(style);
 
-function rndPhrase(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
-
-// ========== HELPERS ==========
-function setInfo(t,type) {
-  const b=document.getElementById('infoBar');
-  b.textContent=t;
-  b.className='info-bar'+(type==='win'?' win':type==='freespin'?' freespin':'');
-}
-
-function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
-
-// Keyboard
-document.addEventListener('keydown',e=>{
-  if(e.code==='Space'){e.preventDefault();spin()}
-  if(e.code==='Escape'){
-    if(document.getElementById('paytableOverlay').classList.contains('show')) togglePaytable();
-    else if(document.getElementById('gambleOverlay').classList.contains('show')) collectGamble();
-    else goBack();
-  }
-});
-
+// ===== START =====
+window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('load', () => setTimeout(onResize, 100));
 </script>
 </body>
 </html>
