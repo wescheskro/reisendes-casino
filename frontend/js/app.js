@@ -248,6 +248,16 @@ function openSlot(gameId) {
   const game = state.games.find(g => g.id === gameId);
   if (!game) return;
 
+  // Playable games have their own page
+  const GAME_PAGES = {
+    'book-of-baxt': '/games/book-of-baxt.html'
+  };
+
+  if (GAME_PAGES[gameId]) {
+    window.location.href = GAME_PAGES[gameId];
+    return;
+  }
+
   document.getElementById('slot-game-title').textContent = game.name;
   document.getElementById('slot-modal').classList.add('active');
   state.currentBet = 1.00;
