@@ -417,12 +417,14 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 
 /* ========== REEL LANDING BOUNCE ========== */
 .reel-col.reel-landing .sym-cell .sym-wrap{
-  animation:landBounce .25s cubic-bezier(.17,.67,.35,1.5);
+  animation:landBounce .4s ease-out;
 }
 @keyframes landBounce{
-  0%{transform:translateY(-8px);opacity:.8}
-  50%{transform:translateY(3px)}
-  100%{transform:translateY(0);opacity:1}
+  0%{transform:translateY(-18px) scaleY(1.08);opacity:.85}
+  35%{transform:translateY(8px) scaleY(0.95)}
+  55%{transform:translateY(-4px) scaleY(1.02)}
+  75%{transform:translateY(2px) scaleY(0.99)}
+  100%{transform:translateY(0) scaleY(1);opacity:1}
 }
 /* Reel column during spin - slight blur */
 .reel-col.spinning{filter:blur(0.5px)}
@@ -1618,7 +1620,7 @@ async function animateReels(results) {
   const promises = [];
 
   for (let r = 0; r < 5; r++) {
-    promises.push(animateReel(r, results[r], r * 150)); // stagger 150ms
+    promises.push(animateReel(r, results[r], r * 250)); // stagger 250ms per reel
   }
 
   await Promise.all(promises);
@@ -1661,19 +1663,31 @@ function animateReel(reelIdx, finalSymbols, delay) {
     setTimeout(() => {
       tickInterval = setInterval(() => SFX.reelSpin(), 80);
 
-      // STEP 5: Animate scrolling to final position (reveals cells BUFFER..BUFFER+2)
-      const spinDuration = 800 + delay;
-      strip.style.transition = `transform ${spinDuration}ms cubic-bezier(.1,.7,.3,1)`;
-      strip.style.transform = `translateY(-${BUFFER * cellH}px)`;
+      // STEP 5: Animate - fast start, natural deceleration
+      const spinDuration = 600 + reelIdx * 180; // each reel spins slightly longer
+      const targetY = BUFFER * cellH;
+      // Overshoot: go PAST the target, then bounce back
+      const overshootY = targetY + cellH * 0.35;
 
+      // Phase 1: Fast spin to overshoot position
+      strip.style.transition = `transform ${spinDuration}ms cubic-bezier(.2,.0,.3,1)`;
+      strip.style.transform = `translateY(-${overshootY}px)`;
+
+      // Phase 2: Bounce back to exact position
       setTimeout(() => {
         clearInterval(tickInterval);
+        strip.style.transition = `transform 200ms cubic-bezier(.3,.1,.4,1.4)`;
+        strip.style.transform = `translateY(-${targetY}px)`;
+
         SFX.reelStop(reelIdx);
         col.classList.add('reel-landing');
-        setTimeout(() => col.classList.remove('reel-landing'), 250);
-        strip.style.transition = 'none';
-        resolve();
-      }, spinDuration + 50);
+        setTimeout(() => col.classList.remove('reel-landing'), 400);
+
+        setTimeout(() => {
+          strip.style.transition = 'none';
+          resolve();
+        }, 220);
+      }, spinDuration);
     }, delay);
   });
 }
