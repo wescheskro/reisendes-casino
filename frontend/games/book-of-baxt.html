@@ -145,10 +145,11 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 }
 .frame-bar.bottom{background:linear-gradient(180deg,#8B6914,#D4AF37)}
 
-/* Reels viewport */
+/* Reels viewport - extra height for peek symbols top/bottom */
 .reels-vp{
   flex:1;display:flex;gap:2px;position:relative;overflow:hidden;
   background:#080412;
+  padding-top:8%;padding-bottom:8%;
 }
 
 .reel-col{
@@ -157,13 +158,14 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   border-left:1px solid rgba(212,175,55,.08);
   border-right:1px solid rgba(212,175,55,.08);
 }
-/* Reel shine overlay */
+/* Reel gradient overlay - darkens peek symbols at edges */
 .reel-col::before{
   content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
   background:linear-gradient(180deg,
-    rgba(0,0,0,.6) 0%,rgba(0,0,0,.15) 8%,
-    transparent 15%,transparent 85%,
-    rgba(0,0,0,.15) 92%,rgba(0,0,0,.6) 100%
+    rgba(0,0,0,.85) 0%,rgba(0,0,0,.4) 10%,
+    rgba(0,0,0,.05) 18%,transparent 24%,
+    transparent 76%,rgba(0,0,0,.05) 82%,
+    rgba(0,0,0,.4) 90%,rgba(0,0,0,.85) 100%
   );
 }
 .reel-col::after{
@@ -1448,8 +1450,8 @@ function createReels() {
     strip.className = 'reel-strip';
     strip.id = 'strip-' + r;
 
-    // Create BUFFER + VISIBLE_ROWS cells
-    for (let i = 0; i < BUFFER + VISIBLE_ROWS; i++) {
+    // Create BUFFER + VISIBLE_ROWS + 2 cells (extra peek symbols top & bottom)
+    for (let i = 0; i < BUFFER + VISIBLE_ROWS + 2; i++) {
       const cell = document.createElement('div');
       cell.className = 'sym-cell';
       cell.id = `c-${r}-${i}`;
@@ -1480,26 +1482,37 @@ function fillInitialGrid() {
 
 function renderReel(r) {
   const strip = reelStrips[r];
-  const cellH = strip.parentElement.clientHeight / VISIBLE_ROWS;
+  const colH = strip.parentElement.clientHeight;
+  const cellH = colH / (VISIBLE_ROWS + 0.7);
+  const peekOffset = cellH * 0.35;
 
-  // Fill buffer cells with random symbols
-  for (let i = 0; i < BUFFER; i++) {
+  // Fill all cells with random symbols + proper height
+  const totalCells = BUFFER + VISIBLE_ROWS + 2;
+  for (let i = 0; i < totalCells; i++) {
     const cell = strip.children[i];
+    if (!cell) continue;
     const sym = randomSymbol();
     cell.querySelector('.sym-img').innerHTML = SVG[sym.id] || '';
     cell.style.height = cellH + 'px';
   }
 
-  // Fill visible cells with grid data
+  // Peek top symbol (cell BUFFER)
+  const peekTop = randomSymbol();
+  strip.children[BUFFER].querySelector('.sym-img').innerHTML = SVG[peekTop.id] || '';
+
+  // Visible 3 rows (cells BUFFER+1, BUFFER+2, BUFFER+3)
   for (let row = 0; row < VISIBLE_ROWS; row++) {
-    const cell = strip.children[BUFFER + row];
+    const cell = strip.children[BUFFER + 1 + row];
     const sym = grid[r][row];
     cell.querySelector('.sym-img').innerHTML = SVG[sym.id] || '';
-    cell.style.height = cellH + 'px';
   }
 
-  // Position strip so visible rows are showing
-  strip.style.transform = `translateY(-${BUFFER * cellH}px)`;
+  // Peek bottom symbol (cell BUFFER+4)
+  const peekBot = randomSymbol();
+  strip.children[BUFFER + 1 + VISIBLE_ROWS].querySelector('.sym-img').innerHTML = SVG[peekBot.id] || '';
+
+  // Position: show peek-top partially + 3 visible rows + peek-bottom partially
+  strip.style.transform = `translateY(-${(BUFFER) * cellH + peekOffset}px)`;
 }
 
 function randomSymbol() {
@@ -1656,37 +1669,52 @@ function animateReel(reelIdx, finalSymbols, delay) {
   return new Promise(resolve => {
     const strip = reelStrips[reelIdx];
     const col = strip.parentElement;
-    const cellH = col.clientHeight / VISIBLE_ROWS;
+    // Cell height based on visible area (col height = ~3.6 rows with padding)
+    // We calculate based on the actual visible 3-row area
+    const colH = col.clientHeight;
+    const cellH = colH / (VISIBLE_ROWS + 0.7); // account for peek areas
+    const peekOffset = cellH * 0.35; // how much of peek symbol shows
 
-    // STEP 1: Copy CURRENT visible symbols to the top cells (0,1,2)
-    // so there is NO visual jump when we reset translateY to 0
+    // STEP 1: Peek symbol above current (cell 0) + current symbols (cells 1,2,3)
+    // Cell 0 = peek above (random symbol)
+    const peekTopSym = randomSymbol();
+    strip.children[0].querySelector('.sym-img').innerHTML = SVG[peekTopSym.id] || '';
+    strip.children[0].style.height = cellH + 'px';
+
     for (let row = 0; row < VISIBLE_ROWS; row++) {
       const currentSym = grid[reelIdx][row];
-      strip.children[row].querySelector('.sym-img').innerHTML = SVG[currentSym.id] || '';
-      strip.children[row].style.height = cellH + 'px';
+      strip.children[1 + row].querySelector('.sym-img').innerHTML = SVG[currentSym.id] || '';
+      strip.children[1 + row].style.height = cellH + 'px';
     }
 
-    // STEP 2: Fill the scrolling buffer (cells 3..BUFFER-1) with random symbols
-    for (let i = VISIBLE_ROWS; i < BUFFER; i++) {
+    // STEP 2: Fill the scrolling buffer (cells 4..BUFFER) with random symbols
+    for (let i = 1 + VISIBLE_ROWS; i < BUFFER + 1; i++) {
       const sym = randomSymbol();
       strip.children[i].querySelector('.sym-img').innerHTML = SVG[sym.id] || '';
       strip.children[i].style.height = cellH + 'px';
     }
 
-    // STEP 3: Set final result symbols at the bottom (cells BUFFER..BUFFER+2)
+    // STEP 3: Final result symbols (cells BUFFER+1..BUFFER+3) + peek bottom (BUFFER+4)
     for (let row = 0; row < VISIBLE_ROWS; row++) {
-      strip.children[BUFFER + row].querySelector('.sym-img').innerHTML = SVG[finalSymbols[row].id] || '';
-      strip.children[BUFFER + row].style.height = cellH + 'px';
+      strip.children[BUFFER + 1 + row].querySelector('.sym-img').innerHTML = SVG[finalSymbols[row].id] || '';
+      strip.children[BUFFER + 1 + row].style.height = cellH + 'px';
     }
+    // Peek bottom symbol (the one that "would have come next")
+    const peekBotSym = randomSymbol();
+    strip.children[BUFFER + 1 + VISIBLE_ROWS].querySelector('.sym-img').innerHTML = SVG[peekBotSym.id] || '';
+    strip.children[BUFFER + 1 + VISIBLE_ROWS].style.height = cellH + 'px';
 
-    // STEP 4: Position at top - shows cells 0,1,2 = CURRENT symbols (NO JUMP!)
+    // STEP 4: Position so peek-top + 3 current symbols are visible
+    // Start offset: show from cell 0 (peek) partially, cells 1-3 fully
+    const startY = cellH - peekOffset; // show bottom part of peek-top cell
     strip.style.transition = 'none';
-    strip.style.transform = 'translateY(0px)';
+    strip.style.transform = `translateY(-${startY}px)`;
     strip.offsetHeight; // force reflow
 
     // STEP 5: 3-phase animation with randomized timings per reel
     setTimeout(() => {
-      const targetY = BUFFER * cellH;
+      // Target: cells BUFFER+1..BUFFER+3 centered, with peeks visible
+      const targetY = (BUFFER + 1) * cellH - peekOffset;
 
       // Randomize per reel for organic feel
       const rng = () => Math.random();
