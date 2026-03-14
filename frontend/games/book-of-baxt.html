@@ -671,44 +671,81 @@ const SFX = {
   // ===================== CASINO SOUND EFFECTS =====================
 
   _spinAudio: null,
+  _spinRate: 1.0,
+  _spinAccel: null,
 
   spinStart() {
-    // Start the reel spinning sound (loops)
-    this._spinAudio = this._play('reelSpin', { clone: false, loop: true, volume: 0.5 });
+    // Start wagon wheel sound - ramp up speed from slow to fast
+    const audio = this.sounds.reelSpin;
+    if (this.muted || !audio) return;
+    audio.currentTime = 0;
+    audio.loop = true;
+    audio.volume = 0.15;
+    audio.playbackRate = 0.4;
+    audio.play().catch(() => {});
+    this._spinAudio = audio;
+    this._spinRate = 0.4;
+    // Accelerate the wheel over 400ms
+    clearInterval(this._spinAccel);
+    this._spinAccel = setInterval(() => {
+      if (this._spinRate < 1.3) {
+        this._spinRate += 0.06;
+        audio.playbackRate = this._spinRate;
+        audio.volume = Math.min(0.5, audio.volume + 0.02);
+      } else {
+        clearInterval(this._spinAccel);
+        this._spinAccel = null;
+      }
+    }, 25);
   },
 
   reelSpin() {
-    // No-op: continuous spin sound handles this
+    // No-op: continuous wagon wheel handles this
   },
 
   reelStop(idx) {
-    // Gradually lower wagon wheel volume as reels stop
+    // Each reel stop: decelerate the wagon wheel
     if (this._spinAudio) {
-      // Each reel stop reduces wheel volume
-      const newVol = Math.max(0.05, 0.45 - idx * 0.1);
-      this._spinAudio.volume = newVol;
-      // Slow down playback rate (wheel decelerating)
-      this._spinAudio.playbackRate = Math.max(0.5, 1.0 - idx * 0.12);
-    }
-    // On last reel: stop the wagon wheel completely
-    if (idx === 4 && this._spinAudio) {
-      const audio = this._spinAudio;
-      const fadeOut = setInterval(() => {
-        if (audio.volume > 0.03) {
-          audio.volume = Math.max(0, audio.volume - 0.04);
-          audio.playbackRate = Math.max(0.3, audio.playbackRate - 0.03);
-        } else {
-          clearInterval(fadeOut);
-          audio.pause();
-          audio.currentTime = 0;
-          audio.volume = 0.45;
-          audio.playbackRate = 1.0;
-          this._spinAudio = null;
+      clearInterval(this._spinAccel);
+      // Reduce speed and volume step by step
+      const targetRate = Math.max(0.3, 1.3 - (idx + 1) * 0.22);
+      const targetVol = Math.max(0.08, 0.5 - (idx + 1) * 0.1);
+      // Smooth deceleration over 150ms
+      const steps = 6;
+      const rateStep = (this._spinAudio.playbackRate - targetRate) / steps;
+      const volStep = (this._spinAudio.volume - targetVol) / steps;
+      let step = 0;
+      const decel = setInterval(() => {
+        step++;
+        if (this._spinAudio) {
+          this._spinAudio.playbackRate = Math.max(0.2, this._spinAudio.playbackRate - rateStep);
+          this._spinAudio.volume = Math.max(0.03, this._spinAudio.volume - volStep);
         }
-      }, 40);
+        if (step >= steps) clearInterval(decel);
+      }, 25);
     }
-    // Play the wheel-click-slow-down sound for each reel stop
-    this._play('reelStop', { volume: 0.4 + idx * 0.05, playbackRate: 0.8 + idx * 0.1 });
+    // Last reel: fully stop the wagon wheel
+    if (idx === 4 && this._spinAudio) {
+      setTimeout(() => {
+        const audio = this._spinAudio;
+        if (!audio) return;
+        const fadeOut = setInterval(() => {
+          if (audio.volume > 0.02 || audio.playbackRate > 0.25) {
+            audio.volume = Math.max(0, audio.volume - 0.02);
+            audio.playbackRate = Math.max(0.2, audio.playbackRate - 0.04);
+          } else {
+            clearInterval(fadeOut);
+            audio.pause();
+            audio.currentTime = 0;
+            audio.volume = 0.5;
+            audio.playbackRate = 1.0;
+            this._spinAudio = null;
+          }
+        }, 30);
+      }, 180);
+    }
+    // Reel stop thud/click sound
+    this._play('reelStop', { volume: 0.5, playbackRate: 0.9 + idx * 0.05 });
   },
 
   win() {
@@ -1671,24 +1708,18 @@ function animateReel(reelIdx, finalSymbols, delay) {
     strip.style.transform = 'translateY(0px)';
     strip.offsetHeight; // force reflow
 
-    // Reel spin tick sounds
-    let tickInterval;
+    // STEP 5: Animate after delay
     setTimeout(() => {
-      tickInterval = setInterval(() => SFX.reelSpin(), 80);
-
-      // STEP 5: Animate - fast start, natural deceleration
-      const spinDuration = 600 + reelIdx * 180; // each reel spins slightly longer
+      const spinDuration = 600 + reelIdx * 180;
       const targetY = BUFFER * cellH;
-      // Overshoot: go PAST the target, then bounce back
       const overshootY = targetY + cellH * 0.35;
 
       // Phase 1: Fast spin to overshoot position
       strip.style.transition = `transform ${spinDuration}ms cubic-bezier(.2,.0,.3,1)`;
       strip.style.transform = `translateY(-${overshootY}px)`;
 
-      // Phase 2: Bounce back to exact position
+      // Phase 2: Bounce back + stop sound synced to this reel
       setTimeout(() => {
-        clearInterval(tickInterval);
         strip.style.transition = `transform 200ms cubic-bezier(.3,.1,.4,1.4)`;
         strip.style.transform = `translateY(-${targetY}px)`;
 
