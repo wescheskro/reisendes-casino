@@ -723,8 +723,8 @@ const SFX = {
     // Wood creak on stop
     this._tick(200 + idx*30, 0.15, 0.05, 'sawtooth');
 
-    // Slow down the wheel clicking progressively
-    this._wheelSpeed = 70 + idx * 35; // each reel makes clicks slower
+    // Slow down the wheel clicking very gradually
+    this._wheelSpeed = Math.min(250, this._wheelSpeed + 20 + idx * 15);
 
     // Last reel: slow final clicks then silence
     if (idx === 4) {
@@ -1681,30 +1681,39 @@ function animateReel(reelIdx, finalSymbols, delay) {
     strip.style.transform = 'translateY(0px)';
     strip.offsetHeight; // force reflow
 
-    // STEP 5: Animate after delay
+    // STEP 5: 3-phase animation: accelerate → full speed → long deceleration
     setTimeout(() => {
-      const spinDuration = 1800 + reelIdx * 350;
       const targetY = BUFFER * cellH;
-      const overshootY = targetY + cellH * 0.35;
+      // Phase splits: 30% fast spin, 70% slow deceleration
+      const fastDist = targetY * 0.55;
+      const slowDist = targetY * 0.45 + cellH * 0.25; // slight overshoot
+      const fastDuration = 800 + reelIdx * 100;
+      const slowDuration = 1200 + reelIdx * 400; // long, slow deceleration
 
-      // Phase 1: Fast spin to overshoot position
-      strip.style.transition = `transform ${spinDuration}ms cubic-bezier(.2,.0,.3,1)`;
-      strip.style.transform = `translateY(-${overshootY}px)`;
+      // Phase 1: Fast spin (accelerate then constant speed)
+      strip.style.transition = `transform ${fastDuration}ms linear`;
+      strip.style.transform = `translateY(-${fastDist}px)`;
 
-      // Phase 2: Bounce back + stop sound synced to this reel
+      // Phase 2: Slow deceleration (the satisfying part)
       setTimeout(() => {
-        strip.style.transition = `transform 200ms cubic-bezier(.3,.1,.4,1.4)`;
-        strip.style.transform = `translateY(-${targetY}px)`;
+        strip.style.transition = `transform ${slowDuration}ms cubic-bezier(.15,.0,.0,1)`;
+        strip.style.transform = `translateY(-${fastDist + slowDist}px)`;
 
-        SFX.reelStop(reelIdx);
-        col.classList.add('reel-landing');
-        setTimeout(() => col.classList.remove('reel-landing'), 400);
-
+        // Phase 3: Settle back from overshoot
         setTimeout(() => {
-          strip.style.transition = 'none';
-          resolve();
-        }, 220);
-      }, spinDuration);
+          strip.style.transition = `transform 300ms cubic-bezier(.2,.0,.4,1)`;
+          strip.style.transform = `translateY(-${targetY}px)`;
+
+          SFX.reelStop(reelIdx);
+          col.classList.add('reel-landing');
+          setTimeout(() => col.classList.remove('reel-landing'), 400);
+
+          setTimeout(() => {
+            strip.style.transition = 'none';
+            resolve();
+          }, 320);
+        }, slowDuration);
+      }, fastDuration);
     }, delay);
   });
 }
