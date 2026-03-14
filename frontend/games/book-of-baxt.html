@@ -180,10 +180,12 @@ body{
 
 /* Premium symbol icons via CSS */
 .sym-icon{
-  font-size:clamp(32px,6vw,56px);
+  width:80%;height:80%;
+  display:flex;align-items:center;justify-content:center;
   filter:drop-shadow(0 3px 6px rgba(0,0,0,.7));
   transition:transform .3s;
 }
+.sym-icon svg{width:100%;height:100%}
 
 /* Letter symbols - styled cards */
 .sym-inner.letter{
@@ -669,18 +671,115 @@ body{
 const API = window.location.origin + '/api';
 const TK = localStorage.getItem('rc_token');
 
-// ========== SYMBOLS ==========
+// ========== HD SVG SYMBOLS ==========
+const SVG_ICONS = {
+  book: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#D4AF37"/><stop offset="50%" stop-color="#B8860B"/><stop offset="100%" stop-color="#8B6914"/></linearGradient>
+    <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFF8DC"/><stop offset="100%" stop-color="#F5DEB3"/></linearGradient>
+    <filter id="gl"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <rect x="18" y="12" width="64" height="76" rx="4" fill="url(#bg)" stroke="#FFD700" stroke-width="2" filter="url(#gl)"/>
+    <rect x="24" y="18" width="52" height="64" rx="2" fill="url(#pg)" opacity=".9"/>
+    <line x1="30" y1="32" x2="70" y2="32" stroke="#B8860B" stroke-width="1.5" opacity=".5"/>
+    <line x1="30" y1="42" x2="70" y2="42" stroke="#B8860B" stroke-width="1.5" opacity=".5"/>
+    <line x1="30" y1="52" x2="65" y2="52" stroke="#B8860B" stroke-width="1.5" opacity=".5"/>
+    <line x1="30" y1="62" x2="60" y2="62" stroke="#B8860B" stroke-width="1.5" opacity=".5"/>
+    <circle cx="50" cy="47" r="14" fill="none" stroke="#D4AF37" stroke-width="2.5" opacity=".4"/>
+    <path d="M44 47 L50 38 L56 47 L50 56Z" fill="#D4AF37" opacity=".5"/>
+    <rect x="16" y="15" width="5" height="70" rx="2" fill="url(#bg)" stroke="#FFD700" stroke-width="1"/>
+    <text x="50" y="26" text-anchor="middle" font-size="7" fill="#8B6914" font-weight="bold" font-family="serif">BAXT</text>
+  </svg>`,
+  pharao: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="ph" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD700"/><stop offset="50%" stop-color="#D4AF37"/><stop offset="100%" stop-color="#B8860B"/></linearGradient>
+    <linearGradient id="str" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a3a8a"/><stop offset="100%" stop-color="#0d1f5c"/></linearGradient></defs>
+    <path d="M50 8 L30 28 L22 55 L30 75 L40 85 L60 85 L70 75 L78 55 L70 28Z" fill="url(#ph)" stroke="#FFD700" stroke-width="1.5"/>
+    <path d="M35 28 L50 12 L65 28 L65 38 L35 38Z" fill="url(#str)"/>
+    <rect x="35" y="38" width="30" height="5" fill="#FFD700"/>
+    <rect x="35" y="46" width="30" height="3" fill="url(#str)"/>
+    <rect x="35" y="52" width="30" height="3" fill="#FFD700"/>
+    <rect x="35" y="58" width="30" height="3" fill="url(#str)"/>
+    <ellipse cx="40" cy="42" rx="5" ry="3" fill="#fff" opacity=".9"/>
+    <ellipse cx="60" cy="42" rx="5" ry="3" fill="#fff" opacity=".9"/>
+    <circle cx="40" cy="42" r="2" fill="#1a1a1a"/>
+    <circle cx="60" cy="42" r="2" fill="#1a1a1a"/>
+    <path d="M44 52 Q50 56 56 52" fill="none" stroke="#8B0000" stroke-width="1.5"/>
+    <path d="M22 55 L15 65 L22 62" fill="url(#ph)" stroke="#FFD700" stroke-width="1"/>
+    <path d="M78 55 L85 65 L78 62" fill="url(#ph)" stroke="#FFD700" stroke-width="1"/>
+    <path d="M45 65 L50 75 L55 65" fill="url(#ph)" stroke="#B8860B" stroke-width="1"/>
+    <circle cx="50" cy="30" r="4" fill="#8B0000" stroke="#FFD700" stroke-width="1.5"/>
+  </svg>`,
+  scarab: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="sc" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2ecc71"/><stop offset="50%" stop-color="#1a8a4a"/><stop offset="100%" stop-color="#0d5c2f"/></linearGradient>
+    <linearGradient id="wg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#D4AF37"/><stop offset="100%" stop-color="#8B6914"/></linearGradient></defs>
+    <ellipse cx="50" cy="55" rx="22" ry="28" fill="url(#sc)" stroke="#2ecc71" stroke-width="1.5"/>
+    <ellipse cx="50" cy="38" rx="15" ry="12" fill="url(#sc)" stroke="#34d87a" stroke-width="1"/>
+    <line x1="50" y1="43" x2="50" y2="80" stroke="#0d5c2f" stroke-width="2"/>
+    <line x1="35" y1="55" x2="65" y2="55" stroke="#0d5c2f" stroke-width="1.5"/>
+    <path d="M28 48 Q15 30 8 35 Q5 40 18 50" fill="url(#wg)" stroke="#D4AF37" stroke-width="1"/>
+    <path d="M72 48 Q85 30 92 35 Q95 40 82 50" fill="url(#wg)" stroke="#D4AF37" stroke-width="1"/>
+    <path d="M25 55 Q12 55 5 62 Q8 65 22 60" fill="url(#wg)" stroke="#D4AF37" stroke-width="1"/>
+    <path d="M75 55 Q88 55 95 62 Q92 65 78 60" fill="url(#wg)" stroke="#D4AF37" stroke-width="1"/>
+    <circle cx="50" cy="28" r="8" fill="#D4AF37" stroke="#FFD700" stroke-width="1.5"/>
+    <circle cx="50" cy="28" r="5" fill="#FFD700"/>
+    <path d="M42 35 Q50 30 58 35" fill="none" stroke="#0d5c2f" stroke-width="1.5"/>
+    <circle cx="44" cy="32" r="2" fill="#FFD700"/>
+    <circle cx="56" cy="32" r="2" fill="#FFD700"/>
+  </svg>`,
+  ankh: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="ak" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD700"/><stop offset="40%" stop-color="#D4AF37"/><stop offset="100%" stop-color="#B8860B"/></linearGradient>
+    <filter id="agl"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <ellipse cx="50" cy="28" rx="16" ry="18" fill="none" stroke="url(#ak)" stroke-width="7" filter="url(#agl)"/>
+    <line x1="50" y1="46" x2="50" y2="90" stroke="url(#ak)" stroke-width="7" stroke-linecap="round" filter="url(#agl)"/>
+    <line x1="30" y1="60" x2="70" y2="60" stroke="url(#ak)" stroke-width="7" stroke-linecap="round" filter="url(#agl)"/>
+    <ellipse cx="50" cy="28" rx="16" ry="18" fill="none" stroke="#FFD700" stroke-width="3"/>
+    <line x1="50" y1="46" x2="50" y2="90" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+    <line x1="30" y1="60" x2="70" y2="60" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="50" cy="28" r="3" fill="#FFD700" opacity=".5"/>
+  </svg>`,
+  eye: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="ey" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD700"/><stop offset="100%" stop-color="#B8860B"/></linearGradient>
+    <linearGradient id="ir" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a8aff"/><stop offset="100%" stop-color="#0044aa"/></linearGradient></defs>
+    <path d="M10 42 Q30 20 50 22 Q70 20 90 42 Q70 58 50 56 Q30 58 10 42Z" fill="none" stroke="url(#ey)" stroke-width="4"/>
+    <path d="M10 42 Q30 22 50 24 Q70 22 90 42" fill="#fff" opacity=".15"/>
+    <circle cx="50" cy="40" r="14" fill="#fff"/>
+    <circle cx="50" cy="40" r="10" fill="url(#ir)"/>
+    <circle cx="50" cy="40" r="5" fill="#111"/>
+    <circle cx="47" cy="37" r="2.5" fill="#fff" opacity=".7"/>
+    <path d="M50 56 Q50 75 42 85" fill="none" stroke="url(#ey)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M50 56 Q55 65 65 68 Q72 70 70 75" fill="none" stroke="url(#ey)" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M42 85 Q38 88 35 86" fill="none" stroke="url(#ey)" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M18 42 Q12 38 8 40" fill="none" stroke="url(#ey)" stroke-width="2" stroke-linecap="round"/>
+  </svg>`
+};
+
+// Letter symbols with ornate styling
+const LETTER_SVGS = {};
+['A','K','Q','J','10'].forEach((l,i) => {
+  const colors = [['#ff3333','#cc0000'],['#3388ff','#1155cc'],['#33dd55','#11aa33'],['#ff8833','#cc5500'],['#dd33ff','#9911cc']];
+  const ids = ['ace','king','queen','jack','ten'];
+  const c = colors[i];
+  LETTER_SVGS[ids[i]] = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="lt${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${c[0]}"/><stop offset="100%" stop-color="${c[1]}"/></linearGradient>
+    <filter id="ltg${i}"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <text x="50" y="68" text-anchor="middle" font-size="58" font-weight="900" font-family="Cinzel,serif" fill="url(#lt${i})" stroke="${c[0]}" stroke-width="1" filter="url(#ltg${i})">${l}</text>
+    <text x="50" y="68" text-anchor="middle" font-size="58" font-weight="900" font-family="Cinzel,serif" fill="url(#lt${i})" opacity=".8">${l}</text>
+    <line x1="20" y1="78" x2="80" y2="78" stroke="${c[0]}" stroke-width="1.5" opacity=".3"/>
+    <line x1="25" y1="82" x2="75" y2="82" stroke="${c[0]}" stroke-width="1" opacity=".2"/>
+    <circle cx="50" cy="16" r="3" fill="${c[0]}" opacity=".3"/>
+    <path d="M35 14 Q50 8 65 14" fill="none" stroke="${c[0]}" stroke-width="1" opacity=".25"/>
+  </svg>`;
+});
+
 const SYM = [
-  { id:'book',   icon:'\u{1F4D6}', name:'Buch des Baxt', cls:'book-sym', wild:true, scatter:true },
-  { id:'pharao', icon:'\u{1F3FA}', name:'Pharao',        cls:'premium' },
-  { id:'scarab', icon:'\u{1FAB2}', name:'Skarab\u00e4us',cls:'premium' },
-  { id:'ankh',   icon:'\u2625\uFE0F',    name:'Ankh',          cls:'premium' },
-  { id:'eye',    icon:'\u{1F441}\uFE0F', name:'Auge des Ra',   cls:'premium' },
-  { id:'ace',    icon:'A', name:'Ass',    cls:'letter', color:'#ff3333' },
-  { id:'king',   icon:'K', name:'K\u00f6nig', cls:'letter', color:'#3388ff' },
-  { id:'queen',  icon:'Q', name:'Dame',   cls:'letter', color:'#33dd55' },
-  { id:'jack',   icon:'J', name:'Bube',   cls:'letter', color:'#ff8833' },
-  { id:'ten',    icon:'10',name:'Zehn',   cls:'letter', color:'#dd33ff' }
+  { id:'book',   svg:'book',   name:'Buch des Baxt', cls:'book-sym', wild:true, scatter:true },
+  { id:'pharao', svg:'pharao', name:'Pharao',         cls:'premium' },
+  { id:'scarab', svg:'scarab', name:'Skarab\u00e4us', cls:'premium' },
+  { id:'ankh',   svg:'ankh',   name:'Ankh',           cls:'premium' },
+  { id:'eye',    svg:'eye',    name:'Auge des Ra',    cls:'premium' },
+  { id:'ace',    svg:'ace',    name:'Ass',    cls:'letter', color:'#ff3333' },
+  { id:'king',   svg:'king',   name:'K\u00f6nig', cls:'letter', color:'#3388ff' },
+  { id:'queen',  svg:'queen',  name:'Dame',   cls:'letter', color:'#33dd55' },
+  { id:'jack',   svg:'jack',   name:'Bube',   cls:'letter', color:'#ff8833' },
+  { id:'ten',    svg:'ten',    name:'Zehn',   cls:'letter', color:'#dd33ff' }
 ];
 
 const PAY = {
@@ -755,13 +854,9 @@ function makeSymEl(sym) {
 
   const icon = document.createElement('div');
   icon.className = 'sym-icon';
-  if (sym.cls === 'letter') {
-    icon.textContent = sym.icon;
-    icon.style.color = sym.color;
-    icon.style.textShadow = '0 2px 8px rgba(0,0,0,.8), 0 0 15px '+sym.color+'33';
-  } else {
-    icon.textContent = sym.icon;
-  }
+  // Use SVG graphics
+  const svgSrc = SVG_ICONS[sym.svg] || LETTER_SVGS[sym.svg] || '';
+  icon.innerHTML = svgSrc;
 
   inner.appendChild(icon);
   el.appendChild(inner);
@@ -801,10 +896,8 @@ function buildPaytable() {
   let h = '';
   for (const s of SYM) {
     const p = PAY[s.id];
-    const iconHtml = s.cls==='letter' ?
-      '<span style="font-weight:900;font-size:32px;color:'+s.color+'">'+s.icon+'</span>' :
-      '<span style="font-size:32px">'+s.icon+'</span>';
-    h += '<div class="pt-row"><div class="pt-sym">'+iconHtml+'</div><div class="pt-info">' +
+    const svgHtml = '<div style="width:45px;height:45px">'+(SVG_ICONS[s.svg]||LETTER_SVGS[s.svg]||'')+'</div>';
+    h += '<div class="pt-row"><div class="pt-sym">'+svgHtml+'</div><div class="pt-info">' +
       '<div class="pt-name">'+s.name+(s.wild?' (Wild+Scatter)':'')+'</div>' +
       '<div class="pt-pays">3x <b>'+p[0]+'</b> &bull; 4x <b>'+p[1]+'</b> &bull; 5x <b>'+p[2]+'</b></div>' +
       '</div></div>';
@@ -917,13 +1010,13 @@ async function spin() {
           const el = document.getElementById('c-'+r+'-'+row);
           if (el) {
             const s = rndSym();
-            el.querySelector('.sym-icon').textContent = s.icon;
-            if (s.cls==='letter') el.querySelector('.sym-icon').style.color = s.color;
+            const iconEl = el.querySelector('.sym-icon');
+            if (iconEl) iconEl.innerHTML = SVG_ICONS[s.svg] || LETTER_SVGS[s.svg] || '';
           }
         }
       }
     });
-  }, 60);
+  }, 80);
 
   // Stop reels one by one
   for (let r=0; r<5; r++) {
@@ -1128,9 +1221,7 @@ async function triggerFS() {
 
   const overlay = document.getElementById('fsOverlay');
   const symEl = document.getElementById('fsExpandSym');
-  symEl.textContent = sym.icon;
-  if (sym.cls==='letter') symEl.style.color=sym.color;
-  else symEl.style.color='';
+  symEl.innerHTML = '<div style="width:80px;height:80px;margin:0 auto">'+(SVG_ICONS[sym.svg]||LETTER_SVGS[sym.svg]||'')+'</div>';
   document.getElementById('fsBigCount').textContent='10';
   overlay.classList.add('show');
 }
