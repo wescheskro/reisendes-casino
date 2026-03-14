@@ -2,1021 +2,1240 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Buch des Baxt - Reisendes Casino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=MedievalSharp&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
 :root{
-  --gold:#D4AF37;--gold-light:#F4D03F;--dark:#0a0a12;--darker:#06060a;
-  --crimson:#8B0000;--accent:#FFD700;--reel-bg:#1a1125;
+  --gold:#D4AF37;--gold-light:#F4D03F;--gold-dark:#B8860B;
+  --dark:#080510;--panel:#0c0818;--reel-bg:#0a0714;
+  --crimson:#8B0000;--crimson-dark:#5a0000;
+  --green:#1a6b1a;--green-light:#2a9b2a;
 }
+
+html,body{height:100%;overflow:hidden}
 
 body{
   background:var(--dark);font-family:'Cinzel',serif;color:#fff;
-  overflow:hidden;height:100vh;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;
+  user-select:none;-webkit-user-select:none;
+}
+
+/* ========== BACKGROUND ========== */
+.bg-layer{
+  position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse at 50% 20%,rgba(139,0,0,.12) 0%,transparent 50%),
+    radial-gradient(ellipse at 20% 80%,rgba(212,175,55,.05) 0%,transparent 40%),
+    radial-gradient(ellipse at 80% 80%,rgba(212,175,55,.05) 0%,transparent 40%),
+    linear-gradient(180deg,#080510 0%,#0d0820 50%,#080510 100%);
+}
+/* Animated sand particles */
+.bg-layer::after{
+  content:'';position:absolute;inset:0;
   background-image:
-    radial-gradient(ellipse at 50% 0%,rgba(139,0,0,.15) 0%,transparent 60%),
-    radial-gradient(ellipse at 50% 100%,rgba(212,175,55,.08) 0%,transparent 50%);
+    radial-gradient(1px 1px at 10% 20%,rgba(212,175,55,.3),transparent),
+    radial-gradient(1px 1px at 30% 60%,rgba(212,175,55,.2),transparent),
+    radial-gradient(1px 1px at 50% 10%,rgba(212,175,55,.25),transparent),
+    radial-gradient(1px 1px at 70% 40%,rgba(212,175,55,.15),transparent),
+    radial-gradient(1px 1px at 90% 70%,rgba(212,175,55,.3),transparent),
+    radial-gradient(1px 1px at 15% 85%,rgba(212,175,55,.2),transparent),
+    radial-gradient(1px 1px at 65% 90%,rgba(212,175,55,.25),transparent),
+    radial-gradient(1.5px 1.5px at 25% 35%,rgba(255,215,0,.15),transparent),
+    radial-gradient(1.5px 1.5px at 85% 15%,rgba(255,215,0,.15),transparent);
+  animation:twinkle 4s ease-in-out infinite alternate;
+}
+@keyframes twinkle{from{opacity:.5}to{opacity:1}}
+
+/* ========== GAME CONTAINER ========== */
+.game-container{
+  position:relative;z-index:1;width:100%;max-width:960px;
+  height:100vh;max-height:700px;
+  display:flex;flex-direction:column;
 }
 
-/* Egyptian border pattern */
-.game-frame{
-  position:relative;width:100%;max-width:900px;
-  background:linear-gradient(180deg,#1a1125 0%,#0d0915 100%);
-  border:3px solid var(--gold);border-radius:16px;
-  box-shadow:0 0 40px rgba(212,175,55,.2),inset 0 0 60px rgba(0,0,0,.5);
-  padding:12px;
-}
-
-.game-frame::before{
-  content:'';position:absolute;inset:-6px;border:1px solid rgba(212,175,55,.3);
-  border-radius:20px;pointer-events:none;
-}
-
-/* Top bar */
-.top-bar{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:8px 16px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.1),transparent);
-}
-.game-title{
-  font-size:clamp(16px,3vw,26px);font-weight:900;
-  background:linear-gradient(180deg,var(--gold-light),var(--gold),#B8860B);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  text-shadow:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));
-  letter-spacing:2px;
+/* ========== HEADER ========== */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 12px;
+  background:linear-gradient(180deg,rgba(212,175,55,.15),rgba(212,175,55,.02));
+  border-bottom:2px solid rgba(212,175,55,.3);
 }
 .back-btn{
-  background:none;border:1px solid var(--gold);color:var(--gold);
-  padding:6px 14px;border-radius:8px;cursor:pointer;font-family:inherit;
-  font-size:13px;transition:.2s;
+  background:none;border:1px solid rgba(212,175,55,.4);color:var(--gold);
+  padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;
+  font-size:12px;transition:.2s;letter-spacing:.5px;
 }
-.back-btn:hover{background:rgba(212,175,55,.15)}
-.balance-display{
-  font-size:clamp(13px,2vw,18px);color:var(--gold-light);
-}
-.balance-display span{font-weight:700}
+.back-btn:hover{background:rgba(212,175,55,.15);border-color:var(--gold)}
 
-/* Reel Area */
-.reel-container{
-  position:relative;margin:8px auto;
-  display:grid;grid-template-columns:repeat(5,1fr);gap:4px;
-  padding:8px;background:var(--reel-bg);border-radius:12px;
-  border:2px solid rgba(212,175,55,.3);
-  box-shadow:inset 0 0 30px rgba(0,0,0,.8);
+.logo{text-align:center;flex:1}
+.logo h1{
+  font-size:clamp(18px,3.5vw,32px);font-weight:900;letter-spacing:3px;
+  background:linear-gradient(180deg,#fff5cc,var(--gold-light),var(--gold),var(--gold-dark));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 6px rgba(212,175,55,.4));
+  line-height:1.1;
+}
+.logo .subtitle{
+  font-size:clamp(8px,1.2vw,11px);color:rgba(212,175,55,.6);
+  letter-spacing:4px;text-transform:uppercase;
 }
 
-.reel{
-  display:flex;flex-direction:column;gap:4px;
+.balance-box{
+  background:linear-gradient(180deg,rgba(212,175,55,.1),rgba(212,175,55,.02));
+  border:1px solid rgba(212,175,55,.3);border-radius:8px;
+  padding:4px 12px;text-align:center;
+}
+.balance-box .label{font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1px}
+.balance-box .value{font-size:clamp(14px,2vw,20px);color:var(--gold-light);font-weight:700}
+
+/* ========== GAME AREA ========== */
+.game-area{
+  flex:1;display:flex;flex-direction:column;
   position:relative;overflow:hidden;
+  background:linear-gradient(180deg,var(--panel),var(--dark));
 }
 
-.cell{
-  width:100%;aspect-ratio:1;
+/* Egyptian frame decoration */
+.frame-deco{
+  position:absolute;z-index:3;pointer-events:none;
+}
+.frame-deco.left,.frame-deco.right{
+  top:0;bottom:0;width:28px;
+  background:linear-gradient(180deg,var(--gold-dark),var(--gold),var(--gold-dark));
+}
+.frame-deco.left{left:0;border-right:2px solid rgba(0,0,0,.3)}
+.frame-deco.right{right:0;border-left:2px solid rgba(0,0,0,.3)}
+.frame-deco.top,.frame-deco.bottom{
+  left:0;right:0;height:6px;
+  background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-dark));
+}
+.frame-deco.top{top:0}
+.frame-deco.bottom{bottom:0}
+
+/* Hieroglyph pattern on side frames */
+.frame-deco.left::after,.frame-deco.right::after{
+  content:'𓂀 𓃭 𓅃 𓆣 𓇋 𓈖 𓁹 𓃀 𓅱 𓆑';
+  position:absolute;top:10px;width:100%;
+  font-size:11px;line-height:24px;text-align:center;
+  color:rgba(0,0,0,.25);writing-mode:vertical-lr;
+  overflow:hidden;height:calc(100% - 20px);
+}
+
+/* Payline numbers */
+.payline-nums{
+  position:absolute;z-index:4;top:6px;bottom:6px;
+  display:flex;flex-direction:column;justify-content:space-around;
+}
+.payline-nums.left{left:2px}
+.payline-nums.right{right:2px}
+.pln{
+  width:22px;height:22px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(180deg,rgba(30,20,50,.8),rgba(15,10,30,.9));
-  border-radius:8px;border:1px solid rgba(212,175,55,.15);
-  font-size:clamp(28px,5vw,52px);
-  position:relative;transition:background .3s;
+  font-size:9px;font-weight:900;cursor:pointer;
+  border:1px solid rgba(0,0,0,.3);
+  transition:.2s;color:#000;
+}
+.pln:hover{transform:scale(1.2);filter:brightness(1.3)}
+
+/* ========== REELS ========== */
+.reels-viewport{
+  flex:1;display:flex;gap:3px;
+  margin:6px 28px;position:relative;z-index:2;
+  background:rgba(0,0,0,.4);border-radius:4px;
+  overflow:hidden;
 }
 
-.cell.winning{
-  background:linear-gradient(180deg,rgba(212,175,55,.3),rgba(139,0,0,.3));
-  border-color:var(--gold);
-  box-shadow:0 0 15px rgba(212,175,55,.4);
-  animation:winPulse .5s ease-in-out infinite alternate;
+.reel-col{
+  flex:1;display:flex;flex-direction:column;gap:3px;
+  position:relative;overflow:hidden;
+  padding:2px;
 }
 
-@keyframes winPulse{
-  from{box-shadow:0 0 10px rgba(212,175,55,.3)}
-  to{box-shadow:0 0 25px rgba(212,175,55,.6)}
+.reel-col::before{
+  content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,
+    rgba(0,0,0,.5) 0%,transparent 12%,
+    transparent 88%,rgba(0,0,0,.5) 100%
+  );
 }
 
-.cell .sym-img{
-  width:70%;height:70%;object-fit:contain;
-  filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));
+.reel-sym{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  position:relative;min-height:0;
 }
 
-/* Symbol renders */
-.sym{
+/* Symbol styling */
+.sym-inner{
+  width:85%;height:85%;
   display:flex;align-items:center;justify-content:center;
-  width:80%;height:80%;border-radius:6px;position:relative;
+  border-radius:8px;position:relative;
+  background:linear-gradient(180deg,rgba(30,20,50,.4),rgba(10,5,25,.6));
+  border:1px solid rgba(212,175,55,.08);
+  transition:all .3s;
 }
 
-/* Spinning animation */
-.reel.spinning .cell{
-  animation:slotSpin .1s linear infinite;
+/* Premium symbol icons via CSS */
+.sym-icon{
+  font-size:clamp(32px,6vw,56px);
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,.7));
+  transition:transform .3s;
 }
 
-@keyframes slotSpin{
-  0%{transform:translateY(-10%);opacity:.7}
-  50%{transform:translateY(0);opacity:1}
-  100%{transform:translateY(10%);opacity:.7}
+/* Letter symbols - styled cards */
+.sym-inner.letter{
+  background:linear-gradient(135deg,rgba(40,20,70,.6),rgba(20,10,40,.8));
+  border:1.5px solid rgba(212,175,55,.15);
+}
+.sym-inner.letter .sym-icon{
+  font-family:'Cinzel',serif;font-weight:900;
+  font-size:clamp(28px,5vw,48px);
+  -webkit-text-stroke:1px rgba(0,0,0,.3);
 }
 
-/* Paylines overlay */
-.payline-overlay{
-  position:absolute;inset:0;pointer-events:none;z-index:5;
+/* High value symbol backgrounds */
+.sym-inner.premium{
+  background:linear-gradient(135deg,rgba(60,30,10,.5),rgba(30,15,5,.7));
+  border:1.5px solid rgba(212,175,55,.2);
+}
+.sym-inner.book-sym{
+  background:linear-gradient(135deg,rgba(139,0,0,.3),rgba(60,10,10,.5));
+  border:1.5px solid rgba(212,175,55,.35);
+  box-shadow:0 0 12px rgba(212,175,55,.15);
 }
 
-/* Info/Win display */
+/* Win highlight */
+.reel-sym.winning .sym-inner{
+  border-color:var(--gold) !important;
+  box-shadow:0 0 20px rgba(212,175,55,.5),0 0 40px rgba(212,175,55,.2);
+  animation:winGlow .6s ease-in-out infinite alternate;
+}
+@keyframes winGlow{
+  from{box-shadow:0 0 15px rgba(212,175,55,.4)}
+  to{box-shadow:0 0 30px rgba(212,175,55,.7),0 0 60px rgba(212,175,55,.3)}
+}
+
+.reel-sym.winning .sym-icon{animation:winBounce .5s ease infinite alternate}
+@keyframes winBounce{from{transform:scale(1)}to{transform:scale(1.12)}}
+
+.reel-sym.expanding .sym-inner{
+  animation:expandFlash .4s ease;
+}
+@keyframes expandFlash{
+  0%{transform:scale(1);filter:brightness(1)}
+  50%{transform:scale(1.2);filter:brightness(2)}
+  100%{transform:scale(1);filter:brightness(1)}
+}
+
+/* Spinning reel blur effect */
+.reel-col.spinning .reel-sym .sym-inner{
+  animation:reelBlur .08s linear infinite;
+}
+@keyframes reelBlur{
+  0%{transform:translateY(-40%);opacity:.3;filter:blur(2px)}
+  50%{transform:translateY(0);opacity:.6;filter:blur(1px)}
+  100%{transform:translateY(40%);opacity:.3;filter:blur(2px)}
+}
+.reel-col.landing .reel-sym .sym-inner{
+  animation:reelLand .25s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes reelLand{
+  from{transform:translateY(-15px);opacity:.7}
+  to{transform:translateY(0);opacity:1}
+}
+
+/* ========== WIN LINE OVERLAY ========== */
+.winline-overlay{
+  position:absolute;inset:0;z-index:5;pointer-events:none;
+  margin:6px 28px;
+}
+.winline-overlay svg{width:100%;height:100%}
+
+/* ========== INFO BAR ========== */
 .info-bar{
-  text-align:center;padding:6px;min-height:36px;
-  font-size:clamp(14px,2.5vw,22px);
-  background:linear-gradient(90deg,transparent,rgba(212,175,55,.08),transparent);
+  height:32px;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(12px,1.8vw,16px);letter-spacing:1px;
+  background:linear-gradient(90deg,transparent,rgba(212,175,55,.06),transparent);
+  position:relative;z-index:3;
 }
-.info-bar.win-msg{
-  color:var(--gold-light);font-weight:700;
-  animation:winFlash .4s ease-in-out 3;
-}
-.info-bar.freespin-msg{color:#ff6b6b;font-weight:700}
+.info-bar.win{color:var(--gold-light);font-weight:700;animation:infoFlash .5s ease 3}
+.info-bar.freespin{color:#ff6b6b;font-weight:700}
+@keyframes infoFlash{50%{opacity:.4}}
 
-@keyframes winFlash{
-  0%,100%{opacity:1}50%{opacity:.5}
-}
-
-/* Controls */
-.controls{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  padding:10px 8px;flex-wrap:wrap;
+/* ========== CONTROL PANEL ========== */
+.control-panel{
+  display:flex;align-items:center;justify-content:center;gap:3px;
+  padding:8px 6px;
+  background:linear-gradient(180deg,#12091e,#0a0514);
+  border-top:2px solid rgba(212,175,55,.2);
 }
 
-.ctrl-group{
-  display:flex;align-items:center;gap:4px;
-  background:rgba(255,255,255,.05);padding:6px 10px;border-radius:10px;
-  border:1px solid rgba(212,175,55,.15);
+.ctrl-box{
+  display:flex;flex-direction:column;align-items:center;
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
+  border:1px solid rgba(212,175,55,.12);border-radius:8px;
+  padding:4px 8px;min-width:70px;
 }
-.ctrl-label{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px}
-.ctrl-value{font-size:clamp(14px,2vw,20px);color:var(--gold-light);font-weight:700;min-width:50px;text-align:center}
-
-.ctrl-btn{
-  width:32px;height:32px;border-radius:50%;border:1px solid var(--gold);
-  background:rgba(212,175,55,.1);color:var(--gold);font-size:18px;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:.2s;font-family:inherit;
+.ctrl-box .label{
+  font-size:8px;color:rgba(255,255,255,.35);
+  text-transform:uppercase;letter-spacing:1.5px;
 }
-.ctrl-btn:hover{background:rgba(212,175,55,.25)}
-.ctrl-btn:disabled{opacity:.3;cursor:not-allowed}
+.ctrl-box .val{
+  font-size:clamp(14px,2vw,18px);color:var(--gold-light);font-weight:700;
+}
 
+.ctrl-pm{
+  display:flex;gap:2px;margin-top:2px;
+}
+.ctrl-pm button{
+  width:24px;height:20px;border-radius:4px;
+  border:1px solid rgba(212,175,55,.25);
+  background:rgba(212,175,55,.08);color:var(--gold);
+  font-size:14px;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;
+  transition:.15s;
+}
+.ctrl-pm button:hover{background:rgba(212,175,55,.2)}
+.ctrl-pm button:active{transform:scale(.9)}
+
+/* Spin button */
+.spin-btn-wrap{margin:0 6px}
 .spin-btn{
-  width:clamp(60px,10vw,80px);height:clamp(60px,10vw,80px);
-  border-radius:50%;border:3px solid var(--gold);
-  background:linear-gradient(180deg,var(--crimson),#5a0000);
-  color:var(--gold-light);font-size:clamp(12px,2vw,16px);font-weight:900;
-  cursor:pointer;font-family:inherit;letter-spacing:1px;
-  box-shadow:0 0 20px rgba(139,0,0,.5),0 4px 15px rgba(0,0,0,.5);
-  transition:.2s;position:relative;overflow:hidden;
+  width:clamp(56px,9vw,72px);height:clamp(56px,9vw,72px);
+  border-radius:50%;cursor:pointer;position:relative;
+  border:none;outline:none;
+  background:radial-gradient(circle at 35% 35%,#22aa22,var(--green),var(--green) 60%,#0d4d0d);
+  box-shadow:
+    0 0 0 3px var(--gold-dark),
+    0 0 0 5px rgba(0,0,0,.5),
+    0 4px 15px rgba(0,0,0,.6),
+    0 0 20px rgba(26,107,26,.3);
+  transition:.15s;
+  display:flex;align-items:center;justify-content:center;
 }
 .spin-btn::after{
-  content:'';position:absolute;inset:3px;border-radius:50%;
-  border:1px solid rgba(212,175,55,.3);
+  content:'';position:absolute;inset:4px;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.15);
+  background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.1),transparent);
 }
 .spin-btn:hover:not(:disabled){
-  box-shadow:0 0 30px rgba(139,0,0,.7),0 4px 20px rgba(0,0,0,.5);
-  transform:scale(1.05);
+  transform:scale(1.06);
+  box-shadow:
+    0 0 0 3px var(--gold),
+    0 0 0 5px rgba(0,0,0,.5),
+    0 4px 20px rgba(0,0,0,.6),
+    0 0 25px rgba(26,107,26,.5);
 }
 .spin-btn:active:not(:disabled){transform:scale(.95)}
-.spin-btn:disabled{opacity:.5;cursor:not-allowed}
+.spin-btn:disabled{opacity:.4;cursor:not-allowed}
 
-.auto-btn{
-  padding:8px 16px;border-radius:20px;border:1px solid var(--gold);
-  background:rgba(212,175,55,.1);color:var(--gold);
-  font-size:12px;cursor:pointer;font-family:inherit;transition:.2s;
+.spin-btn .spin-icon{
+  position:relative;z-index:1;
+  width:clamp(24px,4vw,32px);height:clamp(24px,4vw,32px);
 }
-.auto-btn.active{background:var(--gold);color:var(--dark)}
-.auto-btn:hover{background:rgba(212,175,55,.25)}
+/* CSS triangle play icon */
+.spin-icon::before{
+  content:'';display:block;
+  width:0;height:0;
+  border-top:clamp(12px,2vw,16px) solid transparent;
+  border-bottom:clamp(12px,2vw,16px) solid transparent;
+  border-left:clamp(18px,3vw,24px) solid #fff;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));
+  margin-left:4px;
+}
 
-/* Free Spins Banner */
-.freespin-banner{
-  display:none;position:absolute;top:50%;left:50%;
-  transform:translate(-50%,-50%);z-index:20;
-  background:linear-gradient(180deg,rgba(139,0,0,.95),rgba(10,10,18,.95));
-  border:3px solid var(--gold);border-radius:20px;padding:30px 50px;
-  text-align:center;animation:popIn .5s ease;
+/* Stop icon during spin */
+.spin-btn.stopping .spin-icon::before{
+  border:none;width:clamp(18px,3vw,22px);height:clamp(18px,3vw,22px);
+  background:#fff;border-radius:3px;margin-left:0;
 }
-.freespin-banner.show{display:block}
-.freespin-banner h2{
-  font-size:clamp(20px,4vw,36px);
-  background:linear-gradient(180deg,var(--gold-light),var(--gold));
+
+/* Auto & Gamble buttons */
+.side-btn{
+  padding:6px 10px;border-radius:6px;
+  border:1px solid rgba(212,175,55,.2);
+  background:rgba(212,175,55,.06);color:var(--gold);
+  font-size:10px;cursor:pointer;font-family:inherit;
+  letter-spacing:1px;transition:.15s;
+  text-transform:uppercase;
+}
+.side-btn:hover{background:rgba(212,175,55,.15);border-color:rgba(212,175,55,.4)}
+.side-btn.active{
+  background:linear-gradient(180deg,var(--gold),var(--gold-dark));
+  color:#000;font-weight:700;border-color:var(--gold);
+}
+
+/* Win display in panel */
+.win-box{
+  background:linear-gradient(180deg,rgba(139,0,0,.15),rgba(139,0,0,.05));
+  border-color:rgba(139,0,0,.3);
+}
+.win-box .val{color:#ff4444}
+.win-box.has-win .val{color:var(--gold-light);animation:winCountUp .3s ease}
+@keyframes winCountUp{from{transform:scale(1.3)}to{transform:scale(1)}}
+
+/* ========== FREE SPINS BANNER ========== */
+.fs-overlay{
+  display:none;position:absolute;inset:0;z-index:20;
+  background:rgba(8,5,16,.92);
+  flex-direction:column;align-items:center;justify-content:center;
+}
+.fs-overlay.show{display:flex}
+
+.fs-banner{
+  text-align:center;animation:fsBannerIn .6s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes fsBannerIn{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+
+.fs-banner h2{
+  font-size:clamp(28px,5vw,48px);font-weight:900;letter-spacing:4px;
+  background:linear-gradient(180deg,#fff5cc,var(--gold-light),var(--gold));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  margin-bottom:10px;
+  filter:drop-shadow(0 3px 8px rgba(212,175,55,.5));
+  margin-bottom:12px;
 }
-.freespin-banner p{font-size:clamp(14px,2vw,18px);color:rgba(255,255,255,.8);margin-bottom:8px}
-.freespin-banner .fs-count{font-size:clamp(36px,6vw,60px);color:var(--gold-light);font-weight:900}
-.freespin-banner .fs-symbol{font-size:50px;margin:10px 0}
-.freespin-banner button{
-  margin-top:15px;padding:10px 30px;border-radius:25px;
-  border:2px solid var(--gold);background:var(--crimson);
-  color:var(--gold-light);font-size:16px;font-weight:700;
-  cursor:pointer;font-family:inherit;
+.fs-expanding{font-size:clamp(50px,8vw,80px);margin:10px 0}
+.fs-expanding-label{font-size:14px;color:rgba(255,255,255,.6);margin-bottom:8px;letter-spacing:2px}
+.fs-count-big{
+  font-size:clamp(40px,7vw,70px);font-weight:900;
+  color:var(--gold-light);
+  text-shadow:0 0 30px rgba(212,175,55,.5);
 }
+.fs-start-btn{
+  margin-top:20px;padding:12px 40px;border-radius:30px;
+  border:2px solid var(--gold);
+  background:linear-gradient(180deg,var(--crimson),var(--crimson-dark));
+  color:var(--gold-light);font-size:18px;font-weight:700;
+  cursor:pointer;font-family:inherit;letter-spacing:2px;
+  box-shadow:0 0 20px rgba(139,0,0,.5);transition:.2s;
+}
+.fs-start-btn:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(139,0,0,.7)}
 
-@keyframes popIn{from{transform:translate(-50%,-50%) scale(.5);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
-
-/* Expanding symbol animation */
-.cell.expanding .sym{
-  animation:expandSym .6s ease;
-}
-@keyframes expandSym{
-  0%{transform:scale(1)}
-  50%{transform:scale(1.4);filter:brightness(1.5)}
-  100%{transform:scale(1)}
-}
-
-/* Gamble Modal */
-.gamble-modal{
-  display:none;position:absolute;inset:0;z-index:25;
-  background:rgba(10,10,18,.97);flex-direction:column;
-  align-items:center;justify-content:center;border-radius:16px;
-}
-.gamble-modal.show{display:flex}
-.gamble-title{font-size:22px;color:var(--gold);margin-bottom:5px}
-.gamble-win{font-size:28px;color:var(--gold-light);font-weight:900;margin-bottom:20px}
-.gamble-card{
-  width:100px;height:140px;background:#fff;border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:60px;margin-bottom:20px;transition:.5s;
-  box-shadow:0 5px 20px rgba(0,0,0,.5);
-}
-.gamble-card.reveal-red{background:#fff;color:#cc0000}
-.gamble-card.reveal-black{background:#fff;color:#111}
-.gamble-card.hidden{background:linear-gradient(135deg,var(--crimson),#3a0000);color:transparent}
-.gamble-buttons{display:flex;gap:15px}
-.gamble-btn{
-  padding:12px 30px;border-radius:12px;border:2px solid;
-  font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;
-  transition:.2s;
-}
-.gamble-btn.red{border-color:#cc0000;background:rgba(204,0,0,.2);color:#ff4444}
-.gamble-btn.black{border-color:#333;background:rgba(0,0,0,.3);color:#ccc}
-.gamble-btn.collect{border-color:var(--gold);background:rgba(212,175,55,.2);color:var(--gold)}
-.gamble-btn:hover{transform:scale(1.05)}
-
-/* Paytable */
-.paytable-btn{
-  position:absolute;top:12px;right:60px;background:none;border:1px solid rgba(212,175,55,.3);
-  color:var(--gold);padding:4px 10px;border-radius:6px;cursor:pointer;
-  font-family:inherit;font-size:12px;
-}
-.paytable-modal{
-  display:none;position:absolute;inset:0;z-index:30;
-  background:rgba(10,10,18,.98);overflow-y:auto;border-radius:16px;padding:20px;
-}
-.paytable-modal.show{display:block}
-.paytable-modal h2{text-align:center;color:var(--gold);margin-bottom:15px;font-size:22px}
-.pay-row{
-  display:flex;align-items:center;gap:10px;padding:8px 0;
-  border-bottom:1px solid rgba(255,255,255,.05);
-}
-.pay-sym{font-size:32px;width:45px;text-align:center}
-.pay-values{font-size:13px;color:rgba(255,255,255,.7)}
-.pay-values span{color:var(--gold-light);font-weight:700}
-.paytable-close{
-  position:sticky;top:0;text-align:right;
-}
-.paytable-close button{
-  background:none;border:1px solid var(--gold);color:var(--gold);
-  padding:5px 15px;border-radius:8px;cursor:pointer;font-family:inherit;
-}
-
-/* Free spins counter */
-.fs-counter{
-  display:none;position:absolute;top:50px;right:15px;z-index:10;
-  background:linear-gradient(180deg,var(--crimson),#3a0000);
-  border:2px solid var(--gold);border-radius:12px;padding:8px 14px;
+/* Free spin counter badge */
+.fs-badge{
+  display:none;position:absolute;top:10px;right:32px;z-index:6;
+  background:linear-gradient(180deg,var(--crimson),var(--crimson-dark));
+  border:2px solid var(--gold);border-radius:10px;padding:4px 12px;
   text-align:center;
 }
-.fs-counter.show{display:block}
-.fs-counter .label{font-size:10px;color:rgba(255,255,255,.6)}
-.fs-counter .count{font-size:24px;color:var(--gold-light);font-weight:900}
+.fs-badge.show{display:block}
+.fs-badge .fl{font-size:8px;color:rgba(255,255,255,.5);letter-spacing:1px}
+.fs-badge .fn{font-size:20px;color:var(--gold-light);font-weight:900}
 
-/* Big Win Overlay */
+/* ========== BIG WIN ========== */
 .bigwin-overlay{
-  display:none;position:absolute;inset:0;z-index:30;
-  background:rgba(10,10,18,.9);
+  display:none;position:absolute;inset:0;z-index:25;
+  background:rgba(8,5,16,.88);
   flex-direction:column;align-items:center;justify-content:center;
-  border-radius:16px;
 }
 .bigwin-overlay.show{display:flex}
-.bigwin-text{
-  font-size:clamp(30px,6vw,60px);font-weight:900;
-  background:linear-gradient(180deg,var(--gold-light),var(--gold),#B8860B);
+.bigwin-title{
+  font-size:clamp(36px,7vw,72px);font-weight:900;letter-spacing:4px;
+  background:linear-gradient(180deg,#fff5cc,var(--gold-light),var(--gold),var(--gold-dark));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  animation:bigWinPulse 1s ease-in-out infinite alternate;
+  filter:drop-shadow(0 4px 12px rgba(212,175,55,.6));
+  animation:bigWinPulse .8s ease-in-out infinite alternate;
 }
+@keyframes bigWinPulse{from{transform:scale(1)}to{transform:scale(1.08);filter:drop-shadow(0 4px 20px rgba(212,175,55,.8))}}
 .bigwin-amount{
-  font-size:clamp(24px,5vw,48px);color:var(--gold-light);
-  font-weight:900;margin-top:10px;
+  font-size:clamp(28px,5vw,56px);color:var(--gold-light);
+  font-weight:900;margin-top:8px;
+  text-shadow:0 0 20px rgba(212,175,55,.5);
 }
-@keyframes bigWinPulse{from{transform:scale(1);filter:brightness(1)}to{transform:scale(1.1);filter:brightness(1.3)}}
 
-/* Responsive */
+/* ========== GAMBLE ========== */
+.gamble-overlay{
+  display:none;position:absolute;inset:0;z-index:22;
+  background:rgba(8,5,16,.95);
+  flex-direction:column;align-items:center;justify-content:center;
+}
+.gamble-overlay.show{display:flex}
+.gamble-title{font-size:18px;color:var(--gold);letter-spacing:3px;margin-bottom:4px}
+.gamble-amount{font-size:28px;color:var(--gold-light);font-weight:900;margin-bottom:16px}
+.gamble-card{
+  width:90px;height:130px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:54px;margin-bottom:20px;
+  box-shadow:0 8px 25px rgba(0,0,0,.6);
+  transition:.4s;
+}
+.gamble-card.face-down{
+  background:linear-gradient(135deg,#1a0a2e,#2a1040);
+  border:2px solid var(--gold-dark);color:var(--gold-dark);
+}
+.gamble-card.red{background:#fff;color:#cc0000;border:2px solid #cc0000}
+.gamble-card.black{background:#fff;color:#111;border:2px solid #333}
+.gamble-btns{display:flex;gap:12px}
+.gamble-btns button{
+  padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:inherit;transition:.15s;border:2px solid;
+}
+.gamble-btns .g-red{border-color:#cc0000;background:rgba(204,0,0,.15);color:#ff4444}
+.gamble-btns .g-collect{border-color:var(--gold);background:rgba(212,175,55,.15);color:var(--gold)}
+.gamble-btns .g-black{border-color:#555;background:rgba(0,0,0,.3);color:#ccc}
+.gamble-btns button:hover{transform:scale(1.05)}
+
+/* ========== PAYTABLE ========== */
+.paytable-overlay{
+  display:none;position:absolute;inset:0;z-index:30;
+  background:rgba(8,5,16,.97);overflow-y:auto;
+  padding:20px;
+}
+.paytable-overlay.show{display:block}
+.pt-close{text-align:right;position:sticky;top:0;z-index:1;padding-bottom:8px}
+.pt-close button{
+  background:none;border:1px solid var(--gold);color:var(--gold);
+  padding:6px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px;
+}
+.pt-title{text-align:center;color:var(--gold);font-size:22px;margin-bottom:16px;letter-spacing:2px}
+.pt-row{
+  display:flex;align-items:center;gap:12px;padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.pt-sym{font-size:36px;width:50px;text-align:center;flex-shrink:0}
+.pt-info{flex:1}
+.pt-name{font-size:14px;font-weight:700;margin-bottom:2px}
+.pt-pays{font-size:12px;color:rgba(255,255,255,.5)}
+.pt-pays b{color:var(--gold-light)}
+.pt-footer{
+  text-align:center;padding:16px 0;font-size:12px;
+  color:rgba(255,255,255,.35);line-height:2;
+}
+.pt-footer strong{color:var(--gold)}
+
+/* Info button */
+.info-btn{
+  position:absolute;top:10px;left:32px;z-index:6;
+  background:none;border:1px solid rgba(212,175,55,.3);
+  color:var(--gold);width:28px;height:28px;border-radius:50%;
+  cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;transition:.2s;
+}
+.info-btn:hover{background:rgba(212,175,55,.15);border-color:var(--gold)}
+
+/* ========== RESPONSIVE ========== */
 @media(max-width:600px){
-  .game-frame{border-radius:0;border-left:none;border-right:none;height:100vh;display:flex;flex-direction:column;justify-content:space-between}
-  .game-frame::before{display:none}
-  .cell{border-radius:4px}
-  .controls{gap:4px;padding:6px 4px}
-  .ctrl-group{padding:4px 6px}
+  .game-container{max-height:none;height:100vh;height:100dvh}
+  .frame-deco.left,.frame-deco.right{width:20px}
+  .frame-deco.left::after,.frame-deco.right::after{font-size:9px;line-height:18px}
+  .payline-nums.left{left:0}.payline-nums.right{right:0}
+  .pln{width:17px;height:17px;font-size:7px}
+  .reels-viewport{margin:4px 20px}
+  .ctrl-box{min-width:55px;padding:3px 5px}
+  .ctrl-box .label{font-size:7px}
+  .control-panel{gap:2px;padding:6px 4px}
+}
+@media(max-width:380px){
+  .frame-deco.left,.frame-deco.right{width:16px}
+  .reels-viewport{margin:3px 16px}
 }
 </style>
 </head>
 <body>
 
-<div class="game-frame" id="gameFrame">
-  <!-- Top Bar -->
-  <div class="top-bar">
-    <button class="back-btn" onclick="goBack()">&#x2190; Lobby</button>
-    <div class="game-title">BUCH DES BAXT</div>
-    <div class="balance-display"><span id="balanceVal">0.00</span> &euro;</div>
+<div class="bg-layer"></div>
+
+<div class="game-container" id="game">
+  <!-- Header -->
+  <div class="header">
+    <button class="back-btn" onclick="goBack()">&#8592; LOBBY</button>
+    <div class="logo">
+      <h1>BUCH DES BAXT</h1>
+      <div class="subtitle">Reisendes Casino</div>
+    </div>
+    <div class="balance-box">
+      <div class="label">GUTHABEN</div>
+      <div class="value" id="balVal">0.00 &euro;</div>
+    </div>
   </div>
 
-  <!-- Reel Area -->
-  <div class="reel-container" id="reelContainer">
-    <!-- 5 reels x 3 rows = 15 cells, generated by JS -->
-  </div>
+  <!-- Game Area -->
+  <div class="game-area">
+    <!-- Frame decorations -->
+    <div class="frame-deco left"></div>
+    <div class="frame-deco right"></div>
+    <div class="frame-deco top"></div>
+    <div class="frame-deco bottom"></div>
 
-  <!-- Free Spins Counter -->
-  <div class="fs-counter" id="fsCounter">
-    <div class="label">FREISPIELE</div>
-    <div class="count" id="fsCount">0</div>
+    <!-- Payline numbers left -->
+    <div class="payline-nums left" id="plnLeft"></div>
+    <div class="payline-nums right" id="plnRight"></div>
+
+    <!-- Reels -->
+    <div class="reels-viewport" id="reelsViewport"></div>
+
+    <!-- Win lines SVG -->
+    <div class="winline-overlay" id="winlineOverlay">
+      <svg id="winlineSvg" preserveAspectRatio="none"></svg>
+    </div>
+
+    <!-- Info button -->
+    <button class="info-btn" onclick="togglePaytable()">i</button>
+
+    <!-- Free spin badge -->
+    <div class="fs-badge" id="fsBadge">
+      <div class="fl">FREE</div>
+      <div class="fn" id="fsNum">0</div>
+    </div>
+
+    <!-- Free Spins Overlay -->
+    <div class="fs-overlay" id="fsOverlay">
+      <div class="fs-banner">
+        <h2>FREISPIELE!</h2>
+        <div class="fs-expanding-label">EXPANDING SYMBOL</div>
+        <div class="fs-expanding" id="fsExpandSym"></div>
+        <div class="fs-count-big" id="fsBigCount">10</div>
+        <div style="color:rgba(255,255,255,.5);font-size:13px;margin-top:4px">FREISPIELE</div>
+        <button class="fs-start-btn" onclick="startFreeSpins()">START</button>
+      </div>
+    </div>
+
+    <!-- Big Win Overlay -->
+    <div class="bigwin-overlay" id="bigwinOverlay">
+      <div class="bigwin-title" id="bigwinTitle">BARO GEWINN!</div>
+      <div class="bigwin-amount" id="bigwinAmount"></div>
+    </div>
+
+    <!-- Gamble Overlay -->
+    <div class="gamble-overlay" id="gambleOverlay">
+      <div class="gamble-title">RISIKO</div>
+      <div class="gamble-amount" id="gambleAmt">0.00 &euro;</div>
+      <div class="gamble-card face-down" id="gambleCard">&#x2748;</div>
+      <div class="gamble-btns">
+        <button class="g-red" onclick="doGamble('red')">ROT</button>
+        <button class="g-collect" onclick="collectGamble()">NEHMEN</button>
+        <button class="g-black" onclick="doGamble('black')">SCHWARZ</button>
+      </div>
+    </div>
+
+    <!-- Paytable -->
+    <div class="paytable-overlay" id="paytableOverlay">
+      <div class="pt-close"><button onclick="togglePaytable()">SCHLIESSEN &times;</button></div>
+      <div class="pt-title">&#9776; AUSZAHLUNGSTABELLE</div>
+      <div id="ptContent"></div>
+      <div class="pt-footer">
+        <strong>&#x1F4D6; BUCH DES BAXT</strong> = Wild &amp; Scatter<br>
+        3+ B&uuml;cher = <strong>10 Freispiele</strong> mit Expanding Symbol<br>
+        Wild ersetzt alle Symbole auf der Gewinnlinie<br>
+        Gewinne werden von links nach rechts ausgewertet<br>
+        <strong>RTP: 96.21%</strong> &bull; <strong>10 Gewinnlinien</strong>
+      </div>
+    </div>
   </div>
 
   <!-- Info Bar -->
-  <div class="info-bar" id="infoBar">Drehe die Walzen - Put Baxt!</div>
+  <div class="info-bar" id="infoBar">Put Baxt! &mdash; Dr&uuml;cke START zum Spielen</div>
 
-  <!-- Controls -->
-  <div class="controls">
-    <div class="ctrl-group">
-      <div class="ctrl-label">Linien</div>
-      <button class="ctrl-btn" onclick="changeLines(-1)">-</button>
-      <div class="ctrl-value" id="linesVal">10</div>
-      <button class="ctrl-btn" onclick="changeLines(1)">+</button>
+  <!-- Control Panel -->
+  <div class="control-panel">
+    <div class="ctrl-box">
+      <div class="label">LINIEN</div>
+      <div class="val" id="linesVal">10</div>
+      <div class="ctrl-pm">
+        <button onclick="chgLines(-1)">-</button>
+        <button onclick="chgLines(1)">+</button>
+      </div>
     </div>
-    <div class="ctrl-group">
-      <div class="ctrl-label">Einsatz</div>
-      <button class="ctrl-btn" onclick="changeBet(-1)">-</button>
-      <div class="ctrl-value" id="betVal">1.00</div>
-      <button class="ctrl-btn" onclick="changeBet(1)">+</button>
+    <div class="ctrl-box">
+      <div class="label">EINSATZ</div>
+      <div class="val" id="betVal">1.00</div>
+      <div class="ctrl-pm">
+        <button onclick="chgBet(-1)">-</button>
+        <button onclick="chgBet(1)">+</button>
+      </div>
     </div>
-    <button class="spin-btn" id="spinBtn" onclick="spin()">DREH</button>
-    <button class="auto-btn" id="autoBtn" onclick="toggleAuto()">AUTO</button>
-    <div class="ctrl-group">
-      <div class="ctrl-label">Gewinn</div>
-      <div class="ctrl-value" id="winVal">0.00</div>
+    <div class="spin-btn-wrap">
+      <button class="spin-btn" id="spinBtn" onclick="spin()">
+        <div class="spin-icon"></div>
+      </button>
     </div>
-  </div>
-
-  <!-- Paytable Button -->
-  <button class="paytable-btn" onclick="togglePaytable()">&#9776; Info</button>
-
-  <!-- Free Spins Banner -->
-  <div class="freespin-banner" id="fsBanner">
-    <h2>FREISPIELE!</h2>
-    <div class="fs-symbol" id="fsSymbol"></div>
-    <p>Expanding Symbol</p>
-    <div class="fs-count" id="fsBannerCount">10</div>
-    <p>Freispiele gewonnen!</p>
-    <button onclick="startFreeSpins()">START</button>
-  </div>
-
-  <!-- Gamble Modal -->
-  <div class="gamble-modal" id="gambleModal">
-    <div class="gamble-title">RISIKO</div>
-    <div class="gamble-win" id="gambleWin">0.00 &euro;</div>
-    <div class="gamble-card hidden" id="gambleCard">?</div>
-    <div class="gamble-buttons">
-      <button class="gamble-btn red" onclick="gamble('red')">ROT</button>
-      <button class="gamble-btn collect" onclick="collectGamble()">NEHMEN</button>
-      <button class="gamble-btn black" onclick="gamble('black')">SCHWARZ</button>
+    <button class="side-btn" id="autoBtn" onclick="toggleAuto()">AUTO</button>
+    <div class="ctrl-box win-box" id="winBox">
+      <div class="label">GEWINN</div>
+      <div class="val" id="winVal">0.00</div>
     </div>
-  </div>
-
-  <!-- Big Win Overlay -->
-  <div class="bigwin-overlay" id="bigwinOverlay">
-    <div class="bigwin-text" id="bigwinText">BARO GEWINN!</div>
-    <div class="bigwin-amount" id="bigwinAmount"></div>
-  </div>
-
-  <!-- Paytable Modal -->
-  <div class="paytable-modal" id="paytableModal">
-    <div class="paytable-close"><button onclick="togglePaytable()">Schlie&szlig;en &times;</button></div>
-    <h2>AUSZAHLUNGSTABELLE</h2>
-    <div id="paytableContent"></div>
-    <div style="padding:15px;font-size:13px;color:rgba(255,255,255,.5);text-align:center">
-      <p>&#x1F4D6; BUCH = Wild &amp; Scatter</p>
-      <p>3+ B&uuml;cher = 10 Freispiele mit Expanding Symbol</p>
-      <p>Wild ersetzt alle Symbole</p>
-      <p>RTP: 96.21% | 10 Gewinnlinien</p>
-    </div>
+    <button class="side-btn" id="gambleBtn" onclick="showGamble()" style="display:none">RISIKO</button>
   </div>
 </div>
 
 <script>
 // ============================================================
-// BUCH DES BAXT - Book of Ra style slot game
+// BUCH DES BAXT - Premium Book of Ra Style Slot
 // ============================================================
 
-const API_BASE = window.location.origin + '/api';
-const TOKEN = localStorage.getItem('rc_token');
+const API = window.location.origin + '/api';
+const TK = localStorage.getItem('rc_token');
 
-// Symbols: [id, emoji/display, name]
-const SYMBOLS = [
-  { id: 'book',    display: '\u{1F4D6}', name: 'Buch des Baxt', isWild: true, isScatter: true },
-  { id: 'pharao',  display: '\u{1F934}', name: 'Pharao' },
-  { id: 'scarab',  display: '\u{1FAB2}', name: 'Skarab\u00e4us' },
-  { id: 'ankh',    display: '\u2625',    name: 'Ankh' },
-  { id: 'eye',     display: '\u{1F441}', name: 'Auge des Ra' },
-  { id: 'ace',     display: 'A',         name: 'Ass', isLetter: true },
-  { id: 'king',    display: 'K',         name: 'K\u00f6nig', isLetter: true },
-  { id: 'queen',   display: 'Q',         name: 'Dame', isLetter: true },
-  { id: 'jack',    display: 'J',         name: 'Bube', isLetter: true },
-  { id: 'ten',     display: '10',        name: 'Zehn', isLetter: true }
+// ========== SYMBOLS ==========
+const SYM = [
+  { id:'book',   icon:'\u{1F4D6}', name:'Buch des Baxt', cls:'book-sym', wild:true, scatter:true },
+  { id:'pharao', icon:'\u{1F3FA}', name:'Pharao',        cls:'premium' },
+  { id:'scarab', icon:'\u{1FAB2}', name:'Skarab\u00e4us',cls:'premium' },
+  { id:'ankh',   icon:'\u2625\uFE0F',    name:'Ankh',          cls:'premium' },
+  { id:'eye',    icon:'\u{1F441}\uFE0F', name:'Auge des Ra',   cls:'premium' },
+  { id:'ace',    icon:'A', name:'Ass',    cls:'letter', color:'#ff3333' },
+  { id:'king',   icon:'K', name:'K\u00f6nig', cls:'letter', color:'#3388ff' },
+  { id:'queen',  icon:'Q', name:'Dame',   cls:'letter', color:'#33dd55' },
+  { id:'jack',   icon:'J', name:'Bube',   cls:'letter', color:'#ff8833' },
+  { id:'ten',    icon:'10',name:'Zehn',   cls:'letter', color:'#dd33ff' }
 ];
 
-// Paytable: multipliers for 3, 4, 5 of a kind (times line bet)
-const PAYTABLE = {
-  pharao:  [50, 200, 500],
-  scarab:  [20, 80,  200],
-  ankh:    [15, 50,  150],
-  eye:     [10, 40,  100],
-  book:    [10, 40,  100],
-  ace:     [5,  20,  50],
-  king:    [5,  20,  50],
-  queen:   [3,  15,  40],
-  jack:    [3,  15,  40],
-  ten:     [3,  15,  40]
+const PAY = {
+  pharao:[50,200,500], scarab:[20,80,200], ankh:[15,50,150],
+  eye:[10,40,100], book:[10,40,100],
+  ace:[5,20,50], king:[5,20,50], queen:[3,15,40], jack:[3,15,40], ten:[3,15,40]
 };
+const SCATTER_PAY = {3:2, 4:20, 5:200};
 
-// Scatter pays (book): 3=2x, 4=20x, 5=200x total bet
-const SCATTER_PAYS = { 3: 2, 4: 20, 5: 200 };
+const W = { ten:25,jack:25,queen:22,king:20,ace:18,eye:12,ankh:10,scarab:8,pharao:5,book:6 };
 
-// Symbol weights (higher = more common)
-const WEIGHTS = {
-  ten: 25, jack: 25, queen: 22, king: 20, ace: 18,
-  eye: 12, ankh: 10, scarab: 8, pharao: 5, book: 6
-};
-
-// 10 Paylines (row indices for each reel, 0=top, 1=mid, 2=bottom)
-const PAYLINES = [
-  [1,1,1,1,1], // line 1: middle row
-  [0,0,0,0,0], // line 2: top row
-  [2,2,2,2,2], // line 3: bottom row
-  [0,1,2,1,0], // line 4: V shape
-  [2,1,0,1,2], // line 5: inverted V
-  [0,0,1,2,2], // line 6: down slope
-  [2,2,1,0,0], // line 7: up slope
-  [1,0,0,0,1], // line 8: U top
-  [1,2,2,2,1], // line 9: U bottom
-  [1,0,1,0,1], // line 10: zigzag
+const LINES = [
+  [1,1,1,1,1],[0,0,0,0,0],[2,2,2,2,2],[0,1,2,1,0],[2,1,0,1,2],
+  [0,0,1,2,2],[2,2,1,0,0],[1,0,0,0,1],[1,2,2,2,1],[1,0,1,0,1]
+];
+const LINE_COLORS = [
+  '#ff0000','#00dd00','#3366ff','#ff00ff','#ffdd00',
+  '#00dddd','#ff7700','#88ff00','#ff0088','#ffffff'
 ];
 
-const PAYLINE_COLORS = [
-  '#ff0000','#00ff00','#0066ff','#ff00ff','#ffff00',
-  '#00ffff','#ff8800','#88ff00','#ff0088','#ffffff'
-];
+// ========== STATE ==========
+let bal=0, betPer=0.10, nLines=10, spinning=false, autoOn=false;
+let freeSpins=0, fsExpand=null, fsTotalWin=0;
+let lastWin=0, gambleAmt=0;
+const BETS=[0.02,0.05,0.10,0.20,0.50,1.00,2.00,5.00];
 
-// Game State
-let balance = 0;
-let betPerLine = 0.10;
-let lines = 10;
-let isSpinning = false;
-let autoPlay = false;
-let autoCount = 0;
-let freeSpins = 0;
-let freeSpinExpandSymbol = null;
-let totalFreeSpinWin = 0;
-let lastWin = 0;
-let gambleWin = 0;
-let reelGrid = []; // 5 reels x 3 symbols
+let grid = [[],[],[],[],[]]; // visible 3x5 grid
 
-const BETS = [0.02, 0.05, 0.10, 0.20, 0.50, 1.00, 2.00, 5.00];
-
-// ============================================================
-// INIT
-// ============================================================
+// ========== INIT ==========
 document.addEventListener('DOMContentLoaded', () => {
   buildReels();
+  buildPaylineNums();
   buildPaytable();
-  loadBalance();
-  updateDisplay();
+  loadBal();
 });
 
-async function loadBalance() {
-  if (!TOKEN) { balance = 100; updateDisplay(); return; }
-  try {
-    const res = await fetch(API_BASE + '/wallet/balance', {
-      headers: { 'Authorization': 'Bearer ' + TOKEN }
-    });
-    const data = await res.json();
-    if (data.balance !== undefined) balance = data.balance;
-    else balance = 100;
-  } catch(e) { balance = 100; }
-  updateDisplay();
+function rndSym() {
+  const tot = Object.values(W).reduce((a,b)=>a+b,0);
+  let r = Math.random()*tot;
+  for (const s of SYM) { r -= W[s.id]; if (r<=0) return s; }
+  return SYM[SYM.length-1];
 }
 
-async function syncBalance(amount) {
-  if (!TOKEN) return;
-  try {
-    if (amount > 0) {
-      await fetch(API_BASE + '/wallet/deposit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
-        body: JSON.stringify({ amount })
-      });
-    } else if (amount < 0) {
-      await fetch(API_BASE + '/wallet/withdraw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
-        body: JSON.stringify({ amount: Math.abs(amount) })
-      });
-    }
-  } catch(e) {}
-}
-
-function goBack() {
-  window.location.href = '/';
-}
-
-// ============================================================
-// BUILD UI
-// ============================================================
+// ========== BUILD UI ==========
 function buildReels() {
-  const container = document.getElementById('reelContainer');
-  container.innerHTML = '';
-  reelGrid = [];
+  const vp = document.getElementById('reelsViewport');
+  vp.innerHTML = '';
   for (let r = 0; r < 5; r++) {
-    const reelDiv = document.createElement('div');
-    reelDiv.className = 'reel';
-    reelDiv.id = 'reel-' + r;
-    const reelSymbols = [];
+    const col = document.createElement('div');
+    col.className = 'reel-col';
+    col.id = 'reel-'+r;
+
+    grid[r] = [];
     for (let row = 0; row < 3; row++) {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.id = 'cell-' + r + '-' + row;
-      const sym = getRandomSymbol();
-      cell.innerHTML = renderSymbol(sym);
-      reelDiv.appendChild(cell);
-      reelSymbols.push(sym);
+      const sym = rndSym();
+      grid[r].push(sym);
+      const el = makeSymEl(sym);
+      el.id = 'c-'+r+'-'+row;
+      col.appendChild(el);
     }
-    container.appendChild(reelDiv);
-    reelGrid.push(reelSymbols);
+    vp.appendChild(col);
   }
 }
 
-function renderSymbol(sym) {
-  if (sym.isLetter) {
-    return '<div class="sym" style="font-size:clamp(22px,4vw,40px);font-weight:900;color:' +
-      getLetterColor(sym.id) + ';text-shadow:0 2px 8px rgba(0,0,0,.8)">' + sym.display + '</div>';
+function makeSymEl(sym) {
+  const el = document.createElement('div');
+  el.className = 'reel-sym';
+  el.dataset.id = sym.id;
+
+  const inner = document.createElement('div');
+  inner.className = 'sym-inner ' + sym.cls;
+
+  const icon = document.createElement('div');
+  icon.className = 'sym-icon';
+  if (sym.cls === 'letter') {
+    icon.textContent = sym.icon;
+    icon.style.color = sym.color;
+    icon.style.textShadow = '0 2px 8px rgba(0,0,0,.8), 0 0 15px '+sym.color+'33';
+  } else {
+    icon.textContent = sym.icon;
   }
-  return '<div class="sym" style="font-size:clamp(28px,5vw,48px)">' + sym.display + '</div>';
+
+  inner.appendChild(icon);
+  el.appendChild(inner);
+  return el;
 }
 
-function getLetterColor(id) {
-  const colors = { ace: '#ff4444', king: '#4488ff', queen: '#44ff44', jack: '#ff8844', ten: '#ff44ff' };
-  return colors[id] || '#fff';
+function setCell(r, row, sym) {
+  grid[r][row] = sym;
+  const el = document.getElementById('c-'+r+'-'+row);
+  const newEl = makeSymEl(sym);
+  newEl.id = 'c-'+r+'-'+row;
+  el.replaceWith(newEl);
 }
 
-function getRandomSymbol() {
-  const totalWeight = Object.values(WEIGHTS).reduce((a, b) => a + b, 0);
-  let r = Math.random() * totalWeight;
-  for (const sym of SYMBOLS) {
-    r -= WEIGHTS[sym.id];
-    if (r <= 0) return sym;
+function buildPaylineNums() {
+  const left = document.getElementById('plnLeft');
+  const right = document.getElementById('plnRight');
+  // Left: lines 1-5, Right: lines 6-10
+  for (let i = 0; i < 5; i++) {
+    const pl = document.createElement('div');
+    pl.className = 'pln';
+    pl.textContent = i+1;
+    pl.style.background = LINE_COLORS[i];
+    left.appendChild(pl);
   }
-  return SYMBOLS[SYMBOLS.length - 1];
+  for (let i = 5; i < 10; i++) {
+    const pr = document.createElement('div');
+    pr.className = 'pln';
+    pr.textContent = i+1;
+    pr.style.background = LINE_COLORS[i];
+    right.appendChild(pr);
+  }
 }
 
 function buildPaytable() {
-  const content = document.getElementById('paytableContent');
-  let html = '';
-  for (const sym of SYMBOLS) {
-    const pays = PAYTABLE[sym.id];
-    html += '<div class="pay-row">' +
-      '<div class="pay-sym">' + (sym.isLetter ? '<span style="font-weight:900;color:' + getLetterColor(sym.id) + '">' + sym.display + '</span>' : sym.display) + '</div>' +
-      '<div><div style="font-weight:700;color:#fff;font-size:14px">' + sym.name +
-      (sym.isWild ? ' (Wild+Scatter)' : '') + '</div>' +
-      '<div class="pay-values">3x = <span>' + pays[0] + 'x</span> | 4x = <span>' + pays[1] + 'x</span> | 5x = <span>' + pays[2] + 'x</span></div></div></div>';
+  const c = document.getElementById('ptContent');
+  let h = '';
+  for (const s of SYM) {
+    const p = PAY[s.id];
+    const iconHtml = s.cls==='letter' ?
+      '<span style="font-weight:900;font-size:32px;color:'+s.color+'">'+s.icon+'</span>' :
+      '<span style="font-size:32px">'+s.icon+'</span>';
+    h += '<div class="pt-row"><div class="pt-sym">'+iconHtml+'</div><div class="pt-info">' +
+      '<div class="pt-name">'+s.name+(s.wild?' (Wild+Scatter)':'')+'</div>' +
+      '<div class="pt-pays">3x <b>'+p[0]+'</b> &bull; 4x <b>'+p[1]+'</b> &bull; 5x <b>'+p[2]+'</b></div>' +
+      '</div></div>';
   }
-  content.innerHTML = html;
+  c.innerHTML = h;
 }
 
-// ============================================================
-// CONTROLS
-// ============================================================
-function changeBet(dir) {
-  if (isSpinning) return;
-  const idx = BETS.indexOf(betPerLine);
-  const newIdx = Math.max(0, Math.min(BETS.length - 1, idx + dir));
-  betPerLine = BETS[newIdx];
-  updateDisplay();
+// ========== BALANCE ==========
+async function loadBal() {
+  if (!TK) { bal=100; updDisp(); return; }
+  try {
+    const r = await fetch(API+'/wallet/balance',{headers:{'Authorization':'Bearer '+TK}});
+    const d = await r.json();
+    bal = d.balance !== undefined ? d.balance : 100;
+  } catch(e) { bal=100; }
+  updDisp();
 }
 
-function changeLines(dir) {
-  if (isSpinning) return;
-  lines = Math.max(1, Math.min(10, lines + dir));
-  updateDisplay();
+async function syncBal(amt) {
+  if (!TK) return;
+  try {
+    const endpoint = amt>0 ? '/wallet/deposit' : '/wallet/withdraw';
+    await fetch(API+endpoint, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+TK},
+      body:JSON.stringify({amount:Math.abs(amt)})
+    });
+  } catch(e){}
 }
 
-function getTotalBet() {
-  return Math.round(betPerLine * lines * 100) / 100;
+// ========== CONTROLS ==========
+function totalBet() { return Math.round(betPer*nLines*100)/100; }
+
+function chgBet(d) {
+  if (spinning) return;
+  const i = BETS.indexOf(betPer);
+  betPer = BETS[Math.max(0,Math.min(BETS.length-1,i+d))];
+  updDisp();
 }
 
-function updateDisplay() {
-  document.getElementById('balanceVal').textContent = balance.toFixed(2);
-  document.getElementById('betVal').textContent = (betPerLine * lines).toFixed(2);
-  document.getElementById('linesVal').textContent = lines;
+function chgLines(d) {
+  if (spinning) return;
+  nLines = Math.max(1,Math.min(10,nLines+d));
+  updDisp();
+}
+
+function updDisp() {
+  document.getElementById('balVal').textContent = bal.toFixed(2)+' \u20AC';
+  document.getElementById('betVal').textContent = totalBet().toFixed(2);
+  document.getElementById('linesVal').textContent = nLines;
   document.getElementById('winVal').textContent = lastWin.toFixed(2);
 }
 
 function toggleAuto() {
-  autoPlay = !autoPlay;
-  document.getElementById('autoBtn').classList.toggle('active', autoPlay);
-  if (autoPlay && !isSpinning) spin();
+  autoOn=!autoOn;
+  document.getElementById('autoBtn').classList.toggle('active',autoOn);
+  if (autoOn && !spinning) spin();
 }
 
 function togglePaytable() {
-  document.getElementById('paytableModal').classList.toggle('show');
+  document.getElementById('paytableOverlay').classList.toggle('show');
 }
 
-// ============================================================
-// SPIN
-// ============================================================
-async function spin() {
-  if (isSpinning) return;
-  const totalBet = getTotalBet();
+function goBack() { window.location.href='/'; }
 
-  if (freeSpins <= 0 && balance < totalBet) {
-    setInfo('Nicht genug Guthaben! Bitte einzahlen.');
-    autoPlay = false;
-    document.getElementById('autoBtn').classList.remove('active');
+// ========== SPIN ==========
+async function spin() {
+  if (spinning) return;
+  const tb = totalBet();
+
+  if (freeSpins<=0 && bal<tb) {
+    setInfo('Nicht genug Guthaben!');
+    autoOn=false; document.getElementById('autoBtn').classList.remove('active');
     return;
   }
 
-  isSpinning = true;
-  lastWin = 0;
-  document.getElementById('spinBtn').disabled = true;
-  clearWinHighlights();
+  spinning=true;
+  lastWin=0;
+  document.getElementById('spinBtn').disabled=true;
+  document.getElementById('spinBtn').classList.add('stopping');
+  document.getElementById('gambleBtn').style.display='none';
+  clearWins();
+  clearWinlines();
 
-  // Deduct bet (not during free spins)
-  if (freeSpins <= 0) {
-    balance -= totalBet;
-    syncBalance(-totalBet);
-  } else {
+  // Deduct
+  if (freeSpins>0) {
     freeSpins--;
-    document.getElementById('fsCount').textContent = freeSpins;
-    if (freeSpins <= 0) {
-      document.getElementById('fsCounter').classList.remove('show');
-    }
+    document.getElementById('fsNum').textContent=freeSpins;
+    if (freeSpins<=0) document.getElementById('fsBadge').classList.remove('show');
+  } else {
+    bal-=tb; syncBal(-tb);
   }
-  updateDisplay();
-  setInfo('');
+  updDisp(); setInfo('');
 
   // Generate results
   const results = [];
-  for (let r = 0; r < 5; r++) {
-    const reel = [];
-    for (let row = 0; row < 3; row++) {
-      reel.push(getRandomSymbol());
-    }
-    results.push(reel);
+  for (let r=0; r<5; r++) {
+    results.push([rndSym(), rndSym(), rndSym()]);
   }
 
-  // Animate reels
-  const reels = document.querySelectorAll('.reel');
+  // Animate reels - start all spinning
+  const reels = document.querySelectorAll('.reel-col');
   reels.forEach(r => r.classList.add('spinning'));
 
-  for (let r = 0; r < 5; r++) {
-    await sleep(300 + r * 200);
-    reels[r].classList.remove('spinning');
-    for (let row = 0; row < 3; row++) {
-      const cell = document.getElementById('cell-' + r + '-' + row);
-      cell.innerHTML = renderSymbol(results[r][row]);
-    }
-    reelGrid[r] = results[r];
-  }
-
-  await sleep(200);
-
-  // Check free spin expanding symbol
-  if (freeSpinExpandSymbol) {
-    await expandSymbols(results);
-  }
-
-  // Evaluate wins
-  let totalWin = 0;
-  const winningCells = new Set();
-
-  // Check paylines
-  for (let l = 0; l < lines; l++) {
-    const lineResult = checkPayline(l, results);
-    if (lineResult.win > 0) {
-      totalWin += lineResult.win * betPerLine;
-      lineResult.cells.forEach(c => winningCells.add(c));
-    }
-  }
-
-  // Check scatter (book) - counts anywhere
-  let scatterCount = 0;
-  const scatterCells = [];
-  for (let r = 0; r < 5; r++) {
-    for (let row = 0; row < 3; row++) {
-      if (results[r][row].id === 'book') {
-        scatterCount++;
-        scatterCells.push('cell-' + r + '-' + row);
+  // Rapidly shuffle symbols during spin
+  const shuffleInterval = setInterval(() => {
+    reels.forEach((reel, r) => {
+      if (reel.classList.contains('spinning')) {
+        for (let row=0; row<3; row++) {
+          const el = document.getElementById('c-'+r+'-'+row);
+          if (el) {
+            const s = rndSym();
+            el.querySelector('.sym-icon').textContent = s.icon;
+            if (s.cls==='letter') el.querySelector('.sym-icon').style.color = s.color;
+          }
+        }
       }
+    });
+  }, 60);
+
+  // Stop reels one by one
+  for (let r=0; r<5; r++) {
+    await sleep(350 + r*220);
+    reels[r].classList.remove('spinning');
+    reels[r].classList.add('landing');
+    for (let row=0; row<3; row++) {
+      setCell(r, row, results[r][row]);
+    }
+    grid[r] = results[r];
+    setTimeout(() => reels[r].classList.remove('landing'), 300);
+  }
+  clearInterval(shuffleInterval);
+  await sleep(150);
+
+  // Free spin expand
+  if (fsExpand) await doExpand();
+
+  // Evaluate
+  let totalW = 0;
+  const winCells = new Set();
+  const winLines = [];
+
+  for (let l=0; l<nLines; l++) {
+    const res = evalLine(l);
+    if (res.win>0) {
+      totalW += res.win * betPer;
+      res.cells.forEach(c => winCells.add(c));
+      winLines.push({line:l, cells:res.cells});
     }
   }
 
-  if (scatterCount >= 3 && SCATTER_PAYS[scatterCount]) {
-    totalWin += SCATTER_PAYS[scatterCount] * getTotalBet();
-    scatterCells.forEach(c => winningCells.add(c));
+  // Scatter
+  let scatN=0; const scatCells=[];
+  for (let r=0;r<5;r++) for (let row=0;row<3;row++) {
+    if (grid[r][row].id==='book') { scatN++; scatCells.push(r+'-'+row); }
+  }
+  if (scatN>=3 && SCATTER_PAY[scatN]) {
+    totalW += SCATTER_PAY[scatN]*tb;
+    scatCells.forEach(c => winCells.add(c));
   }
 
-  totalWin = Math.round(totalWin * 100) / 100;
+  totalW = Math.round(totalW*100)/100;
 
-  // Highlight wins
-  winningCells.forEach(cellId => {
-    document.getElementById(cellId)?.classList.add('winning');
-  });
+  // Show wins
+  highlightWins(winCells);
+  if (winLines.length>0) drawWinlines(winLines);
 
-  if (totalWin > 0) {
-    lastWin = totalWin;
-    balance += totalWin;
-    syncBalance(totalWin);
-    updateDisplay();
+  if (totalW>0) {
+    lastWin=totalW; bal+=totalW; syncBal(totalW);
+    document.getElementById('winBox').classList.add('has-win');
+    updDisp();
 
-    if (totalWin >= getTotalBet() * 20) {
-      await showBigWin(totalWin);
+    if (totalW >= tb*20) {
+      await showBigWin(totalW);
     } else {
-      setInfo('GEWINN: ' + totalWin.toFixed(2) + '\u20AC - Baxt!', 'win');
+      setInfo('GEWINN: '+totalW.toFixed(2)+'\u20AC \u2014 Baxt!','win');
     }
-
-    if (freeSpinExpandSymbol) {
-      totalFreeSpinWin += totalWin;
-    }
+    if (fsExpand) fsTotalWin+=totalW;
+  } else {
+    document.getElementById('winBox').classList.remove('has-win');
   }
 
   // Trigger free spins
-  if (scatterCount >= 3 && freeSpins <= 0 && !freeSpinExpandSymbol) {
-    await triggerFreeSpins();
-    isSpinning = false;
-    document.getElementById('spinBtn').disabled = false;
+  if (scatN>=3 && freeSpins<=0 && !fsExpand) {
+    await triggerFS();
+    spinning=false;
+    document.getElementById('spinBtn').disabled=false;
+    document.getElementById('spinBtn').classList.remove('stopping');
     return;
   }
 
-  // Free spins ended
-  if (freeSpinExpandSymbol && freeSpins <= 0) {
-    freeSpinExpandSymbol = null;
-    if (totalFreeSpinWin > 0) {
-      setInfo('Freispiele vorbei! Gesamtgewinn: ' + totalFreeSpinWin.toFixed(2) + '\u20AC', 'freespin');
-    } else {
-      setInfo('Freispiele vorbei. N\u00e4chstes Mal mehr Baxt!');
-    }
-    totalFreeSpinWin = 0;
+  // Re-trigger during FS
+  if (scatN>=3 && fsExpand) {
+    freeSpins+=10;
+    document.getElementById('fsNum').textContent=freeSpins;
+    document.getElementById('fsBadge').classList.add('show');
+    setInfo('+10 Freispiele! Put Baxt!','freespin');
   }
 
-  // Re-trigger free spins during free spins
-  if (scatterCount >= 3 && freeSpinExpandSymbol) {
-    freeSpins += 10;
-    document.getElementById('fsCount').textContent = freeSpins;
-    setInfo('+10 Freispiele! Put Baxt!', 'freespin');
+  // FS ended
+  if (fsExpand && freeSpins<=0) {
+    fsExpand=null;
+    setInfo(fsTotalWin>0 ?
+      'Freispiele vorbei! Gesamt: '+fsTotalWin.toFixed(2)+'\u20AC' :
+      'Freispiele vorbei.', fsTotalWin>0?'win':'');
+    fsTotalWin=0;
   }
 
-  isSpinning = false;
-  document.getElementById('spinBtn').disabled = false;
+  spinning=false;
+  document.getElementById('spinBtn').disabled=false;
+  document.getElementById('spinBtn').classList.remove('stopping');
 
-  // Gamble option
-  if (totalWin > 0 && !freeSpinExpandSymbol) {
-    // Show gamble after short delay (skip during auto)
-    if (!autoPlay) {
-      gambleWin = totalWin;
-    }
+  // Show gamble option
+  if (totalW>0 && !fsExpand && !autoOn) {
+    gambleAmt=totalW;
+    document.getElementById('gambleBtn').style.display='';
   }
 
-  // Auto play
-  if (autoPlay && freeSpins <= 0) {
-    await sleep(800);
-    spin();
-  } else if (freeSpins > 0) {
-    await sleep(600);
-    spin();
-  }
+  // Auto / Free spin continue
+  if (autoOn && freeSpins<=0) { await sleep(600); spin(); }
+  else if (freeSpins>0) { await sleep(500); spin(); }
 }
 
-function checkPayline(lineIdx, results) {
-  const line = PAYLINES[lineIdx];
-  const symbols = line.map((row, reel) => results[reel][row]);
-  const cells = line.map((row, reel) => 'cell-' + reel + '-' + row);
-
-  // Find longest match from left
-  const firstSym = symbols[0].isWild ? null : symbols[0];
-  let matchSym = firstSym;
-  let count = 0;
-
-  for (let i = 0; i < 5; i++) {
-    const s = symbols[i];
-    if (i === 0) {
-      if (s.isWild) {
-        count = 1;
-        matchSym = null; // wild, wait for real symbol
-      } else {
-        count = 1;
-        matchSym = s;
-      }
-    } else {
-      if (s.isWild || (matchSym && s.id === matchSym.id) || (!matchSym && !s.isWild)) {
-        count++;
-        if (!matchSym && !s.isWild) matchSym = s;
-        if (!matchSym && s.isWild) { /* all wilds so far */ }
-      } else if (!matchSym && !s.isWild) {
-        matchSym = s;
-        count++;
-      } else {
-        break;
-      }
-    }
-  }
-
-  // All wilds = use book paytable
-  if (!matchSym) matchSym = SYMBOLS[0]; // book
-
-  if (count >= 3 && matchSym && PAYTABLE[matchSym.id]) {
-    const payIdx = count - 3; // 0,1,2 for 3,4,5
-    const multiplier = PAYTABLE[matchSym.id][payIdx];
-    return { win: multiplier, cells: cells.slice(0, count), symbol: matchSym };
-  }
-
-  return { win: 0, cells: [], symbol: null };
-}
-
-// ============================================================
-// FREE SPINS
-// ============================================================
-async function triggerFreeSpins() {
-  // Pick random expanding symbol
-  const expandSym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-  freeSpinExpandSymbol = expandSym;
-  freeSpins = 10;
-  totalFreeSpinWin = 0;
-
-  const banner = document.getElementById('fsBanner');
-  document.getElementById('fsSymbol').innerHTML = expandSym.isLetter ?
-    '<span style="font-weight:900;color:' + getLetterColor(expandSym.id) + '">' + expandSym.display + '</span>' :
-    expandSym.display;
-  document.getElementById('fsBannerCount').textContent = '10';
-  banner.classList.add('show');
-}
-
-function startFreeSpins() {
-  document.getElementById('fsBanner').classList.remove('show');
-  document.getElementById('fsCounter').classList.add('show');
-  document.getElementById('fsCount').textContent = freeSpins;
-  setInfo('Freispiele! Expanding: ' + freeSpinExpandSymbol.name, 'freespin');
-  spin();
-}
-
-async function expandSymbols(results) {
-  if (!freeSpinExpandSymbol) return;
-
+// ========== EXPAND (Free Spins) ==========
+async function doExpand() {
+  if (!fsExpand) return;
   let expanded = false;
-  for (let r = 0; r < 5; r++) {
-    // Check if expanding symbol appears on this reel
-    let hasSymbol = false;
-    for (let row = 0; row < 3; row++) {
-      if (results[r][row].id === freeSpinExpandSymbol.id || results[r][row].id === 'book') {
-        hasSymbol = true;
-        break;
-      }
+
+  for (let r=0; r<5; r++) {
+    let has = false;
+    for (let row=0; row<3; row++) {
+      if (grid[r][row].id===fsExpand.id || grid[r][row].id==='book') { has=true; break; }
     }
-    if (hasSymbol) {
-      // Expand: fill entire reel with this symbol
-      for (let row = 0; row < 3; row++) {
-        results[r][row] = freeSpinExpandSymbol;
-        const cell = document.getElementById('cell-' + r + '-' + row);
-        cell.innerHTML = renderSymbol(freeSpinExpandSymbol);
-        cell.classList.add('expanding');
+    if (has) {
+      for (let row=0; row<3; row++) {
+        grid[r][row] = fsExpand;
+        setCell(r, row, fsExpand);
+        document.getElementById('c-'+r+'-'+row)?.classList.add('expanding');
         expanded = true;
       }
-      reelGrid[r] = [freeSpinExpandSymbol, freeSpinExpandSymbol, freeSpinExpandSymbol];
     }
   }
 
   if (expanded) {
-    await sleep(600);
-    document.querySelectorAll('.cell.expanding').forEach(c => c.classList.remove('expanding'));
+    await sleep(700);
+    document.querySelectorAll('.expanding').forEach(e=>e.classList.remove('expanding'));
   }
 }
 
-// ============================================================
-// GAMBLE (Red/Black)
-// ============================================================
-function gamble(choice) {
-  const card = document.getElementById('gambleCard');
-  const isRed = Math.random() < 0.5;
-  const suits = isRed ? ['\u2665', '\u2666'] : ['\u2660', '\u2663'];
-  const values = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-  const suit = suits[Math.floor(Math.random() * 2)];
-  const val = values[Math.floor(Math.random() * values.length)];
+// ========== PAYLINE EVAL ==========
+function evalLine(li) {
+  const line = LINES[li];
+  const syms = line.map((row,r)=>grid[r][row]);
+  const cells = line.map((row,r)=>r+'-'+row);
 
-  card.className = 'gamble-card ' + (isRed ? 'reveal-red' : 'reveal-black');
-  card.textContent = val + suit;
-
-  const won = (choice === 'red' && isRed) || (choice === 'black' && !isRed);
-
-  setTimeout(() => {
-    if (won) {
-      gambleWin *= 2;
-      document.getElementById('gambleWin').textContent = gambleWin.toFixed(2) + ' \u20AC';
-      balance += gambleWin / 2; // add the extra half
-      syncBalance(gambleWin / 2);
-      updateDisplay();
+  let match=null, count=0;
+  for (let i=0;i<5;i++) {
+    const s=syms[i];
+    if (i===0) {
+      count=1;
+      match=s.wild?null:s;
     } else {
-      balance -= gambleWin;
-      syncBalance(-gambleWin);
-      gambleWin = 0;
-      updateDisplay();
-      setTimeout(() => closeGamble(), 1000);
+      if (s.wild || (match && s.id===match.id)) {
+        count++;
+        if (!match && !s.wild) match=s;
+      } else if (!match && !s.wild) {
+        match=s; count++;
+      } else break;
     }
-    card.className = 'gamble-card hidden';
-    card.textContent = '?';
-  }, 1500);
+  }
+  if (!match) match=SYM[0]; // all wilds = book
+  if (count>=3 && PAY[match.id]) {
+    return {win:PAY[match.id][count-3], cells:cells.slice(0,count)};
+  }
+  return {win:0,cells:[]};
+}
+
+// ========== WIN DISPLAY ==========
+function highlightWins(cells) {
+  cells.forEach(key => {
+    document.getElementById('c-'+key)?.classList.add('winning');
+  });
+}
+
+function clearWins() {
+  document.querySelectorAll('.reel-sym.winning').forEach(e=>e.classList.remove('winning'));
+}
+
+function drawWinlines(winLines) {
+  const svg = document.getElementById('winlineSvg');
+  const vp = document.getElementById('reelsViewport');
+  const w = vp.clientWidth;
+  const h = vp.clientHeight;
+  svg.setAttribute('viewBox','0 0 '+w+' '+h);
+
+  let html = '';
+  for (const wl of winLines) {
+    const line = LINES[wl.line];
+    const color = LINE_COLORS[wl.line];
+    const colW = w/5;
+    const rowH = h/3;
+    let d = '';
+    for (let i=0; i<5; i++) {
+      const x = colW*i + colW/2;
+      const y = rowH*line[i] + rowH/2;
+      d += (i===0?'M':'L')+x+','+y;
+    }
+    html += '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="3" opacity="0.7" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="opacity" values="0.7;0.3;0.7" dur="1s" repeatCount="indefinite"/></path>';
+  }
+  svg.innerHTML = html;
+}
+
+function clearWinlines() {
+  document.getElementById('winlineSvg').innerHTML = '';
+}
+
+// ========== FREE SPINS ==========
+async function triggerFS() {
+  const sym = SYM[Math.floor(Math.random()*SYM.length)];
+  fsExpand=sym; freeSpins=10; fsTotalWin=0;
+
+  const overlay = document.getElementById('fsOverlay');
+  const symEl = document.getElementById('fsExpandSym');
+  symEl.textContent = sym.icon;
+  if (sym.cls==='letter') symEl.style.color=sym.color;
+  else symEl.style.color='';
+  document.getElementById('fsBigCount').textContent='10';
+  overlay.classList.add('show');
+}
+
+function startFreeSpins() {
+  document.getElementById('fsOverlay').classList.remove('show');
+  document.getElementById('fsBadge').classList.add('show');
+  document.getElementById('fsNum').textContent=freeSpins;
+  setInfo('Freispiele! Expanding: '+fsExpand.name,'freespin');
+  spin();
+}
+
+// ========== GAMBLE ==========
+function showGamble() {
+  if (gambleAmt<=0) return;
+  document.getElementById('gambleAmt').textContent=gambleAmt.toFixed(2)+' \u20AC';
+  document.getElementById('gambleCard').className='gamble-card face-down';
+  document.getElementById('gambleCard').textContent='\u2748';
+  document.getElementById('gambleOverlay').classList.add('show');
+  document.getElementById('gambleBtn').style.display='none';
+}
+
+function doGamble(choice) {
+  const card = document.getElementById('gambleCard');
+  const isRed = Math.random()<0.5;
+  const suits = isRed ? ['\u2665','\u2666'] : ['\u2660','\u2663'];
+  const vals = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+  const s = suits[Math.floor(Math.random()*2)];
+  const v = vals[Math.floor(Math.random()*vals.length)];
+
+  card.className = 'gamble-card '+(isRed?'red':'black');
+  card.textContent = v+s;
+
+  const won = (choice==='red'&&isRed)||(choice==='black'&&!isRed);
+
+  setTimeout(()=>{
+    if (won) {
+      const extra = gambleAmt;
+      gambleAmt*=2;
+      bal+=extra; syncBal(extra);
+      lastWin=gambleAmt;
+      document.getElementById('gambleAmt').textContent=gambleAmt.toFixed(2)+' \u20AC';
+      updDisp();
+      card.className='gamble-card face-down';
+      card.textContent='\u2748';
+    } else {
+      bal-=gambleAmt; syncBal(-gambleAmt);
+      lastWin=0; gambleAmt=0;
+      updDisp();
+      setTimeout(()=>collectGamble(),800);
+    }
+  },1200);
 }
 
 function collectGamble() {
-  closeGamble();
+  document.getElementById('gambleOverlay').classList.remove('show');
+  gambleAmt=0;
 }
 
-function closeGamble() {
-  document.getElementById('gambleModal').classList.remove('show');
-  gambleWin = 0;
+// ========== BIG WIN ==========
+async function showBigWin(amt) {
+  const o = document.getElementById('bigwinOverlay');
+  const t = document.getElementById('bigwinTitle');
+  t.textContent = amt >= totalBet()*50 ? 'MEGA GEWINN!' : amt >= totalBet()*30 ? 'BARO BARO!' : 'BARO GEWINN!';
+  document.getElementById('bigwinAmount').textContent = amt.toFixed(2)+' \u20AC';
+  o.classList.add('show');
+  burstParticles();
+  await sleep(3500);
+  o.classList.remove('show');
 }
 
-// ============================================================
-// BIG WIN
-// ============================================================
-async function showBigWin(amount) {
-  const overlay = document.getElementById('bigwinOverlay');
-  const text = document.getElementById('bigwinText');
-  const amountEl = document.getElementById('bigwinAmount');
-
-  if (amount >= getTotalBet() * 50) {
-    text.textContent = 'MEGA GEWINN!';
-  } else {
-    text.textContent = 'BARO GEWINN!';
-  }
-
-  amountEl.textContent = amount.toFixed(2) + ' \u20AC';
-  overlay.classList.add('show');
-  createParticles();
-
-  await sleep(3000);
-  overlay.classList.remove('show');
-}
-
-function createParticles() {
-  for (let i = 0; i < 40; i++) {
-    const p = document.createElement('div');
-    p.style.cssText = 'position:fixed;top:50%;left:50%;width:8px;height:8px;' +
-      'background:' + (Math.random() > 0.5 ? '#D4AF37' : '#F4D03F') + ';' +
-      'border-radius:50%;pointer-events:none;z-index:9999';
+function burstParticles() {
+  for (let i=0;i<50;i++) {
+    const p=document.createElement('div');
+    const colors=['#D4AF37','#F4D03F','#FFD700','#fff','#ff4444'];
+    p.style.cssText='position:fixed;top:50%;left:50%;width:'+(4+Math.random()*6)+'px;height:'+(4+Math.random()*6)+'px;background:'+colors[Math.floor(Math.random()*colors.length)]+';border-radius:50%;pointer-events:none;z-index:9999';
     document.body.appendChild(p);
-    const angle = (Math.PI * 2 * i) / 40;
-    const dist = 80 + Math.random() * 200;
+    const a=Math.PI*2*i/50, d=100+Math.random()*250;
     p.animate([
-      { transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
-      { transform: 'translate(' + (Math.cos(angle)*dist) + 'px,' + (Math.sin(angle)*dist) + 'px) scale(0)', opacity: 0 }
-    ], { duration: 1000 + Math.random() * 500, easing: 'ease-out' });
-    setTimeout(() => p.remove(), 1500);
+      {transform:'translate(-50%,-50%) scale(1)',opacity:1},
+      {transform:'translate('+(Math.cos(a)*d)+'px,'+(Math.sin(a)*d)+'px) scale(0)',opacity:0}
+    ],{duration:1200+Math.random()*600,easing:'ease-out'});
+    setTimeout(()=>p.remove(),2000);
   }
 }
 
-// ============================================================
-// HELPERS
-// ============================================================
-function setInfo(text, type) {
-  const bar = document.getElementById('infoBar');
-  bar.textContent = text;
-  bar.className = 'info-bar' + (type === 'win' ? ' win-msg' : type === 'freespin' ? ' freespin-msg' : '');
+// ========== HELPERS ==========
+function setInfo(t,type) {
+  const b=document.getElementById('infoBar');
+  b.textContent=t;
+  b.className='info-bar'+(type==='win'?' win':type==='freespin'?' freespin':'');
 }
 
-function clearWinHighlights() {
-  document.querySelectorAll('.cell.winning').forEach(c => c.classList.remove('winning'));
-}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 
-function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
-
-// Keyboard: Space = spin
-document.addEventListener('keydown', e => {
-  if (e.code === 'Space') { e.preventDefault(); spin(); }
-  if (e.code === 'Escape') {
-    if (document.getElementById('paytableModal').classList.contains('show')) togglePaytable();
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'){e.preventDefault();spin()}
+  if(e.code==='Escape'){
+    if(document.getElementById('paytableOverlay').classList.contains('show')) togglePaytable();
+    else if(document.getElementById('gambleOverlay').classList.contains('show')) collectGamble();
     else goBack();
   }
 });
+
 </script>
 </body>
 </html>
