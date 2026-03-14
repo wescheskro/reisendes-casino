@@ -599,38 +599,58 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 //  Reisendes Casino © 2026
 // ============================================================
 
-// ===== SOUND ENGINE (Web Audio API) =====
+// ===== SOUND ENGINE (Hybrid: Web Audio API + MP3) =====
 const SFX = {
   muted: false,
+  ctx: null,
   sounds: {},
   SOUND_PATH: '/games/sounds/',
 
+  // ---- Web Audio API for synced reel sounds ----
+  _tick(freq, dur, vol, type='square') {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    const f = this.ctx.createBiquadFilter();
+    o.type = type;
+    o.frequency.value = freq;
+    f.type = 'lowpass';
+    f.frequency.value = freq * 3;
+    f.Q.value = 2;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(f); f.connect(g); g.connect(this.ctx.destination);
+    o.start(t); o.stop(t + dur);
+  },
+  _noise(dur, vol, hiFreq=3000) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * dur, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const f = this.ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = hiFreq; f.Q.value = 1.5;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.connect(f); f.connect(g); g.connect(this.ctx.destination);
+    src.start(t);
+  },
+
   init() {
-    // Preload all MP3 sound files
+    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+    // Preload MP3s for non-synced sounds
     const files = {
-      reelSpin: 'reel-spin',
-      reelStop: 'reel-stop',
-      win: 'win',
-      bigWin: 'big-win',
-      scatter: 'scatter',
-      freeSpinsSound: 'free-spins',
-      btnClickSound: 'btn-click',
-      coins: 'coins',
-      cardFlip: 'card-flip',
-      gambleLoseSound: 'gamble-lose'
+      win: 'win', bigWin: 'big-win', scatter: 'scatter',
+      freeSpinsSound: 'free-spins', btnClickSound: 'btn-click',
+      coins: 'coins', cardFlip: 'card-flip', gambleLoseSound: 'gamble-lose'
     };
     for (const [key, file] of Object.entries(files)) {
       const audio = new Audio(this.SOUND_PATH + file + '.mp3');
-      audio.preload = 'auto';
-      audio.volume = 0.6;
+      audio.preload = 'auto'; audio.volume = 0.6;
       this.sounds[key] = audio;
     }
-    // Special: reel spin loops (old wagon wheel on gravel)
-    this.sounds.reelSpin.loop = true;
-    this.sounds.reelSpin.volume = 0.45;
-    // Reel stop: wheel clicking slow down
-    this.sounds.reelStop.volume = 0.55;
-    // Adjust individual volumes
     this.sounds.btnClickSound.volume = 0.4;
     this.sounds.bigWin.volume = 0.8;
     this.sounds.freeSpinsSound.volume = 0.8;
@@ -639,166 +659,112 @@ const SFX = {
   },
 
   resume() {
-    // No-op for MP3 mode (needed for compatibility)
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
   },
 
-  // Play a sound (clone for overlapping playback)
-  _play(key, opts = {}) {
+  _playMP3(key, opts={}) {
     if (this.muted || !this.sounds[key]) return null;
-    let audio;
-    if (opts.clone !== false) {
-      audio = this.sounds[key].cloneNode();
-      audio.volume = this.sounds[key].volume;
-    } else {
-      audio = this.sounds[key];
-    }
-    if (opts.volume) audio.volume = opts.volume;
-    if (opts.loop) audio.loop = true;
-    if (opts.playbackRate) audio.playbackRate = opts.playbackRate;
-    audio.currentTime = 0;
-    audio.play().catch(() => {});
-    return audio;
+    const a = this.sounds[key].cloneNode();
+    a.volume = opts.volume || this.sounds[key].volume;
+    if (opts.playbackRate) a.playbackRate = opts.playbackRate;
+    a.currentTime = 0; a.play().catch(()=>{});
+    return a;
   },
 
-  // Stop a specific sound
-  _stop(key) {
-    if (this.sounds[key]) {
-      this.sounds[key].pause();
-      this.sounds[key].currentTime = 0;
-    }
-  },
-
-  // ===================== CASINO SOUND EFFECTS =====================
-
-  _spinAudio: null,
-  _spinRate: 1.0,
-  _spinAccel: null,
+  // ========== WAGON WHEEL REEL SOUNDS (Web Audio synced) ==========
+  _wheelInterval: null,
+  _wheelSpeed: 50,
 
   spinStart() {
-    // Start wagon wheel sound - ramp up speed from slow to fast
-    const audio = this.sounds.reelSpin;
-    if (this.muted || !audio) return;
-    audio.currentTime = 0;
-    audio.loop = true;
-    audio.volume = 0.15;
-    audio.playbackRate = 0.4;
-    audio.play().catch(() => {});
-    this._spinAudio = audio;
-    this._spinRate = 0.4;
-    // Accelerate the wheel over 400ms
-    clearInterval(this._spinAccel);
-    this._spinAccel = setInterval(() => {
-      if (this._spinRate < 1.3) {
-        this._spinRate += 0.06;
-        audio.playbackRate = this._spinRate;
-        audio.volume = Math.min(0.5, audio.volume + 0.02);
-      } else {
-        clearInterval(this._spinAccel);
-        this._spinAccel = null;
+    if (!this.ctx || this.muted) return;
+    // Rhythmic clicking that accelerates - like a wooden wagon wheel
+    this._wheelSpeed = 120; // start slow (ms between clicks)
+    let clickCount = 0;
+    const doClick = () => {
+      if (this.muted) return;
+      clickCount++;
+      // Wooden clack: low thud + high click
+      const baseFreq = 60 + Math.random() * 20;
+      this._tick(baseFreq, 0.04, 0.12, 'sine');          // deep wood thud
+      this._tick(300 + Math.random()*100, 0.02, 0.08, 'square'); // click
+      this._noise(0.015, 0.04, 2000);                     // gritty texture
+      // Occasional creak
+      if (clickCount % 4 === 0) {
+        this._tick(400 + Math.random()*200, 0.08, 0.04, 'sawtooth'); // wood creak
       }
-    }, 25);
+      // Accelerate: clicks get faster
+      if (this._wheelSpeed > 45) {
+        this._wheelSpeed = Math.max(45, this._wheelSpeed - 3);
+      }
+      this._wheelInterval = setTimeout(doClick, this._wheelSpeed);
+    };
+    // Initial push sound
+    this._tick(80, 0.1, 0.15, 'sine');
+    this._noise(0.06, 0.06, 1500);
+    this._wheelInterval = setTimeout(doClick, 80);
   },
 
   reelSpin() {
-    // No-op: continuous wagon wheel handles this
+    // No-op: wagon wheel ticking handles this
   },
 
   reelStop(idx) {
-    // Each reel stop: decelerate the wagon wheel
-    if (this._spinAudio) {
-      clearInterval(this._spinAccel);
-      // Reduce speed and volume step by step
-      const targetRate = Math.max(0.3, 1.3 - (idx + 1) * 0.22);
-      const targetVol = Math.max(0.08, 0.5 - (idx + 1) * 0.1);
-      // Smooth deceleration over 150ms
-      const steps = 6;
-      const rateStep = (this._spinAudio.playbackRate - targetRate) / steps;
-      const volStep = (this._spinAudio.volume - targetVol) / steps;
-      let step = 0;
-      const decel = setInterval(() => {
-        step++;
-        if (this._spinAudio) {
-          this._spinAudio.playbackRate = Math.max(0.2, this._spinAudio.playbackRate - rateStep);
-          this._spinAudio.volume = Math.max(0.03, this._spinAudio.volume - volStep);
-        }
-        if (step >= steps) clearInterval(decel);
-      }, 25);
-    }
-    // Last reel: fully stop the wagon wheel
-    if (idx === 4 && this._spinAudio) {
+    if (!this.ctx || this.muted) return;
+    // Heavy wooden thud + metal clank
+    this._tick(40 + idx * 5, 0.2, 0.2, 'sine');         // deep impact
+    this._tick(55, 0.12, 0.15, 'sine');                   // sub thud
+    this._noise(0.08, 0.1, 2500);                         // impact noise
+    this._tick(800 + idx*120, 0.05, 0.06, 'triangle');    // metallic ring
+    // Wood creak on stop
+    this._tick(200 + idx*30, 0.15, 0.05, 'sawtooth');
+
+    // Slow down the wheel clicking
+    this._wheelSpeed = 80 + idx * 30; // each reel makes clicks slower
+
+    // Last reel: stop the wheel completely
+    if (idx === 4) {
+      // Final 3 slow clicks then stop
       setTimeout(() => {
-        const audio = this._spinAudio;
-        if (!audio) return;
-        const fadeOut = setInterval(() => {
-          if (audio.volume > 0.02 || audio.playbackRate > 0.25) {
-            audio.volume = Math.max(0, audio.volume - 0.02);
-            audio.playbackRate = Math.max(0.2, audio.playbackRate - 0.04);
-          } else {
-            clearInterval(fadeOut);
-            audio.pause();
-            audio.currentTime = 0;
-            audio.volume = 0.5;
-            audio.playbackRate = 1.0;
-            this._spinAudio = null;
-          }
-        }, 30);
-      }, 180);
+        this._tick(70, 0.05, 0.08, 'sine');
+        this._noise(0.02, 0.03, 1800);
+      }, 100);
+      setTimeout(() => {
+        this._tick(65, 0.04, 0.05, 'sine');
+        this._noise(0.015, 0.02, 1500);
+      }, 250);
+      setTimeout(() => {
+        this._tick(60, 0.03, 0.03, 'sine');
+        clearTimeout(this._wheelInterval);
+        this._wheelInterval = null;
+      }, 450);
     }
-    // Reel stop thud/click sound
-    this._play('reelStop', { volume: 0.5, playbackRate: 0.9 + idx * 0.05 });
   },
 
+  // ========== MP3-BASED SOUNDS (events, not synced to animation) ==========
   win() {
-    this._play('win');
-    // Also play coins
-    setTimeout(() => this._play('coins', { volume: 0.4 }), 300);
+    this._playMP3('win');
+    setTimeout(() => this._playMP3('coins', { volume: 0.4 }), 300);
   },
-
   bigWin() {
-    this._play('bigWin');
-    // Coin shower effect: play coins multiple times
-    setTimeout(() => this._play('coins', { volume: 0.5 }), 500);
-    setTimeout(() => this._play('coins', { volume: 0.4 }), 1200);
+    this._playMP3('bigWin');
+    setTimeout(() => this._playMP3('coins', { volume: 0.5 }), 500);
+    setTimeout(() => this._playMP3('coins', { volume: 0.4 }), 1200);
   },
-
-  scatter() {
-    this._play('scatter');
-  },
-
+  scatter() { this._playMP3('scatter'); },
   freeSpins() {
-    this._play('freeSpinsSound');
-    // Add scatter magic on top
-    setTimeout(() => this._play('scatter', { volume: 0.4 }), 500);
+    this._playMP3('freeSpinsSound');
+    setTimeout(() => this._playMP3('scatter', { volume: 0.4 }), 500);
   },
+  btnClick() { this._playMP3('btnClickSound'); },
+  gambleReveal() { this._playMP3('cardFlip'); },
+  gambleWin() { this._playMP3('win', { volume: 0.7 }); },
+  gambleLose() { this._playMP3('gambleLoseSound'); },
+  coinTick() { this._playMP3('coins', { volume: 0.2, playbackRate: 1.2 + Math.random()*0.6 }); },
 
-  btnClick() {
-    this._play('btnClickSound');
-  },
-
-  gambleReveal() {
-    this._play('cardFlip');
-  },
-
-  gambleWin() {
-    this._play('win', { volume: 0.7 });
-  },
-
-  gambleLose() {
-    this._play('gambleLoseSound');
-  },
-
-  coinTick() {
-    this._play('coins', { volume: 0.2, playbackRate: 1.2 + Math.random() * 0.6 });
-  },
-
-  // Reel ambience (compatibility)
   startReelAmbience() { this.spinStart(); },
   stopReelAmbience() {
-    if (this._spinAudio) {
-      this._spinAudio.pause();
-      this._spinAudio.currentTime = 0;
-      this._spinAudio = null;
-    }
+    clearTimeout(this._wheelInterval);
+    this._wheelInterval = null;
   }
 };
 
