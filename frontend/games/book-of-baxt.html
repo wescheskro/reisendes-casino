@@ -415,6 +415,37 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 .gamble-info{color:rgba(255,255,255,.5);font-size:13px;margin-top:16px;letter-spacing:1px}
 .gamble-stake{color:#F4D03F;font-size:20px;font-weight:700;margin-bottom:8px}
 
+/* ========== REEL LANDING BOUNCE ========== */
+.reel-col.reel-landing .sym-cell .sym-wrap{
+  animation:landBounce .25s cubic-bezier(.17,.67,.35,1.5);
+}
+@keyframes landBounce{
+  0%{transform:translateY(-8px);opacity:.8}
+  50%{transform:translateY(3px)}
+  100%{transform:translateY(0);opacity:1}
+}
+/* Reel column during spin - slight blur */
+.reel-col.spinning{filter:blur(0.5px)}
+
+/* ========== WIN COUNTER FLASH ========== */
+.cg.win-cg.has-win .cg-val{
+  animation:winFlash .4s ease-in-out 3;
+}
+@keyframes winFlash{
+  0%,100%{color:#F4D03F;transform:scale(1)}
+  50%{color:#fff;transform:scale(1.2)}
+}
+
+/* ========== MUTE BUTTON ========== */
+.mute-btn{
+  position:absolute;top:4px;right:4px;z-index:90;
+  background:none;border:1px solid rgba(212,175,55,.3);color:#D4AF37;
+  width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+  transition:.2s;opacity:.6;
+}
+.mute-btn:hover{opacity:1;border-color:#D4AF37}
+
 /* ========== RESPONSIVE ========== */
 @media(max-width:600px){
   .game-wrap{border-radius:0;width:100vw;height:100vh;max-height:none;aspect-ratio:auto}
@@ -545,6 +576,12 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
     <div class="gamble-info">Verdopple deinen Gewinn oder verliere alles!</div>
   </div>
 
+  <!-- Mute button -->
+  <button class="mute-btn" id="muteBtn" onclick="toggleMute()" title="Ton an/aus">🔊</button>
+
+  <!-- Coin/particle canvas overlay -->
+  <canvas id="fxCanvas" style="position:absolute;inset:0;z-index:80;pointer-events:none"></canvas>
+
   <!-- Paytable modal -->
   <div class="paytable-modal" id="paytableModal">
     <button class="pt-close" onclick="togglePaytable()">✕</button>
@@ -559,6 +596,281 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 //  BUCH DES BAXT - Professional Slot Engine
 //  Reisendes Casino © 2026
 // ============================================================
+
+// ===== SOUND ENGINE (Web Audio API) =====
+const SFX = {
+  ctx: null,
+  muted: false,
+  init() {
+    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  },
+  resume() {
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  // Generate a tone/noise burst
+  tone(freq, dur, type='sine', vol=0.15, detune=0) {
+    if (!this.ctx || this.muted) return;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    o.detune.value = detune;
+    g.gain.setValueAtTime(vol, this.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+    o.connect(g);
+    g.connect(this.ctx.destination);
+    o.start();
+    o.stop(this.ctx.currentTime + dur);
+  },
+  noise(dur, vol=0.08) {
+    if (!this.ctx || this.muted) return;
+    const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * dur, this.ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * vol;
+    const src = this.ctx.createBufferSource();
+    const g = this.ctx.createGain();
+    src.buffer = buf;
+    g.gain.setValueAtTime(vol, this.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+    src.connect(g);
+    g.connect(this.ctx.destination);
+    src.start();
+  },
+  // Sound effects
+  spinStart() {
+    this.tone(220, 0.1, 'square', 0.08);
+    this.tone(330, 0.1, 'square', 0.06);
+  },
+  reelSpin() {
+    // Continuous tick sound
+    this.tone(80, 0.03, 'square', 0.04);
+  },
+  reelStop(idx) {
+    // Deep thud + metallic ring for each reel stop
+    this.tone(60 + idx * 5, 0.15, 'sine', 0.12);
+    this.noise(0.08, 0.06);
+    this.tone(800 + idx * 100, 0.06, 'triangle', 0.04);
+  },
+  win() {
+    // Ascending celebration arpeggio
+    const notes = [523, 659, 784, 1047];
+    notes.forEach((f, i) => {
+      setTimeout(() => {
+        this.tone(f, 0.25, 'sine', 0.1);
+        this.tone(f * 1.5, 0.15, 'triangle', 0.05);
+      }, i * 100);
+    });
+  },
+  bigWin() {
+    // Epic win fanfare
+    const notes = [392, 523, 659, 784, 1047, 784, 1047, 1319];
+    notes.forEach((f, i) => {
+      setTimeout(() => {
+        this.tone(f, 0.35, 'sine', 0.12);
+        this.tone(f * 0.5, 0.3, 'sine', 0.08);
+        this.tone(f * 1.5, 0.2, 'triangle', 0.06);
+      }, i * 120);
+    });
+  },
+  scatter() {
+    // Mystical book sound
+    this.tone(440, 0.4, 'sine', 0.1);
+    this.tone(554, 0.4, 'sine', 0.08);
+    this.tone(659, 0.4, 'sine', 0.06);
+    setTimeout(() => {
+      this.tone(880, 0.6, 'sine', 0.1);
+      this.tone(1108, 0.5, 'triangle', 0.05);
+    }, 200);
+  },
+  freeSpins() {
+    // Grand reveal sound
+    const notes = [262, 330, 392, 523, 659, 784, 1047];
+    notes.forEach((f, i) => {
+      setTimeout(() => {
+        this.tone(f, 0.5, 'sine', 0.1 + i * 0.01);
+        this.tone(f * 2, 0.3, 'triangle', 0.04);
+      }, i * 100);
+    });
+  },
+  btnClick() {
+    this.tone(600, 0.05, 'sine', 0.06);
+    this.tone(900, 0.03, 'sine', 0.04);
+  },
+  gambleReveal() {
+    this.tone(300, 0.1, 'square', 0.06);
+    setTimeout(() => this.tone(600, 0.15, 'sine', 0.08), 100);
+  },
+  gambleWin() {
+    this.tone(523, 0.2, 'sine', 0.1);
+    setTimeout(() => this.tone(784, 0.3, 'sine', 0.1), 100);
+  },
+  gambleLose() {
+    this.tone(200, 0.3, 'sawtooth', 0.08);
+    this.tone(150, 0.4, 'sine', 0.1);
+  },
+  coinTick() {
+    this.tone(1200 + Math.random() * 400, 0.04, 'sine', 0.05);
+  }
+};
+
+// ===== PARTICLE / COIN FX ENGINE =====
+const FX = {
+  canvas: null,
+  ctx: null,
+  particles: [],
+  running: false,
+  init() {
+    this.canvas = document.getElementById('fxCanvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+  },
+  resize() {
+    if (!this.canvas) return;
+    const wrap = document.getElementById('gameWrap');
+    this.canvas.width = wrap.clientWidth;
+    this.canvas.height = wrap.clientHeight;
+  },
+  // Spawn coin particles from a position
+  spawnCoins(x, y, count = 20) {
+    for (let i = 0; i < count; i++) {
+      this.particles.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 8,
+        vy: -Math.random() * 10 - 3,
+        size: 4 + Math.random() * 6,
+        life: 1,
+        decay: 0.01 + Math.random() * 0.015,
+        color: Math.random() > 0.3 ? '#F4D03F' : '#D4AF37',
+        type: 'coin',
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.3
+      });
+    }
+    if (!this.running) this.loop();
+  },
+  // Spawn sparkle particles
+  spawnSparkles(x, y, count = 15) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1 + Math.random() * 4;
+      this.particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 1 + Math.random() * 3,
+        life: 1,
+        decay: 0.02 + Math.random() * 0.02,
+        color: ['#F4D03F', '#fff', '#ff6b6b', '#00bfff'][Math.floor(Math.random() * 4)],
+        type: 'sparkle'
+      });
+    }
+    if (!this.running) this.loop();
+  },
+  // Big win coin shower from top
+  coinShower(duration = 3000) {
+    const w = this.canvas.width;
+    const interval = setInterval(() => {
+      for (let i = 0; i < 5; i++) {
+        this.spawnCoins(Math.random() * w, -10, 1);
+      }
+    }, 50);
+    setTimeout(() => clearInterval(interval), duration);
+    if (!this.running) this.loop();
+  },
+  // Win line sparkle trail
+  trailSparkles(x1, y1, x2, y2) {
+    const steps = 8;
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const x = x1 + (x2 - x1) * t;
+      const y = y1 + (y2 - y1) * t;
+      this.spawnSparkles(x, y, 3);
+    }
+  },
+  loop() {
+    this.running = true;
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.15; // gravity
+      p.life -= p.decay;
+
+      if (p.life <= 0) {
+        this.particles.splice(i, 1);
+        continue;
+      }
+
+      ctx.globalAlpha = p.life;
+
+      if (p.type === 'coin') {
+        // Draw coin (gold circle with shine)
+        p.rot += p.rotSpeed;
+        const scaleX = Math.cos(p.rot); // 3D rotation effect
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.scale(scaleX, 1);
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        ctx.strokeStyle = '#8B6914';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        // Inner circle
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size * 0.6, 0, Math.PI * 2);
+        ctx.strokeStyle = '#B8860B';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+        ctx.restore();
+      } else {
+        // Sparkle
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        // Cross sparkle
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(p.x - p.size * 2, p.y);
+        ctx.lineTo(p.x + p.size * 2, p.y);
+        ctx.moveTo(p.x, p.y - p.size * 2);
+        ctx.lineTo(p.x, p.y + p.size * 2);
+        ctx.stroke();
+      }
+    }
+
+    ctx.globalAlpha = 1;
+
+    if (this.particles.length > 0) {
+      requestAnimationFrame(() => this.loop());
+    } else {
+      this.running = false;
+    }
+  }
+};
+
+// ===== WIN COUNTER ANIMATION =====
+function animateCounter(elementId, from, to, duration = 500) {
+  const el = document.getElementById(elementId);
+  const start = performance.now();
+  const diff = to - from;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    el.textContent = Math.round(from + diff * eased);
+    if (t < 1) requestAnimationFrame(step);
+    else el.textContent = to;
+    if (diff > 0 && Math.random() > 0.7) SFX.coinTick();
+  }
+  requestAnimationFrame(step);
+}
 
 // ===== SYMBOL DEFINITIONS =====
 // HD SVG symbols with rich gradients and detail
@@ -1001,6 +1313,8 @@ const BUFFER = 20; // symbols above visible area for spin animation
 
 // ===== INITIALIZATION =====
 function init() {
+  SFX.init();
+  FX.init();
   createBackground();
   createPaylineButtons();
   createReels();
@@ -1149,7 +1463,10 @@ async function doSpin() {
   }
 
   spinning = true;
+  SFX.resume();
+  SFX.spinStart();
   document.getElementById('spinBtn').disabled = true;
+  document.getElementById('spinBtn').classList.add('is-stop');
   document.getElementById('gambleBtn').style.display = 'none';
   clearWinHighlights();
   clearWinLines();
@@ -1187,6 +1504,7 @@ async function doSpin() {
   const wins = checkWins();
 
   if (wins.totalWin > 0) {
+    const oldBal = balance;
     lastWin = wins.totalWin;
     balance += lastWin;
 
@@ -1196,13 +1514,36 @@ async function doSpin() {
     highlightWins(wins);
     drawWinLines(wins);
 
+    // Spawn particles at winning positions
+    const vp = document.getElementById('reelsVP');
+    const vpRect = vp.getBoundingClientRect();
+    const wrapRect = document.getElementById('gameWrap').getBoundingClientRect();
+    wins.lines.forEach(w => {
+      w.positions.forEach(([r, row]) => {
+        const colW = vp.clientWidth / 5;
+        const rowH = vp.clientHeight / 3;
+        const px = (vpRect.left - wrapRect.left) + r * colW + colW / 2;
+        const py = (vpRect.top - wrapRect.top) + row * rowH + rowH / 2;
+        FX.spawnSparkles(px, py, 8);
+      });
+    });
+
     if (lastWin >= totalBet * 10) {
+      SFX.bigWin();
+      FX.coinShower(3000);
       showBigWin(lastWin);
     } else {
+      SFX.win();
+      // Spawn some coins from center
+      FX.spawnCoins(FX.canvas.width / 2, FX.canvas.height / 2, 15);
       // Romani win phrases
       const phrases = ['Baxtalo!','Latscho!','Kushti!','Opre!','Sastipen!'];
       setInfo(`${phrases[Math.floor(Math.random()*phrases.length)]} GEWINN: ${lastWin}`, 'win-msg');
     }
+
+    // Animate balance counter
+    animateCounter('balVal', oldBal, balance, 600);
+    animateCounter('winVal', 0, lastWin, 600);
 
     if (freeSpins <= 0) {
       document.getElementById('gambleBtn').style.display = '';
@@ -1214,12 +1555,14 @@ async function doSpin() {
 
   // Check for scatter (3+ books = free spins)
   if (wins.scatterCount >= 3 && freeSpins <= 0) {
+    SFX.scatter();
     await startFreeSpins();
   }
 
   updateUI();
   spinning = false;
   document.getElementById('spinBtn').disabled = false;
+  document.getElementById('spinBtn').classList.remove('is-stop');
 
   // Free spins ended?
   if (freeSpins === 0 && freeSpinTotalWin > 0) {
@@ -1267,13 +1610,22 @@ function animateReel(reelIdx, finalSymbols, delay) {
     strip.style.transition = 'none';
     strip.style.transform = `translateY(0px)`;
 
+    // Reel spin tick sounds
+    let tickInterval;
     setTimeout(() => {
+      tickInterval = setInterval(() => SFX.reelSpin(), 80);
+
       // Animate to final position
       const spinDuration = 600 + delay;
       strip.style.transition = `transform ${spinDuration}ms cubic-bezier(.2,.8,.3,1)`;
       strip.style.transform = `translateY(-${BUFFER * cellH}px)`;
 
       setTimeout(() => {
+        clearInterval(tickInterval);
+        SFX.reelStop(reelIdx);
+        // Add landing bounce class
+        col.classList.add('reel-landing');
+        setTimeout(() => col.classList.remove('reel-landing'), 200);
         strip.style.transition = 'none';
         resolve();
       }, spinDuration + 50);
@@ -1429,23 +1781,37 @@ async function startFreeSpins() {
   freeSpins = 10;
   freeSpinTotalWin = 0;
 
+  SFX.freeSpins();
+  FX.coinShower(2500);
   const overlay = document.getElementById('fsOverlay');
   document.getElementById('fsText').textContent = '10 Freispiele gewonnen!';
   document.getElementById('fsSym').innerHTML = SVG[freeSpinSymbol.id] || freeSpinSymbol.name;
-  document.getElementById('fsSym').style.width = '60px';
-  document.getElementById('fsSym').style.height = '60px';
+  document.getElementById('fsSym').style.width = '80px';
+  document.getElementById('fsSym').style.height = '80px';
   overlay.classList.add('show');
 
-  await new Promise(r => setTimeout(r, 2500));
+  await new Promise(r => setTimeout(r, 3000));
   overlay.classList.remove('show');
 }
 
 // ===== BIG WIN =====
 function showBigWin(amount) {
+  SFX.bigWin();
+  FX.coinShower(3500);
   const overlay = document.getElementById('bigwinOverlay');
-  document.getElementById('bwAmount').textContent = amount + ' Punkte!';
   overlay.classList.add('show');
-  setTimeout(() => overlay.classList.remove('show'), 3000);
+  // Animate amount counting up
+  const el = document.getElementById('bwAmount');
+  el.textContent = '0';
+  let current = 0;
+  const step = Math.max(1, Math.floor(amount / 40));
+  const countUp = setInterval(() => {
+    current += step;
+    if (current >= amount) { current = amount; clearInterval(countUp); }
+    el.textContent = current + ' Punkte!';
+    SFX.coinTick();
+  }, 50);
+  setTimeout(() => overlay.classList.remove('show'), 4000);
 }
 
 // ===== GAMBLE =====
@@ -1458,6 +1824,7 @@ function startGamble() {
 }
 
 function gamblePick(choice) {
+  SFX.gambleReveal();
   const isRed = Math.random() < 0.5;
   const card = document.getElementById('gambleCard');
   const suits = isRed ? ['♥','♦'] : ['♠','♣'];
@@ -1470,11 +1837,14 @@ function gamblePick(choice) {
 
   setTimeout(() => {
     if (won) {
+      SFX.gambleWin();
+      FX.spawnCoins(FX.canvas.width / 2, FX.canvas.height / 2, 25);
       gambleWin *= 2;
-      balance += gambleWin / 2; // add the doubled portion
+      balance += gambleWin / 2;
       document.getElementById('gambleStake').textContent = gambleWin;
       setInfo(`Verdoppelt! ${gambleWin} Punkte!`, 'win-msg');
     } else {
+      SFX.gambleLose();
       balance -= gambleWin;
       gambleWin = 0;
       lastWin = 0;
@@ -1537,6 +1907,7 @@ function togglePaytable() {
 
 // ===== CONTROLS =====
 function adjBet(d) {
+  SFX.resume(); SFX.btnClick();
   const bets = [1,2,5,10,20,50,100,200];
   let idx = bets.indexOf(betPerLine);
   idx = Math.max(0, Math.min(bets.length - 1, idx + d));
@@ -1545,14 +1916,21 @@ function adjBet(d) {
 }
 
 function adjLines(d) {
+  SFX.resume(); SFX.btnClick();
   lines = Math.max(1, Math.min(10, lines + d));
   updateUI();
 }
 
 function toggleAuto() {
+  SFX.resume(); SFX.btnClick();
   autoPlay = !autoPlay;
   document.getElementById('autoBtn').classList.toggle('active', autoPlay);
   if (autoPlay && !spinning) doSpin();
+}
+
+function toggleMute() {
+  SFX.muted = !SFX.muted;
+  document.getElementById('muteBtn').textContent = SFX.muted ? '🔇' : '🔊';
 }
 
 function setInfo(text, cls) {
