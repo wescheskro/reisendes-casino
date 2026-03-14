@@ -599,117 +599,154 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 
 // ===== SOUND ENGINE (Web Audio API) =====
 const SFX = {
-  ctx: null,
   muted: false,
+  sounds: {},
+  SOUND_PATH: '/games/sounds/',
+
   init() {
-    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+    // Preload all MP3 sound files
+    const files = {
+      reelSpin: 'reel-spin',
+      win: 'win',
+      bigWin: 'big-win',
+      scatter: 'scatter',
+      freeSpinsSound: 'free-spins',
+      btnClickSound: 'btn-click',
+      coins: 'coins',
+      cardFlip: 'card-flip',
+      gambleLoseSound: 'gamble-lose'
+    };
+    for (const [key, file] of Object.entries(files)) {
+      const audio = new Audio(this.SOUND_PATH + file + '.mp3');
+      audio.preload = 'auto';
+      audio.volume = 0.6;
+      this.sounds[key] = audio;
+    }
+    // Special: reel spin loops
+    this.sounds.reelSpin.loop = true;
+    // Adjust individual volumes
+    this.sounds.btnClickSound.volume = 0.4;
+    this.sounds.bigWin.volume = 0.8;
+    this.sounds.freeSpinsSound.volume = 0.8;
+    this.sounds.scatter.volume = 0.7;
+    this.sounds.coins.volume = 0.5;
   },
+
   resume() {
-    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    // No-op for MP3 mode (needed for compatibility)
   },
-  // Generate a tone/noise burst
-  tone(freq, dur, type='sine', vol=0.15, detune=0) {
-    if (!this.ctx || this.muted) return;
-    const o = this.ctx.createOscillator();
-    const g = this.ctx.createGain();
-    o.type = type;
-    o.frequency.value = freq;
-    o.detune.value = detune;
-    g.gain.setValueAtTime(vol, this.ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
-    o.connect(g);
-    g.connect(this.ctx.destination);
-    o.start();
-    o.stop(this.ctx.currentTime + dur);
+
+  // Play a sound (clone for overlapping playback)
+  _play(key, opts = {}) {
+    if (this.muted || !this.sounds[key]) return null;
+    let audio;
+    if (opts.clone !== false) {
+      audio = this.sounds[key].cloneNode();
+      audio.volume = this.sounds[key].volume;
+    } else {
+      audio = this.sounds[key];
+    }
+    if (opts.volume) audio.volume = opts.volume;
+    if (opts.loop) audio.loop = true;
+    if (opts.playbackRate) audio.playbackRate = opts.playbackRate;
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+    return audio;
   },
-  noise(dur, vol=0.08) {
-    if (!this.ctx || this.muted) return;
-    const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * dur, this.ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * vol;
-    const src = this.ctx.createBufferSource();
-    const g = this.ctx.createGain();
-    src.buffer = buf;
-    g.gain.setValueAtTime(vol, this.ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
-    src.connect(g);
-    g.connect(this.ctx.destination);
-    src.start();
+
+  // Stop a specific sound
+  _stop(key) {
+    if (this.sounds[key]) {
+      this.sounds[key].pause();
+      this.sounds[key].currentTime = 0;
+    }
   },
-  // Sound effects
+
+  // ===================== CASINO SOUND EFFECTS =====================
+
+  _spinAudio: null,
+
   spinStart() {
-    this.tone(220, 0.1, 'square', 0.08);
-    this.tone(330, 0.1, 'square', 0.06);
+    // Start the reel spinning sound (loops)
+    this._spinAudio = this._play('reelSpin', { clone: false, loop: true, volume: 0.5 });
   },
+
   reelSpin() {
-    // Continuous tick sound
-    this.tone(80, 0.03, 'square', 0.04);
+    // No-op: continuous spin sound handles this
   },
+
   reelStop(idx) {
-    // Deep thud + metallic ring for each reel stop
-    this.tone(60 + idx * 5, 0.15, 'sine', 0.12);
-    this.noise(0.08, 0.06);
-    this.tone(800 + idx * 100, 0.06, 'triangle', 0.04);
+    // On last reel stop, fade out spin sound
+    if (idx === 4 && this._spinAudio) {
+      const audio = this._spinAudio;
+      // Quick fade out
+      const fadeOut = setInterval(() => {
+        if (audio.volume > 0.05) {
+          audio.volume = Math.max(0, audio.volume - 0.08);
+        } else {
+          clearInterval(fadeOut);
+          audio.pause();
+          audio.currentTime = 0;
+          audio.volume = 0.5;
+          this._spinAudio = null;
+        }
+      }, 30);
+    }
+    // Play a short click/thud from coins sound at low volume for impact
+    this._play('coins', { volume: 0.15, playbackRate: 1.5 + idx * 0.1 });
   },
+
   win() {
-    // Ascending celebration arpeggio
-    const notes = [523, 659, 784, 1047];
-    notes.forEach((f, i) => {
-      setTimeout(() => {
-        this.tone(f, 0.25, 'sine', 0.1);
-        this.tone(f * 1.5, 0.15, 'triangle', 0.05);
-      }, i * 100);
-    });
+    this._play('win');
+    // Also play coins
+    setTimeout(() => this._play('coins', { volume: 0.4 }), 300);
   },
+
   bigWin() {
-    // Epic win fanfare
-    const notes = [392, 523, 659, 784, 1047, 784, 1047, 1319];
-    notes.forEach((f, i) => {
-      setTimeout(() => {
-        this.tone(f, 0.35, 'sine', 0.12);
-        this.tone(f * 0.5, 0.3, 'sine', 0.08);
-        this.tone(f * 1.5, 0.2, 'triangle', 0.06);
-      }, i * 120);
-    });
+    this._play('bigWin');
+    // Coin shower effect: play coins multiple times
+    setTimeout(() => this._play('coins', { volume: 0.5 }), 500);
+    setTimeout(() => this._play('coins', { volume: 0.4 }), 1200);
   },
+
   scatter() {
-    // Mystical book sound
-    this.tone(440, 0.4, 'sine', 0.1);
-    this.tone(554, 0.4, 'sine', 0.08);
-    this.tone(659, 0.4, 'sine', 0.06);
-    setTimeout(() => {
-      this.tone(880, 0.6, 'sine', 0.1);
-      this.tone(1108, 0.5, 'triangle', 0.05);
-    }, 200);
+    this._play('scatter');
   },
+
   freeSpins() {
-    // Grand reveal sound
-    const notes = [262, 330, 392, 523, 659, 784, 1047];
-    notes.forEach((f, i) => {
-      setTimeout(() => {
-        this.tone(f, 0.5, 'sine', 0.1 + i * 0.01);
-        this.tone(f * 2, 0.3, 'triangle', 0.04);
-      }, i * 100);
-    });
+    this._play('freeSpinsSound');
+    // Add scatter magic on top
+    setTimeout(() => this._play('scatter', { volume: 0.4 }), 500);
   },
+
   btnClick() {
-    this.tone(600, 0.05, 'sine', 0.06);
-    this.tone(900, 0.03, 'sine', 0.04);
+    this._play('btnClickSound');
   },
+
   gambleReveal() {
-    this.tone(300, 0.1, 'square', 0.06);
-    setTimeout(() => this.tone(600, 0.15, 'sine', 0.08), 100);
+    this._play('cardFlip');
   },
+
   gambleWin() {
-    this.tone(523, 0.2, 'sine', 0.1);
-    setTimeout(() => this.tone(784, 0.3, 'sine', 0.1), 100);
+    this._play('win', { volume: 0.7 });
   },
+
   gambleLose() {
-    this.tone(200, 0.3, 'sawtooth', 0.08);
-    this.tone(150, 0.4, 'sine', 0.1);
+    this._play('gambleLoseSound');
   },
+
   coinTick() {
-    this.tone(1200 + Math.random() * 400, 0.04, 'sine', 0.05);
+    this._play('coins', { volume: 0.2, playbackRate: 1.2 + Math.random() * 0.6 });
+  },
+
+  // Reel ambience (compatibility)
+  startReelAmbience() { this.spinStart(); },
+  stopReelAmbience() {
+    if (this._spinAudio) {
+      this._spinAudio.pause();
+      this._spinAudio.currentTime = 0;
+      this._spinAudio = null;
+    }
   }
 };
 
