@@ -678,30 +678,35 @@ const SFX = {
   spinStart() {
     if (!this.ctx || this.muted) return;
     // Rhythmic clicking that accelerates - like a wooden wagon wheel
-    this._wheelSpeed = 120; // start slow (ms between clicks)
+    this._wheelSpeed = 180; // start very slow (ms between clicks)
     let clickCount = 0;
     const doClick = () => {
       if (this.muted) return;
       clickCount++;
       // Wooden clack: low thud + high click
-      const baseFreq = 60 + Math.random() * 20;
-      this._tick(baseFreq, 0.04, 0.12, 'sine');          // deep wood thud
-      this._tick(300 + Math.random()*100, 0.02, 0.08, 'square'); // click
-      this._noise(0.015, 0.04, 2000);                     // gritty texture
-      // Occasional creak
-      if (clickCount % 4 === 0) {
-        this._tick(400 + Math.random()*200, 0.08, 0.04, 'sawtooth'); // wood creak
+      const baseFreq = 55 + Math.random() * 25;
+      this._tick(baseFreq, 0.05, 0.12, 'sine');          // deep wood thud
+      this._tick(280 + Math.random()*120, 0.025, 0.07, 'square'); // click
+      this._noise(0.02, 0.04, 1800);                      // gritty texture
+      // Occasional creak (wood groaning)
+      if (clickCount % 5 === 0) {
+        this._tick(350 + Math.random()*250, 0.1, 0.04, 'sawtooth');
       }
-      // Accelerate: clicks get faster
-      if (this._wheelSpeed > 45) {
-        this._wheelSpeed = Math.max(45, this._wheelSpeed - 3);
+      // Occasional rattle
+      if (clickCount % 7 === 0) {
+        this._noise(0.04, 0.03, 3500);
+      }
+      // Accelerate: clicks get faster, but slowly
+      if (this._wheelSpeed > 40) {
+        this._wheelSpeed = Math.max(40, this._wheelSpeed - 1.5);
       }
       this._wheelInterval = setTimeout(doClick, this._wheelSpeed);
     };
-    // Initial push sound
-    this._tick(80, 0.1, 0.15, 'sine');
-    this._noise(0.06, 0.06, 1500);
-    this._wheelInterval = setTimeout(doClick, 80);
+    // Initial push sound - heavy shove to get the wheel going
+    this._tick(50, 0.15, 0.18, 'sine');
+    this._tick(90, 0.08, 0.1, 'square');
+    this._noise(0.1, 0.08, 1200);
+    this._wheelInterval = setTimeout(doClick, 120);
   },
 
   reelSpin() {
@@ -718,25 +723,27 @@ const SFX = {
     // Wood creak on stop
     this._tick(200 + idx*30, 0.15, 0.05, 'sawtooth');
 
-    // Slow down the wheel clicking
-    this._wheelSpeed = 80 + idx * 30; // each reel makes clicks slower
+    // Slow down the wheel clicking progressively
+    this._wheelSpeed = 70 + idx * 35; // each reel makes clicks slower
 
-    // Last reel: stop the wheel completely
+    // Last reel: slow final clicks then silence
     if (idx === 4) {
-      // Final 3 slow clicks then stop
       setTimeout(() => {
-        this._tick(70, 0.05, 0.08, 'sine');
-        this._noise(0.02, 0.03, 1800);
-      }, 100);
+        this._tick(70, 0.06, 0.08, 'sine');
+        this._noise(0.025, 0.03, 1800);
+      }, 120);
       setTimeout(() => {
-        this._tick(65, 0.04, 0.05, 'sine');
-        this._noise(0.015, 0.02, 1500);
-      }, 250);
+        this._tick(65, 0.05, 0.06, 'sine');
+        this._noise(0.02, 0.02, 1500);
+      }, 300);
       setTimeout(() => {
-        this._tick(60, 0.03, 0.03, 'sine');
+        this._tick(58, 0.04, 0.04, 'sine');
+      }, 520);
+      setTimeout(() => {
+        this._tick(52, 0.03, 0.02, 'sine');
         clearTimeout(this._wheelInterval);
         this._wheelInterval = null;
-      }, 450);
+      }, 780);
     }
   },
 
@@ -1364,7 +1371,7 @@ const grid = Array.from({length:5}, () => Array(3).fill(null));
 const reelStrips = [];
 // Reel symbol counts for animation (visible + buffer)
 const VISIBLE_ROWS = 3;
-const BUFFER = 20; // symbols above visible area for spin animation
+const BUFFER = 40; // symbols above visible area for longer spin animation
 
 // ===== INITIALIZATION =====
 function init() {
@@ -1636,7 +1643,7 @@ async function animateReels(results) {
   const promises = [];
 
   for (let r = 0; r < 5; r++) {
-    promises.push(animateReel(r, results[r], r * 250)); // stagger 250ms per reel
+    promises.push(animateReel(r, results[r], r * 400)); // stagger 400ms per reel
   }
 
   await Promise.all(promises);
@@ -1676,7 +1683,7 @@ function animateReel(reelIdx, finalSymbols, delay) {
 
     // STEP 5: Animate after delay
     setTimeout(() => {
-      const spinDuration = 600 + reelIdx * 180;
+      const spinDuration = 1800 + reelIdx * 350;
       const targetY = BUFFER * cellH;
       const overshootY = targetY + cellH * 0.35;
 
