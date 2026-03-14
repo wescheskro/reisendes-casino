@@ -6,7 +6,8 @@
       "Bash(npm list:*)",
       "Bash(curl -s ifconfig.me)",
       "Bash(curl -s api.ipify.org)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(gh repo:*)"
     ]
   }
 }
