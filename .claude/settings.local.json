@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm list:*)",
+      "Bash(curl -s ifconfig.me)",
+      "Bash(curl -s api.ipify.org)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}
