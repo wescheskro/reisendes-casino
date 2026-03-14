@@ -609,6 +609,7 @@ const SFX = {
     // Preload all MP3 sound files
     const files = {
       reelSpin: 'reel-spin',
+      reelStop: 'reel-stop',
       win: 'win',
       bigWin: 'big-win',
       scatter: 'scatter',
@@ -624,8 +625,11 @@ const SFX = {
       audio.volume = 0.6;
       this.sounds[key] = audio;
     }
-    // Special: reel spin loops
+    // Special: reel spin loops (old wagon wheel on gravel)
     this.sounds.reelSpin.loop = true;
+    this.sounds.reelSpin.volume = 0.45;
+    // Reel stop: wheel clicking slow down
+    this.sounds.reelStop.volume = 0.55;
     // Adjust individual volumes
     this.sounds.btnClickSound.volume = 0.4;
     this.sounds.bigWin.volume = 0.8;
@@ -678,24 +682,33 @@ const SFX = {
   },
 
   reelStop(idx) {
-    // On last reel stop, fade out spin sound
+    // Gradually lower wagon wheel volume as reels stop
+    if (this._spinAudio) {
+      // Each reel stop reduces wheel volume
+      const newVol = Math.max(0.05, 0.45 - idx * 0.1);
+      this._spinAudio.volume = newVol;
+      // Slow down playback rate (wheel decelerating)
+      this._spinAudio.playbackRate = Math.max(0.5, 1.0 - idx * 0.12);
+    }
+    // On last reel: stop the wagon wheel completely
     if (idx === 4 && this._spinAudio) {
       const audio = this._spinAudio;
-      // Quick fade out
       const fadeOut = setInterval(() => {
-        if (audio.volume > 0.05) {
-          audio.volume = Math.max(0, audio.volume - 0.08);
+        if (audio.volume > 0.03) {
+          audio.volume = Math.max(0, audio.volume - 0.04);
+          audio.playbackRate = Math.max(0.3, audio.playbackRate - 0.03);
         } else {
           clearInterval(fadeOut);
           audio.pause();
           audio.currentTime = 0;
-          audio.volume = 0.5;
+          audio.volume = 0.45;
+          audio.playbackRate = 1.0;
           this._spinAudio = null;
         }
-      }, 30);
+      }, 40);
     }
-    // Play a short click/thud from coins sound at low volume for impact
-    this._play('coins', { volume: 0.15, playbackRate: 1.5 + idx * 0.1 });
+    // Play the wheel-click-slow-down sound for each reel stop
+    this._play('reelStop', { volume: 0.4 + idx * 0.05, playbackRate: 0.8 + idx * 0.1 });
   },
 
   win() {
