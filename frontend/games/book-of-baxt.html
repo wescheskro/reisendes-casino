@@ -99,7 +99,7 @@ body{
   background:linear-gradient(180deg,var(--panel),var(--dark));
 }
 
-/* Egyptian frame decoration */
+/* Romani-styled frame decoration */
 .frame-deco{
   position:absolute;z-index:3;pointer-events:none;
 }
@@ -116,9 +116,9 @@ body{
 .frame-deco.top{top:0}
 .frame-deco.bottom{bottom:0}
 
-/* Hieroglyph pattern on side frames */
+/* Romani pattern on side frames - Wagen wheel, horseshoe, stars, fortune */
 .frame-deco.left::after,.frame-deco.right::after{
-  content:'𓂀 𓃭 𓅃 𓆣 𓇋 𓈖 𓁹 𓃀 𓅱 𓆑';
+  content:'☆ 🔮 ☽ ♠ ☆ 🐴 ☽ ♦ ☆ ✧';
   position:absolute;top:10px;width:100%;
   font-size:11px;line-height:24px;text-align:center;
   color:rgba(0,0,0,.25);writing-mode:vertical-lr;
@@ -539,6 +539,20 @@ body{
 <body>
 
 <div class="bg-layer"></div>
+<!-- Romani Wheel watermark -->
+<svg class="romani-wheel" viewBox="0 0 200 200" style="position:fixed;bottom:-30px;right:-30px;width:220px;height:220px;opacity:.03;z-index:0;pointer-events:none">
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#D4AF37" stroke-width="4"/>
+  <circle cx="100" cy="100" r="70" fill="none" stroke="#D4AF37" stroke-width="2"/>
+  <circle cx="100" cy="100" r="15" fill="#D4AF37"/>
+  <line x1="100" y1="10" x2="100" y2="190" stroke="#D4AF37" stroke-width="2"/>
+  <line x1="10" y1="100" x2="190" y2="100" stroke="#D4AF37" stroke-width="2"/>
+  <line x1="36" y1="36" x2="164" y2="164" stroke="#D4AF37" stroke-width="2"/>
+  <line x1="164" y1="36" x2="36" y2="164" stroke="#D4AF37" stroke-width="2"/>
+  <line x1="100" y1="10" x2="81" y2="30" stroke="#D4AF37" stroke-width="2"/>
+  <line x1="100" y1="10" x2="119" y2="30" stroke="#D4AF37" stroke-width="2"/>
+  <line x1="190" y1="100" x2="170" y2="81" stroke="#D4AF37" stroke-width="2"/>
+  <line x1="190" y1="100" x2="170" y2="119" stroke="#D4AF37" stroke-width="2"/>
+</svg>
 
 <div class="game-container" id="game">
   <!-- Header -->
@@ -546,7 +560,7 @@ body{
     <button class="back-btn" onclick="goBack()">&#8592; LOBBY</button>
     <div class="logo">
       <h1>BUCH DES BAXT</h1>
-      <div class="subtitle">Reisendes Casino</div>
+      <div class="subtitle">Put Baxt &#9733; Reisendes Casino</div>
     </div>
     <div class="balance-box">
       <div class="label">GUTHABEN</div>
@@ -587,6 +601,7 @@ body{
     <div class="fs-overlay" id="fsOverlay">
       <div class="fs-banner">
         <h2>FREISPIELE!</h2>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);letter-spacing:2px;margin-bottom:6px">O BAXT SI TUHA!</div>
         <div class="fs-expanding-label">EXPANDING SYMBOL</div>
         <div class="fs-expanding" id="fsExpandSym"></div>
         <div class="fs-count-big" id="fsBigCount">10</div>
@@ -623,13 +638,14 @@ body{
         3+ B&uuml;cher = <strong>10 Freispiele</strong> mit Expanding Symbol<br>
         Wild ersetzt alle Symbole auf der Gewinnlinie<br>
         Gewinne werden von links nach rechts ausgewertet<br>
-        <strong>RTP: 96.21%</strong> &bull; <strong>10 Gewinnlinien</strong>
+        <strong>RTP: 96.21%</strong> &bull; <strong>10 Gewinnlinien</strong><br>
+        <br><em style="color:rgba(212,175,55,.5)">Put Baxt! &mdash; Sar san, latsche Diwes!</em>
       </div>
     </div>
   </div>
 
   <!-- Info Bar -->
-  <div class="info-bar" id="infoBar">Put Baxt! &mdash; Dr&uuml;cke START zum Spielen</div>
+  <div class="info-bar" id="infoBar">Put Baxt! &mdash; O Baxt si tuha &mdash; Dr&uuml;cke START</div>
 
   <!-- Control Panel -->
   <div class="control-panel">
@@ -708,32 +724,57 @@ const SVG_ICONS = {
     <circle cx="50" cy="30" r="4" fill="#8B0000" stroke="#FFD700" stroke-width="1.5"/>
   </svg>`,
   scarab: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="sc" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2ecc71"/><stop offset="50%" stop-color="#1a8a4a"/><stop offset="100%" stop-color="#0d5c2f"/></linearGradient>
-    <linearGradient id="wg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#D4AF37"/><stop offset="100%" stop-color="#8B6914"/></linearGradient></defs>
-    <ellipse cx="50" cy="55" rx="22" ry="28" fill="url(#sc)" stroke="#2ecc71" stroke-width="1.5"/>
-    <ellipse cx="50" cy="38" rx="15" ry="12" fill="url(#sc)" stroke="#34d87a" stroke-width="1"/>
-    <line x1="50" y1="43" x2="50" y2="80" stroke="#0d5c2f" stroke-width="2"/>
-    <line x1="35" y1="55" x2="65" y2="55" stroke="#0d5c2f" stroke-width="1.5"/>
-    <path d="M28 48 Q15 30 8 35 Q5 40 18 50" fill="url(#wg)" stroke="#D4AF37" stroke-width="1"/>
-    <path d="M72 48 Q85 30 92 35 Q95 40 82 50" fill="url(#wg)" stroke="#D4AF37" stroke-width="1"/>
-    <path d="M25 55 Q12 55 5 62 Q8 65 22 60" fill="url(#wg)" stroke="#D4AF37" stroke-width="1"/>
-    <path d="M75 55 Q88 55 95 62 Q92 65 78 60" fill="url(#wg)" stroke="#D4AF37" stroke-width="1"/>
-    <circle cx="50" cy="28" r="8" fill="#D4AF37" stroke="#FFD700" stroke-width="1.5"/>
-    <circle cx="50" cy="28" r="5" fill="#FFD700"/>
-    <path d="M42 35 Q50 30 58 35" fill="none" stroke="#0d5c2f" stroke-width="1.5"/>
-    <circle cx="44" cy="32" r="2" fill="#FFD700"/>
-    <circle cx="56" cy="32" r="2" fill="#FFD700"/>
+    <defs><linearGradient id="hr" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4a2810"/><stop offset="50%" stop-color="#2c1608"/><stop offset="100%" stop-color="#1a0c04"/></linearGradient>
+    <linearGradient id="mn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD700"/><stop offset="100%" stop-color="#B8860B"/></linearGradient></defs>
+    <!-- Romani Horse / Pferd -->
+    <path d="M30 75 Q28 55 32 42 Q35 32 42 25 L48 18 Q50 15 52 18 L52 28 Q55 22 60 20 Q65 18 68 22 Q66 28 62 32 Q58 36 55 38 L55 42 Q60 48 62 55 Q65 62 68 72 L72 80" fill="url(#hr)" stroke="#D4AF37" stroke-width="1.5"/>
+    <path d="M32 42 Q36 50 35 60 L28 80" fill="url(#hr)" stroke="#D4AF37" stroke-width="1"/>
+    <circle cx="58" cy="26" r="2" fill="#FFD700"/>
+    <path d="M48 18 Q45 12 48 8 Q52 10 52 18" fill="url(#hr)" stroke="#D4AF37" stroke-width="1"/>
+    <!-- Golden mane -->
+    <path d="M50 18 Q46 22 44 28 Q42 34 40 38" fill="none" stroke="url(#mn)" stroke-width="2.5"/>
+    <path d="M52 20 Q48 25 47 30 Q45 36 43 40" fill="none" stroke="url(#mn)" stroke-width="2" opacity=".7"/>
+    <!-- Golden hooves -->
+    <rect x="26" y="78" width="6" height="6" rx="1" fill="#FFD700"/>
+    <rect x="33" y="78" width="6" height="6" rx="1" fill="#FFD700"/>
+    <rect x="66" y="78" width="6" height="6" rx="1" fill="#FFD700"/>
+    <rect x="70" y="78" width="6" height="6" rx="1" fill="#FFD700"/>
+    <!-- Decorative text -->
+    <text x="50" y="96" text-anchor="middle" font-size="7" fill="#D4AF37" font-family="serif" font-weight="bold">GRAST</text>
   </svg>`,
   ankh: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="ak" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD700"/><stop offset="40%" stop-color="#D4AF37"/><stop offset="100%" stop-color="#B8860B"/></linearGradient>
-    <filter id="agl"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-    <ellipse cx="50" cy="28" rx="16" ry="18" fill="none" stroke="url(#ak)" stroke-width="7" filter="url(#agl)"/>
-    <line x1="50" y1="46" x2="50" y2="90" stroke="url(#ak)" stroke-width="7" stroke-linecap="round" filter="url(#agl)"/>
-    <line x1="30" y1="60" x2="70" y2="60" stroke="url(#ak)" stroke-width="7" stroke-linecap="round" filter="url(#agl)"/>
-    <ellipse cx="50" cy="28" rx="16" ry="18" fill="none" stroke="#FFD700" stroke-width="3"/>
-    <line x1="50" y1="46" x2="50" y2="90" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
-    <line x1="30" y1="60" x2="70" y2="60" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
-    <circle cx="50" cy="28" r="3" fill="#FFD700" opacity=".5"/>
+    <defs><linearGradient id="wn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8B4513"/><stop offset="50%" stop-color="#654321"/><stop offset="100%" stop-color="#3e2712"/></linearGradient>
+    <linearGradient id="wgd" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD700"/><stop offset="100%" stop-color="#B8860B"/></linearGradient></defs>
+    <!-- Romani Wagen / Caravan -->
+    <rect x="18" y="30" width="64" height="38" rx="4" fill="url(#wn)" stroke="#D4AF37" stroke-width="1.5"/>
+    <!-- Roof - curved -->
+    <path d="M16 30 Q50 8 84 30" fill="#654321" stroke="#D4AF37" stroke-width="1.5"/>
+    <!-- Window -->
+    <rect x="52" y="38" width="20" height="14" rx="2" fill="#1a3a8a" stroke="#D4AF37" stroke-width="1" opacity=".8"/>
+    <line x1="62" y1="38" x2="62" y2="52" stroke="#D4AF37" stroke-width=".5"/>
+    <line x1="52" y1="45" x2="72" y2="45" stroke="#D4AF37" stroke-width=".5"/>
+    <!-- Door -->
+    <rect x="28" y="40" width="14" height="24" rx="2" fill="#3e2712" stroke="#D4AF37" stroke-width="1"/>
+    <circle cx="39" cy="52" r="1.5" fill="#FFD700"/>
+    <!-- Gold trim -->
+    <line x1="18" y1="44" x2="82" y2="44" stroke="#D4AF37" stroke-width="1" opacity=".5"/>
+    <path d="M22 22 Q50 12 78 22" fill="none" stroke="#FFD700" stroke-width="1" opacity=".4"/>
+    <!-- Wheels -->
+    <circle cx="30" cy="72" r="10" fill="none" stroke="url(#wgd)" stroke-width="3"/>
+    <circle cx="30" cy="72" r="3" fill="#FFD700"/>
+    <line x1="30" y1="62" x2="30" y2="82" stroke="#B8860B" stroke-width="1"/>
+    <line x1="20" y1="72" x2="40" y2="72" stroke="#B8860B" stroke-width="1"/>
+    <line x1="23" y1="65" x2="37" y2="79" stroke="#B8860B" stroke-width="1"/>
+    <line x1="23" y1="79" x2="37" y2="65" stroke="#B8860B" stroke-width="1"/>
+    <circle cx="70" cy="72" r="10" fill="none" stroke="url(#wgd)" stroke-width="3"/>
+    <circle cx="70" cy="72" r="3" fill="#FFD700"/>
+    <line x1="70" y1="62" x2="70" y2="82" stroke="#B8860B" stroke-width="1"/>
+    <line x1="60" y1="72" x2="80" y2="72" stroke="#B8860B" stroke-width="1"/>
+    <line x1="63" y1="65" x2="77" y2="79" stroke="#B8860B" stroke-width="1"/>
+    <line x1="63" y1="79" x2="77" y2="65" stroke="#B8860B" stroke-width="1"/>
+    <!-- Chimney -->
+    <rect x="68" y="14" width="5" height="12" rx="1" fill="#3e2712" stroke="#D4AF37" stroke-width=".5"/>
+    <text x="50" y="96" text-anchor="middle" font-size="7" fill="#D4AF37" font-family="serif" font-weight="bold">WAGEN</text>
   </svg>`,
   eye: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="ey" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD700"/><stop offset="100%" stop-color="#B8860B"/></linearGradient>
@@ -772,9 +813,9 @@ const LETTER_SVGS = {};
 const SYM = [
   { id:'book',   svg:'book',   name:'Buch des Baxt', cls:'book-sym', wild:true, scatter:true },
   { id:'pharao', svg:'pharao', name:'Pharao',         cls:'premium' },
-  { id:'scarab', svg:'scarab', name:'Skarab\u00e4us', cls:'premium' },
-  { id:'ankh',   svg:'ankh',   name:'Ankh',           cls:'premium' },
-  { id:'eye',    svg:'eye',    name:'Auge des Ra',    cls:'premium' },
+  { id:'scarab', svg:'scarab', name:'Grast (Pferd)', cls:'premium' },
+  { id:'ankh',   svg:'ankh',   name:'Wagen',           cls:'premium' },
+  { id:'eye',    svg:'eye',    name:'Diklo (Das Auge)', cls:'premium' },
   { id:'ace',    svg:'ace',    name:'Ass',    cls:'letter', color:'#ff3333' },
   { id:'king',   svg:'king',   name:'K\u00f6nig', cls:'letter', color:'#3388ff' },
   { id:'queen',  svg:'queen',  name:'Dame',   cls:'letter', color:'#33dd55' },
@@ -969,7 +1010,7 @@ async function spin() {
   const tb = totalBet();
 
   if (freeSpins<=0 && bal<tb) {
-    setInfo('Nicht genug Guthaben!');
+    setInfo('Nane Love — Nicht genug Guthaben!');
     autoOn=false; document.getElementById('autoBtn').classList.remove('active');
     return;
   }
@@ -990,7 +1031,7 @@ async function spin() {
   } else {
     bal-=tb; syncBal(-tb);
   }
-  updDisp(); setInfo('');
+  updDisp(); setInfo(rndPhrase(ROMANI_IDLE));
 
   // Generate results
   const results = [];
@@ -1073,7 +1114,7 @@ async function spin() {
     if (totalW >= tb*20) {
       await showBigWin(totalW);
     } else {
-      setInfo('GEWINN: '+totalW.toFixed(2)+'\u20AC \u2014 Baxt!','win');
+      setInfo(rndPhrase(ROMANI_WIN)+' +'+totalW.toFixed(2)+'\u20AC','win');
     }
     if (fsExpand) fsTotalWin+=totalW;
   } else {
@@ -1094,7 +1135,7 @@ async function spin() {
     freeSpins+=10;
     document.getElementById('fsNum').textContent=freeSpins;
     document.getElementById('fsBadge').classList.add('show');
-    setInfo('+10 Freispiele! Put Baxt!','freespin');
+    setInfo('+10 Freispiele! Opre Sinti! 🎉','freespin');
   }
 
   // FS ended
@@ -1230,7 +1271,7 @@ function startFreeSpins() {
   document.getElementById('fsOverlay').classList.remove('show');
   document.getElementById('fsBadge').classList.add('show');
   document.getElementById('fsNum').textContent=freeSpins;
-  setInfo('Freispiele! Expanding: '+fsExpand.name,'freespin');
+  setInfo('Freispiele! '+fsExpand.name+' — Opre!','freespin');
   spin();
 }
 
@@ -1285,7 +1326,7 @@ function collectGamble() {
 async function showBigWin(amt) {
   const o = document.getElementById('bigwinOverlay');
   const t = document.getElementById('bigwinTitle');
-  t.textContent = amt >= totalBet()*50 ? 'MEGA GEWINN!' : amt >= totalBet()*30 ? 'BARO BARO!' : 'BARO GEWINN!';
+  t.textContent = amt >= totalBet()*50 ? rndPhrase(ROMANI_BIG) : amt >= totalBet()*30 ? 'BARO BARO BAXT!' : 'BARO GEWINN!';
   document.getElementById('bigwinAmount').textContent = amt.toFixed(2)+' \u20AC';
   o.classList.add('show');
   burstParticles();
@@ -1307,6 +1348,20 @@ function burstParticles() {
     setTimeout(()=>p.remove(),2000);
   }
 }
+
+// ========== ROMANI WIN PHRASES ==========
+const ROMANI_WIN = [
+  'Baxt! 🍀','Baro Baxt!','Opre! 🎉','Baxtalo! ☆','Bachtalo!',
+  'Gudlo Baxt!','Diklo Latscho! ✨','Opre Sinti!','Latscho Diwes!','Kushti Bok!'
+];
+const ROMANI_BIG = ['BARO BARO BAXT!','OPRE SINTI!','MEGA BAXT!','BAXTALO!'];
+const ROMANI_IDLE = [
+  'Put Baxt! — Drücke START','Sar san? — Viel Glück!',
+  'O Baxt si tuha — Das Glück ist mit dir','Dža devleha! — Geh mit Gott',
+  'Latsche Diwes — Schöner Tag zum Gewinnen'
+];
+
+function rndPhrase(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
 
 // ========== HELPERS ==========
 function setInfo(t,type) {
