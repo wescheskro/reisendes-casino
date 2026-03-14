@@ -1643,10 +1643,10 @@ async function animateReels(results) {
   const promises = [];
 
   for (let r = 0; r < 5; r++) {
-    // Random stagger: each reel starts 300-500ms after the previous
-    const baseDelay = r * 380;
-    const randomDelay = baseDelay + Math.floor(Math.random() * 200) - 80;
-    promises.push(animateReel(r, results[r], Math.max(0, randomDelay)));
+    // Quick start stagger: all reels kick off fast, 50-120ms apart
+    const baseDelay = r * 80;
+    const randomDelay = baseDelay + Math.floor(Math.random() * 40);
+    promises.push(animateReel(r, results[r], randomDelay));
   }
 
   await Promise.all(promises);
@@ -1690,20 +1690,20 @@ function animateReel(reelIdx, finalSymbols, delay) {
 
       // Randomize per reel for organic feel
       const rng = () => Math.random();
-      const fastRatio = 0.50 + rng() * 0.12;           // 50-62% distance at full speed
+      const fastRatio = 0.58 + rng() * 0.10;           // 58-68% distance at full speed
       const fastDist = targetY * fastRatio;
       const overshootCells = 0.15 + rng() * 0.3;       // 0.15 - 0.45 cells overshoot
       const slowDist = targetY * (1 - fastRatio) + cellH * overshootCells;
 
-      const fastDuration = 700 + reelIdx * 80 + Math.floor(rng() * 200);
+      const fastDuration = 350 + reelIdx * 50 + Math.floor(rng() * 100);
       const slowDuration = 1400 + reelIdx * 350 + Math.floor(rng() * 400);
       const settleDuration = 200 + Math.floor(rng() * 200);
 
       // Randomize deceleration curve slightly per reel
       const decelBend = (0.1 + rng() * 0.1).toFixed(2);
 
-      // Phase 1: Fast spin
-      strip.style.transition = `transform ${fastDuration}ms cubic-bezier(.4,.0,1,1)`;
+      // Phase 1: Fast spin - instant full speed
+      strip.style.transition = `transform ${fastDuration}ms cubic-bezier(0,.0,1,1)`;
       strip.style.transform = `translateY(-${fastDist}px)`;
 
       // Phase 2: Long gradual deceleration
