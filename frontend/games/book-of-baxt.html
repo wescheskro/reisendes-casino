@@ -2,13 +2,16 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Stachelingo Rodern - Reisendes Casino</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Uncial+Antiqua&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;background:#000}
+html,body{height:100%;height:100dvh;overflow:hidden;background:#000}
 body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justify-content:center;user-select:none}
 
 /* ========== BACKGROUND IMAGE ========== */
@@ -42,6 +45,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   width:min(98vw,960px);
   aspect-ratio:14/10;
   max-height:96vh;
+  max-height:96dvh;
   display:flex;flex-direction:column;
   border-radius:0;overflow:hidden;
   box-shadow:0 0 60px rgba(0,0,0,.8),0 0 120px rgba(139,69,0,.2);
@@ -467,37 +471,58 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 
 /* ========== RESPONSIVE - Landscape Mobile ========== */
 @media(max-height:500px){
-  .game-wrap{border-radius:0;width:100vw;height:100vh;max-height:none;aspect-ratio:auto}
-  .gold-frame-l,.gold-frame-r{width:22px}
-  .pln{width:18px;height:15px;font-size:7px}
-  .top-bar{height:32px;padding:0 8px}
-  .top-bar h1{font-size:14px !important;letter-spacing:1px}
+  html,body{height:100dvh;height:100vh}
+  .game-wrap{
+    border-radius:0;width:100vw;
+    height:100vh;height:100dvh;
+    max-height:100vh;max-height:100dvh;
+    aspect-ratio:auto;
+  }
+  .gold-frame-l,.gold-frame-r{width:20px}
+  .pln{width:16px;height:14px;font-size:7px}
+  .top-bar{height:28px;padding:0 6px}
+  .top-bar h1{font-size:13px !important;letter-spacing:1px}
   .top-bar .sub{display:none}
-  .back-btn{padding:3px 8px;font-size:9px}
-  .bal-display{padding:2px 8px}
-  .bal-display .bv{font-size:13px}
+  .back-btn{padding:2px 6px;font-size:8px}
+  .bal-display{padding:1px 6px}
+  .bal-display .bv{font-size:12px}
   .bal-display .bl{font-size:6px}
-  .info-bar{height:22px;font-size:10px}
-  .ctrl-panel{height:40px;gap:2px;padding:0 4px}
-  .cg{min-width:42px;padding:1px 3px}
-  .cg .cg-label{font-size:6px}
-  .cg .cg-val{font-size:12px}
-  .cg-btns button{width:18px;height:14px;font-size:10px}
-  .spin-wrap{margin:0 4px}
-  .spin-btn{width:36px !important;height:36px !important}
-  .side-btn{padding:3px 6px;font-size:8px}
-  .frame-bar{height:4px}
+  .info-bar{height:18px;font-size:9px}
+  .ctrl-panel{height:36px;gap:2px;padding:0 3px}
+  .cg{min-width:38px;padding:1px 2px}
+  .cg .cg-label{font-size:5px}
+  .cg .cg-val{font-size:11px}
+  .cg-btns button{width:16px;height:12px;font-size:9px}
+  .spin-wrap{margin:0 3px}
+  .spin-btn{width:32px !important;height:32px !important}
+  .side-btn{padding:2px 5px;font-size:7px}
+  .frame-bar{height:3px}
   .sym-cell{aspect-ratio:1/1}
-  .mute-btn{width:22px;height:22px;font-size:11px;top:2px;right:2px}
+  .mute-btn{width:20px;height:20px;font-size:10px;top:1px;right:1px}
+  /* Reels take all remaining space */
+  .reels-vp{flex:1;min-height:0}
 }
 
-/* Extra small landscape (e.g. older phones) */
-@media(max-height:380px){
-  .top-bar{height:26px}
-  .ctrl-panel{height:34px}
-  .info-bar{height:18px;font-size:9px}
-  .gold-frame-l,.gold-frame-r{width:18px}
-  .spin-btn{width:30px !important;height:30px !important}
+/* Extra small landscape (e.g. iPhone SE, older phones) */
+@media(max-height:340px){
+  .top-bar{height:24px}
+  .top-bar h1{font-size:11px !important}
+  .ctrl-panel{height:30px}
+  .info-bar{height:16px;font-size:8px}
+  .gold-frame-l,.gold-frame-r{width:16px}
+  .spin-btn{width:28px !important;height:28px !important}
+  .cg{min-width:32px}
+  .cg .cg-val{font-size:10px}
+  .frame-bar{height:2px}
+}
+
+/* Very short screens - hide non-essential elements */
+@media(max-height:300px){
+  .top-bar{height:20px}
+  .back-btn{display:none}
+  .frame-bar{display:none}
+  .ctrl-panel{height:28px}
+  .info-bar{height:14px;font-size:7px}
 }
 
 /* ========== FULLSCREEN SPLASH (mobile) ========== */
@@ -2875,15 +2900,18 @@ function enterFullscreen() {
   const el = document.documentElement;
   const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
   if (rfs) {
-    rfs.call(el).then(() => {
-      // Try to lock to landscape
-      if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock('landscape').catch(() => {});
-      }
-    }).catch(() => {});
+    try {
+      rfs.call(el).then(() => {
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(() => {});
+        }
+      }).catch(() => {});
+    } catch(e) {}
   }
-  // Hide splash regardless (even if fullscreen fails on some browsers)
+  // Hide splash regardless (iOS has no fullscreen API)
   document.getElementById('fsSplash').style.display = 'none';
+  // Scroll to hide address bar on iOS
+  setTimeout(() => { window.scrollTo(0, 1); }, 100);
 }
 
 function toggleFullscreen() {
@@ -2894,14 +2922,16 @@ function toggleFullscreen() {
   }
 }
 
-// Show fullscreen splash on mobile
+// Show fullscreen splash on mobile (landscape only, portrait shows rotate overlay)
 function checkFullscreenSplash() {
   if (isMobile() && !document.fullscreenElement && !document.webkitFullscreenElement) {
-    document.getElementById('fsSplash').style.display = 'flex';
+    // Only show in landscape — portrait shows rotate overlay instead
+    if (window.innerWidth > window.innerHeight) {
+      document.getElementById('fsSplash').style.display = 'flex';
+    }
   }
 }
 
-// Update fullscreen button icon
 document.addEventListener('fullscreenchange', () => {
   const btn = document.getElementById('fullscreenBtn');
   if (btn) btn.textContent = document.fullscreenElement ? '⛶' : '⛶';
