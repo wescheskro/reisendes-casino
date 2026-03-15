@@ -487,6 +487,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
     height:var(--real-vh,100vh);
     max-height:var(--real-vh,100vh);
     aspect-ratio:auto;
+    padding-bottom:env(safe-area-inset-bottom,0px);
   }
   .gold-frame-l,.gold-frame-r{width:20px}
   .pln{width:16px;height:14px;font-size:7px}
@@ -498,7 +499,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   .bal-display .bv{font-size:12px}
   .bal-display .bl{font-size:6px}
   .info-bar{height:18px;font-size:9px}
-  .ctrl-panel{height:36px;gap:2px;padding:0 3px}
+  .ctrl-panel{height:34px;gap:2px;padding:0 3px;padding-bottom:env(safe-area-inset-bottom,0px)}
   .cg{min-width:38px;padding:1px 2px}
   .cg .cg-label{font-size:5px}
   .cg .cg-val{font-size:11px}
@@ -2975,8 +2976,10 @@ function fixMobileHeight() {
   document.documentElement.style.setProperty('--real-vh', vh + 'px');
   const gw = document.querySelector('.game-wrap');
   if (gw && vh <= 500) {
-    gw.style.height = vh + 'px';
-    gw.style.maxHeight = vh + 'px';
+    // Subtract 4px safety margin to prevent bottom cutoff from browser chrome
+    const safeH = (vh - 4) + 'px';
+    gw.style.height = safeH;
+    gw.style.maxHeight = safeH;
   }
 }
 window.addEventListener('resize', fixMobileHeight);
