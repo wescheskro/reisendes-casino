@@ -88,13 +88,52 @@
       margin: 0 auto 30px;
       border-radius: 16px;
       overflow: hidden;
-      border: 2px solid rgba(212,175,55,.3);
-      box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 40px rgba(212,175,55,.1);
+      border: 2px solid rgba(212,175,55,.4);
+      box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 40px rgba(212,175,55,.15);
       aspect-ratio: 14/10;
-      background: #0a0605;
+      background: linear-gradient(135deg, #1a0e05 0%, #0a0500 50%, #120a02 100%);
       cursor: pointer;
       transition: transform .3s, box-shadow .3s;
     }
+
+    /* Automaten-Vorschau mit Symbolen */
+    .preview-grid {
+      position: absolute; inset: 0;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 4px;
+      padding: 12px;
+    }
+    .preview-grid img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      border-radius: 6px;
+      border: 1px solid rgba(212,175,55,.15);
+      background: rgba(0,0,0,.3);
+      filter: brightness(.7) saturate(.8);
+      transition: filter .3s;
+    }
+    .game-preview:hover .preview-grid img {
+      filter: brightness(.9) saturate(1);
+    }
+
+    /* Gold Rahmen oben/unten */
+    .preview-frame-top, .preview-frame-bottom {
+      position: absolute; left: 0; right: 0; height: 4px; z-index: 2;
+      background: linear-gradient(90deg, #8B6914, #D4AF37, #F4D03F, #D4AF37, #8B6914);
+    }
+    .preview-frame-top { top: 0; }
+    .preview-frame-bottom { bottom: 0; }
+
+    /* Rote Seitenrahmen */
+    .preview-frame-left, .preview-frame-right {
+      position: absolute; top: 0; bottom: 0; width: 8px; z-index: 2;
+      background: linear-gradient(180deg, #8B0000, #CC0000, #8B0000);
+      box-shadow: inset -2px 0 4px rgba(0,0,0,.3);
+    }
+    .preview-frame-left { left: 0; }
+    .preview-frame-right { right: 0; box-shadow: inset 2px 0 4px rgba(0,0,0,.3); }
 
     .game-preview:hover {
       transform: translateY(-4px);
@@ -227,6 +266,63 @@
       line-height: 1.4;
     }
 
+    /* Guthaben aufladen */
+    .topup-section {
+      max-width: 500px;
+      width: 100%;
+      padding: 0 20px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .topup-balance {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      color: rgba(240,230,211,.7);
+      margin-bottom: 12px;
+    }
+    .topup-balance span {
+      font-size: 22px;
+      font-weight: 700;
+      color: #F4D03F;
+      text-shadow: 0 0 10px rgba(244,208,63,.3);
+    }
+    .topup-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .topup-btn {
+      background: linear-gradient(180deg, rgba(50,35,15,.9), rgba(25,18,8,.95));
+      border: 1px solid rgba(212,175,55,.35);
+      border-top: 1px solid rgba(244,208,63,.45);
+      color: #D4AF37;
+      font-family: 'Playfair Display', serif;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: .2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(244,208,63,.1);
+    }
+    .topup-btn:hover {
+      background: linear-gradient(180deg, rgba(80,55,20,.9), rgba(45,30,12,.95));
+      border-color: rgba(244,208,63,.6);
+      color: #F4D03F;
+      box-shadow: 0 2px 12px rgba(0,0,0,.5), 0 0 10px rgba(212,175,55,.15);
+    }
+    .topup-btn:active { transform: scale(.95); }
+    .topup-btn.reset {
+      border-color: rgba(180,40,40,.4);
+      color: rgba(255,100,100,.7);
+    }
+    .topup-btn.reset:hover {
+      border-color: rgba(255,80,80,.5);
+      color: #ff6666;
+      background: linear-gradient(180deg, rgba(60,15,15,.9), rgba(30,8,8,.95));
+    }
+
     /* Footer */
     .landing-footer {
       text-align: center;
@@ -310,6 +406,27 @@
 
     <!-- GAME PREVIEW -->
     <div class="game-preview" onclick="playGame()">
+      <div class="preview-frame-top"></div>
+      <div class="preview-frame-bottom"></div>
+      <div class="preview-frame-left"></div>
+      <div class="preview-frame-right"></div>
+      <div class="preview-grid">
+        <img src="/games/img/card_Q.png" alt="Q">
+        <img src="/games/img/mann.png" alt="Reisender">
+        <img src="/games/img/book.png" alt="Stachelingo">
+        <img src="/games/img/card_A.png" alt="A">
+        <img src="/games/img/geige.png" alt="Geige">
+        <img src="/games/img/card_K.png" alt="K">
+        <img src="/games/img/eye.png" alt="Wahrsagerin">
+        <img src="/games/img/card_10.png" alt="10">
+        <img src="/games/img/pferd.png" alt="Pferd">
+        <img src="/games/img/card_J.png" alt="J">
+        <img src="/games/img/wagen.png" alt="Wagen">
+        <img src="/games/img/card_A.png" alt="A">
+        <img src="/games/img/book.png" alt="Stachelingo">
+        <img src="/games/img/mann.png" alt="Reisender">
+        <img src="/games/img/card_K.png" alt="K">
+      </div>
       <div class="play-overlay-big">
         <div class="play-circle">&#9654;</div>
       </div>
@@ -319,6 +436,19 @@
     <button class="cta-play" onclick="playGame()">
       Jetzt Spielen
     </button>
+
+    <!-- GUTHABEN AUFLADEN -->
+    <div class="topup-section">
+      <div class="topup-balance">
+        Dein Guthaben: <span id="landingBalance">10.000 €</span>
+      </div>
+      <div class="topup-buttons">
+        <button class="topup-btn" onclick="topUp(5000)">+5.000 €</button>
+        <button class="topup-btn" onclick="topUp(10000)">+10.000 €</button>
+        <button class="topup-btn" onclick="topUp(50000)">+50.000 €</button>
+        <button class="topup-btn reset" onclick="resetBalance()">Zurücksetzen</button>
+      </div>
+    </div>
 
     <!-- BADGES -->
     <div class="game-badges">
@@ -397,6 +527,34 @@
 
   <!-- SCRIPTS -->
   <script>
+    function fmtEuro(n) {
+      return n.toLocaleString('de-DE') + ' €';
+    }
+
+    function updateLandingBalance() {
+      const bal = parseInt(localStorage.getItem('slotBalance')) || 10000;
+      document.getElementById('landingBalance').textContent = fmtEuro(bal);
+    }
+
+    function topUp(amount) {
+      let bal = parseInt(localStorage.getItem('slotBalance')) || 10000;
+      bal += amount;
+      localStorage.setItem('slotBalance', bal);
+      updateLandingBalance();
+      // Kurze Animation
+      const el = document.getElementById('landingBalance');
+      el.style.transform = 'scale(1.2)';
+      setTimeout(() => el.style.transform = 'scale(1)', 300);
+    }
+
+    function resetBalance() {
+      localStorage.setItem('slotBalance', 10000);
+      updateLandingBalance();
+    }
+
+    // Balance beim Laden anzeigen
+    updateLandingBalance();
+
     function playGame() {
       window.location.href = '/games/book-of-baxt.html';
     }
