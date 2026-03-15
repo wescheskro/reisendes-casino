@@ -268,7 +268,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 .cg.win-cg.has-win .cg-val{color:#F4D03F;text-shadow:0 0 8px rgba(244,208,63,.5)}
 
 /* SPIN button */
-.spin-wrap{margin:0 8px}
+.spin-wrap{margin:0 8px;order:99}
 .spin-btn{
   width:clamp(44px,7vw,58px);height:clamp(44px,7vw,58px);
   border-radius:50%;cursor:pointer;border:none;
@@ -277,6 +277,16 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   transition:.15s;display:flex;align-items:center;justify-content:center;
   position:relative;
 }
+/* Linkshänder switch button */
+.hand-switch{
+  order:-1;background:none;border:1px solid rgba(212,175,55,.25);
+  color:rgba(212,175,55,.6);font-size:16px;padding:2px 6px;
+  border-radius:4px;cursor:pointer;transition:.2s;flex-shrink:0;
+}
+.hand-switch:hover{background:rgba(212,175,55,.1);color:#D4AF37}
+/* When left-handed, spin goes to left side */
+.ctrl-panel.lefty .spin-wrap{order:-2}
+.ctrl-panel.lefty .hand-switch{order:100}
 .spin-btn::before{
   content:'';position:absolute;inset:3px;border-radius:50%;
   background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.15),transparent 60%);
@@ -499,6 +509,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   .frame-bar{height:3px}
   .sym-cell{aspect-ratio:1/1}
   .mute-btn{width:20px;height:20px;font-size:10px;top:1px;right:1px}
+  .hand-switch{font-size:12px;padding:1px 4px}
   /* Reels take all remaining space */
   .reels-vp{flex:1;min-height:0}
 }
@@ -677,6 +688,8 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
       <div class="cg-label">GEWINN</div>
       <div class="cg-val" id="winVal">0</div>
     </div>
+
+    <button class="hand-switch" id="handSwitch" onclick="switchHand()" title="Linkshänder/Rechtshänder">🔄</button>
   </div>
 
   <!-- Free spins overlay with video -->
@@ -2936,6 +2949,23 @@ document.addEventListener('fullscreenchange', () => {
   const btn = document.getElementById('fullscreenBtn');
   if (btn) btn.textContent = document.fullscreenElement ? '⛶' : '⛶';
 });
+
+// ===== HAND SWITCH (Linkshänder/Rechtshänder) =====
+function switchHand() {
+  const panel = document.querySelector('.ctrl-panel');
+  panel.classList.toggle('lefty');
+  const isLefty = panel.classList.contains('lefty');
+  localStorage.setItem('leftyMode', isLefty ? '1' : '0');
+}
+// Load saved preference
+(function() {
+  if (localStorage.getItem('leftyMode') === '1') {
+    document.addEventListener('DOMContentLoaded', () => {
+      const panel = document.querySelector('.ctrl-panel');
+      if (panel) panel.classList.add('lefty');
+    });
+  }
+})();
 
 // ===== MOBILE HEIGHT FIX =====
 // CSS vh/dvh is unreliable on mobile browsers (iOS Safari, Chrome Android)
