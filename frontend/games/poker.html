@@ -238,80 +238,105 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   opacity:1;
   transform:translateY(0);
 }
-.my-hand .hand-card{
+/* 3D Flip Container */
+.my-hand .hand-card-wrap{
   width:95px;height:135px;
+  perspective:600px;
+  pointer-events:auto;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.my-hand .hand-card-wrap:nth-child(1){
+  transform:rotate(-6deg) translateY(-8px);
+}
+.my-hand .hand-card-wrap:nth-child(2){
+  transform:rotate(6deg) translateY(-8px);
+}
+.my-hand .hand-card-inner{
+  width:100%;height:100%;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform .5s ease;
+}
+.my-hand .hand-card-wrap.flipped .hand-card-inner{
+  transform:rotateY(180deg);
+}
+/* Shared face/back styles */
+.my-hand .hand-card-face,
+.my-hand .hand-card-back{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
   border-radius:10px;
+  overflow:hidden;
+}
+/* FRONT (card face) */
+.my-hand .hand-card-face{
   background:linear-gradient(165deg,#ffffff 0%,#f9f7f2 30%,#f0ece3 70%,#e8e2d6 100%);
   color:#1a1a2e;
   font-weight:900;
   box-shadow:0 10px 35px rgba(0,0,0,.7),0 0 0 2px rgba(255,255,255,.2),0 0 25px rgba(244,208,63,.2);
   border:2px solid rgba(212,175,55,.45);
-  position:relative;
-  pointer-events:auto;
-  transition:transform .3s;
-  overflow:hidden;
 }
 /* Inner border like real playing cards */
-.my-hand .hand-card::before{
+.my-hand .hand-card-face::before{
   content:'';position:absolute;inset:5px;border-radius:6px;
   border:1px solid rgba(150,140,120,.15);
   pointer-events:none;z-index:1;
 }
-.my-hand .hand-card:nth-child(1){
-  transform:rotate(-6deg) translateY(-8px);
-}
-.my-hand .hand-card:nth-child(2){
-  transform:rotate(6deg) translateY(-8px);
-}
-.my-hand .hand-card.red{color:#c0392b}
-/* Corner top-left */
-.my-hand .hand-card .h-corner-tl{
-  position:absolute;top:6px;left:8px;
-  display:flex;flex-direction:column;align-items:center;
-  line-height:1;z-index:2;
-}
-.my-hand .hand-card .h-corner-tl .hc-rank{
-  font-size:22px;font-weight:900;line-height:1;
-  font-family:'Playfair Display',serif;
-}
-.my-hand .hand-card .h-corner-tl .hc-suit{font-size:16px;line-height:1;margin-top:-1px}
-/* Corner bottom-right (upside down) */
-.my-hand .hand-card .h-corner-br{
-  position:absolute;bottom:6px;right:8px;
-  display:flex;flex-direction:column;align-items:center;
-  line-height:1;z-index:2;
-  transform:rotate(180deg);
-}
-.my-hand .hand-card .h-corner-br .hc-rank{
-  font-size:22px;font-weight:900;line-height:1;
-  font-family:'Playfair Display',serif;
-}
-.my-hand .hand-card .h-corner-br .hc-suit{font-size:16px;line-height:1;margin-top:-1px}
-/* Center suit – hero */
-.my-hand .hand-card .h-center-suit{
-  position:absolute;top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  font-size:46px;z-index:2;
-  filter:drop-shadow(0 2px 4px rgba(0,0,0,.1));
-}
-/* Hidden (face-down) card */
-.my-hand .hand-card.hidden-card{
+.my-hand .hand-card-face.red{color:#c0392b}
+/* BACK (face-down) */
+.my-hand .hand-card-back{
   background:linear-gradient(145deg,#8B0000,#6d0000);
   border:3px solid rgba(212,175,55,.45);
-  color:transparent;
+  box-shadow:0 10px 35px rgba(0,0,0,.7),0 0 0 2px rgba(255,255,255,.2);
+  transform:rotateY(180deg);
 }
-.my-hand .hand-card.hidden-card::before{
+.my-hand .hand-card-back::before{
+  content:'';position:absolute;inset:5px;border-radius:6px;
   border-color:rgba(212,175,55,.25);
+  border:1px solid rgba(212,175,55,.25);
   background:repeating-linear-gradient(
     45deg,
     transparent,transparent 4px,
     rgba(212,175,55,.07) 4px,rgba(212,175,55,.07) 8px
   );
+  pointer-events:none;
 }
-.my-hand .hand-card.hidden-card::after{
+.my-hand .hand-card-back::after{
   content:'♠';font-size:32px;color:rgba(212,175,55,.35);
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   z-index:2;
+}
+/* Corner top-left */
+.my-hand .hand-card-face .h-corner-tl{
+  position:absolute;top:6px;left:8px;
+  display:flex;flex-direction:column;align-items:center;
+  line-height:1;z-index:2;
+}
+.my-hand .hand-card-face .h-corner-tl .hc-rank{
+  font-size:22px;font-weight:900;line-height:1;
+  font-family:'Playfair Display',serif;
+}
+.my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:16px;line-height:1;margin-top:-1px}
+/* Corner bottom-right (upside down) */
+.my-hand .hand-card-face .h-corner-br{
+  position:absolute;bottom:6px;right:8px;
+  display:flex;flex-direction:column;align-items:center;
+  line-height:1;z-index:2;
+  transform:rotate(180deg);
+}
+.my-hand .hand-card-face .h-corner-br .hc-rank{
+  font-size:22px;font-weight:900;line-height:1;
+  font-family:'Playfair Display',serif;
+}
+.my-hand .hand-card-face .h-corner-br .hc-suit{font-size:16px;line-height:1;margin-top:-1px}
+/* Center suit – hero */
+.my-hand .hand-card-face .h-center-suit{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  font-size:46px;z-index:2;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.1));
 }
 
 /* Chips-Info neben den Karten */
@@ -353,29 +378,29 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 
 /* Mobile: Hand sitzt direkt über Controls */
 @media(max-width:600px){
-  .my-hand .hand-card{width:76px;height:110px}
-  .my-hand .hand-card .h-corner-tl .hc-rank{font-size:18px}
-  .my-hand .hand-card .h-corner-tl .hc-suit{font-size:13px}
-  .my-hand .hand-card .h-corner-br .hc-rank{font-size:18px}
-  .my-hand .hand-card .h-corner-br .hc-suit{font-size:13px}
-  .my-hand .hand-card .h-center-suit{font-size:38px}
+  .my-hand .hand-card-wrap{width:76px;height:110px}
+  .my-hand .hand-card-face .h-corner-tl .hc-rank{font-size:18px}
+  .my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:13px}
+  .my-hand .hand-card-face .h-corner-br .hc-rank{font-size:18px}
+  .my-hand .hand-card-face .h-corner-br .hc-suit{font-size:13px}
+  .my-hand .hand-card-face .h-center-suit{font-size:38px}
   .my-hand{gap:8px}
 }
 @media(max-width:375px){
-  .my-hand .hand-card{width:64px;height:92px}
-  .my-hand .hand-card .h-corner-tl .hc-rank{font-size:15px}
-  .my-hand .hand-card .h-corner-tl .hc-suit{font-size:11px}
-  .my-hand .hand-card .h-corner-br .hc-rank{font-size:15px}
-  .my-hand .hand-card .h-corner-br .hc-suit{font-size:11px}
-  .my-hand .hand-card .h-center-suit{font-size:30px}
+  .my-hand .hand-card-wrap{width:64px;height:92px}
+  .my-hand .hand-card-face .h-corner-tl .hc-rank{font-size:15px}
+  .my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:11px}
+  .my-hand .hand-card-face .h-corner-br .hc-rank{font-size:15px}
+  .my-hand .hand-card-face .h-corner-br .hc-suit{font-size:11px}
+  .my-hand .hand-card-face .h-center-suit{font-size:30px}
   .my-hand{gap:6px}
 }
 @media(max-height:450px) and (orientation:landscape){
-  .my-hand .hand-card{width:58px;height:84px}
-  .my-hand .hand-card .h-corner-tl .hc-rank{font-size:14px}
-  .my-hand .hand-card .h-corner-tl .hc-suit{font-size:10px}
-  .my-hand .hand-card .h-corner-br{display:none}
-  .my-hand .hand-card .h-center-suit{font-size:26px}
+  .my-hand .hand-card-wrap{width:58px;height:84px}
+  .my-hand .hand-card-face .h-corner-tl .hc-rank{font-size:14px}
+  .my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:10px}
+  .my-hand .hand-card-face .h-corner-br{display:none}
+  .my-hand .hand-card-face .h-center-suit{font-size:26px}
   .my-hand{gap:6px}
 }
 
@@ -1031,33 +1056,57 @@ function renderState(state) {
 }
 
 // ===================== GROSSE HAND-ANZEIGE =====================
+let lastHandCards = [null, null]; // Letzte bekannte Karten merken
+
+function renderHandCard(c, index) {
+  const hasCard = c && c !== '??';
+  let faceHtml = '';
+  let faceClass = 'hand-card-face';
+  if (hasCard) {
+    const rank = c.slice(0, -1);
+    const suit = c.slice(-1);
+    const isRed = (suit === '♥' || suit === '♦');
+    if (isRed) faceClass += ' red';
+    faceHtml = `<div class="h-corner-tl"><span class="hc-rank">${rank}</span><span class="hc-suit">${suit}</span></div>
+      <span class="h-center-suit">${suit}</span>
+      <div class="h-corner-br"><span class="hc-rank">${rank}</span><span class="hc-suit">${suit}</span></div>`;
+  }
+  // Wenn keine Karte: leere Vorderseite (wird eh nicht gezeigt da flipped)
+  const startFlipped = !hasCard ? ' flipped' : '';
+  return `<div class="hand-card-wrap${startFlipped}" data-card-idx="${index}" onclick="toggleCardFlip(this)">
+    <div class="hand-card-inner">
+      <div class="${faceClass}">${faceHtml}</div>
+      <div class="hand-card-back"></div>
+    </div>
+  </div>`;
+}
+
+function toggleCardFlip(el) {
+  el.classList.toggle('flipped');
+}
+
 function updateMyHand(state) {
   const handEl = document.getElementById('myHand');
   const labelEl = document.querySelector('.my-hand-label');
   const me = state.seats.find(s => s && s.isYou);
 
-  // Kein Spieler am Tisch oder keine Karten
-  if (!me || !me.cards || me.cards.length === 0 || me.folded || state.phase === 'waiting') {
+  // Kein Spieler am Tisch → komplett ausblenden
+  if (!me) {
     handEl.classList.remove('visible');
     if (labelEl) labelEl.classList.remove('visible');
     return;
   }
 
+  // Immer sichtbar wenn am Tisch
+  handEl.classList.add('visible');
+
+  const hasRealCards = me.cards && me.cards.length > 0 && !me.folded && state.phase !== 'waiting';
+  const cards = hasRealCards ? me.cards : ['??', '??'];
+
   // Karten rendern
   let html = '';
-  me.cards.forEach(c => {
-    if (c === '??' || !c) {
-      html += '<div class="hand-card hidden-card"></div>';
-    } else {
-      const rank = c.slice(0, -1);
-      const suit = c.slice(-1);
-      const isRed = (suit === '♥' || suit === '♦');
-      html += `<div class="hand-card${isRed ? ' red' : ''}">
-        <div class="h-corner-tl"><span class="hc-rank">${rank}</span><span class="hc-suit">${suit}</span></div>
-        <span class="h-center-suit">${suit}</span>
-        <div class="h-corner-br"><span class="hc-rank">${rank}</span><span class="hc-suit">${suit}</span></div>
-      </div>`;
-    }
+  cards.forEach((c, i) => {
+    html += renderHandCard(c, i);
   });
 
   // Chips-Info zwischen den Karten
@@ -1068,8 +1117,19 @@ function updateMyHand(state) {
     ${betStr}
   </div>`;
 
-  handEl.innerHTML = html;
-  handEl.classList.add('visible');
+  // Nur neu rendern wenn sich die Karten geändert haben (sonst geht Flip-State verloren)
+  const cardStr = JSON.stringify(cards);
+  const lastStr = JSON.stringify(lastHandCards);
+  if (cardStr !== lastStr) {
+    handEl.innerHTML = html;
+    lastHandCards = [...cards];
+  } else {
+    // Nur Chips/Bet aktualisieren
+    const infoEl = handEl.querySelector('.hand-info');
+    if (infoEl) {
+      infoEl.innerHTML = `<div class="hand-chips">💰 ${chipsStr}</div>${betStr}`;
+    }
+  }
 
   // Positionierung: über den Controls (mit rAF für korrektes Layout)
   requestAnimationFrame(() => {
@@ -1080,16 +1140,18 @@ function updateMyHand(state) {
     // Label mit Handname wenn vorhanden
     if (labelEl) {
       const cardH = handEl.offsetHeight || 130;
-      if (me.handName) {
+      if (hasRealCards && me.handName) {
         labelEl.textContent = me.handName;
         labelEl.classList.add('visible');
         labelEl.style.bottom = (controlsH + cardH + 14) + 'px';
-      } else if (state.phase !== 'showdown') {
+      } else if (hasRealCards && state.phase !== 'showdown') {
         labelEl.textContent = 'Deine Hand';
         labelEl.classList.add('visible');
         labelEl.style.bottom = (controlsH + cardH + 14) + 'px';
       } else {
-        labelEl.classList.remove('visible');
+        labelEl.textContent = 'Warte auf nächste Runde...';
+        labelEl.classList.add('visible');
+        labelEl.style.bottom = (controlsH + cardH + 14) + 'px';
       }
     }
   });
@@ -1596,12 +1658,47 @@ socket.on('rtc:peerLeft', ({ peerId }) => {
     applySaved();
   }, 500);
 
-  // Toggle-Button erstellen
+  // Toggle-Button erstellen (draggable)
+  const BTN_POS_KEY = 'pokerDragBtnPos';
   const toggleBtn = document.createElement('button');
   toggleBtn.textContent = '⚙ Sitze anpassen';
   toggleBtn.id = 'dragToggle';
-  toggleBtn.style.cssText = 'display:none;position:fixed;bottom:140px;right:8px;z-index:9999;padding:6px 12px;background:rgba(212,175,55,.9);color:#000;border:none;border-radius:8px;font:bold 11px sans-serif;cursor:pointer;';
+  toggleBtn.style.cssText = 'display:none;position:fixed;bottom:140px;right:8px;z-index:9999;padding:6px 12px;background:rgba(212,175,55,.9);color:#000;border:none;border-radius:8px;font:bold 11px sans-serif;cursor:grab;touch-action:none;user-select:none;';
   document.body.appendChild(toggleBtn);
+
+  // Gespeicherte Button-Position laden
+  try {
+    const bp = JSON.parse(localStorage.getItem(BTN_POS_KEY));
+    if (bp) { toggleBtn.style.bottom = bp.bottom; toggleBtn.style.right = bp.right; }
+  } catch(e) {}
+
+  // Button selbst draggable machen
+  let btnDragging = false, btnStartX = 0, btnStartY = 0, btnMoved = false;
+  function btnDragStart(cx, cy) {
+    btnDragging = true; btnMoved = false;
+    btnStartX = cx; btnStartY = cy;
+  }
+  function btnDragMove(cx, cy) {
+    if (!btnDragging) return;
+    if (Math.abs(cx - btnStartX) > 5 || Math.abs(cy - btnStartY) > 5) btnMoved = true;
+    if (!btnMoved) return;
+    const r = window.innerWidth - cx - toggleBtn.offsetWidth / 2;
+    const b = window.innerHeight - cy - toggleBtn.offsetHeight / 2;
+    toggleBtn.style.right = Math.max(0, Math.min(window.innerWidth - 60, r)) + 'px';
+    toggleBtn.style.bottom = Math.max(0, Math.min(window.innerHeight - 30, b)) + 'px';
+  }
+  function btnDragEnd() {
+    if (btnDragging && btnMoved) {
+      localStorage.setItem(BTN_POS_KEY, JSON.stringify({ bottom: toggleBtn.style.bottom, right: toggleBtn.style.right }));
+    }
+    btnDragging = false;
+  }
+  toggleBtn.addEventListener('mousedown', e => { btnDragStart(e.clientX, e.clientY); });
+  document.addEventListener('mousemove', e => { if (btnDragging) { e.preventDefault(); btnDragMove(e.clientX, e.clientY); } });
+  document.addEventListener('mouseup', () => { btnDragEnd(); });
+  toggleBtn.addEventListener('touchstart', e => { const t = e.touches[0]; btnDragStart(t.clientX, t.clientY); }, { passive: true });
+  document.addEventListener('touchmove', e => { if (btnDragging) { const t = e.touches[0]; btnDragMove(t.clientX, t.clientY); } }, { passive: true });
+  document.addEventListener('touchend', () => { btnDragEnd(); });
 
   // Info-Label
   const infoLabel = document.createElement('div');
@@ -1611,6 +1708,7 @@ socket.on('rtc:peerLeft', ({ peerId }) => {
   document.body.appendChild(infoLabel);
 
   toggleBtn.addEventListener('click', () => {
+    if (btnMoved) return; // Nicht klicken wenn gerade gezogen
     dragMode = !dragMode;
     infoLabel.style.display = dragMode ? 'block' : 'none';
     toggleBtn.textContent = dragMode ? '✅ Positionen speichern' : '⚙ Sitze anpassen';
