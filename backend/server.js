@@ -1779,7 +1779,7 @@ io.on('connection', (socket) => {
     const p = table.players.get(socket.user.id);
     if (!p) return;
     p.peeking = !!peeking;
-    pokerBroadcast(table);
+    emitPokerState(table);
   });
 
   // --- POKER BOTS ---
