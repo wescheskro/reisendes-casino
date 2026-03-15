@@ -82,11 +82,14 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 }
 .title-area .sub{font-size:9px;color:rgba(212,175,55,.5);letter-spacing:5px}
 .bal-display{
-  background:rgba(0,0,0,.4);border:1px solid rgba(212,175,55,.25);
-  border-radius:6px;padding:4px 12px;text-align:center;
+  background:linear-gradient(180deg,rgba(30,20,10,.9),rgba(10,6,2,.95));
+  border:1px solid rgba(212,175,55,.4);
+  border-top:1px solid rgba(244,208,63,.5);
+  border-radius:8px;padding:4px 14px;text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(244,208,63,.1);
 }
-.bal-display .bl{font-size:8px;color:rgba(255,255,255,.3);letter-spacing:1px}
-.bal-display .bv{font-size:16px;color:#F4D03F;font-weight:700}
+.bal-display .bl{font-size:8px;color:rgba(212,175,55,.5);letter-spacing:1.5px;font-weight:600}
+.bal-display .bv{font-size:clamp(18px,2.5vw,24px);color:#F4D03F;font-weight:700;text-shadow:0 0 8px rgba(244,208,63,.3)}
 
 /* ========== MAIN GAME AREA ========== */
 .game-main{
@@ -262,7 +265,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   background:linear-gradient(90deg,transparent,rgba(244,208,63,.3),transparent);
 }
 .cg .cg-label{font-size:7px;color:rgba(212,175,55,.5);letter-spacing:2px;text-transform:uppercase;font-weight:600}
-.cg .cg-val{font-size:clamp(13px,1.8vw,17px);color:#F4D03F;font-weight:700;text-shadow:0 0 6px rgba(244,208,63,.2)}
+.cg .cg-val{font-size:clamp(15px,2.2vw,22px);color:#F4D03F;font-weight:700;text-shadow:0 0 6px rgba(244,208,63,.2)}
 .cg-btns{display:flex;gap:3px;margin-top:2px}
 .cg-btns button{
   width:24px;height:20px;border-radius:5px;
@@ -594,13 +597,13 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   .top-bar .sub{display:none}
   .back-btn{padding:2px 6px;font-size:8px}
   .bal-display{padding:1px 6px}
-  .bal-display .bv{font-size:12px}
+  .bal-display .bv{font-size:14px}
   .bal-display .bl{font-size:6px}
   .info-bar{height:18px;font-size:9px}
   .ctrl-panel{height:34px;gap:2px;padding:0 3px;padding-bottom:env(safe-area-inset-bottom,0px)}
   .cg{min-width:38px;padding:1px 2px}
   .cg .cg-label{font-size:5px}
-  .cg .cg-val{font-size:11px}
+  .cg .cg-val{font-size:12px}
   .cg-btns button{width:16px;height:12px;font-size:9px}
   .spin-wrap{margin:0 3px}
   .spin-btn{width:32px !important;height:32px !important}
@@ -786,7 +789,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
     </div>
     <div class="bal-display">
       <div class="bl">GUTHABEN</div>
-      <div class="bv" id="balVal">10000</div>
+      <div class="bv" id="balVal">10.000 €</div>
     </div>
     <button class="mute-btn" id="muteBtn" onclick="toggleMute()" title="Ton an/aus">🔊</button>
     <button class="fullscreen-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Vollbild">⛶</button>
@@ -1325,12 +1328,14 @@ function animateCounter(elementId, from, to, duration = 500) {
   const el = document.getElementById(elementId);
   const start = performance.now();
   const diff = to - from;
+  const useEuro = elementId !== 'linesVal';
   function step(now) {
     const t = Math.min((now - start) / duration, 1);
     const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-    el.textContent = Math.round(from + diff * eased);
+    const val = Math.round(from + diff * eased);
+    el.textContent = useEuro ? fmtEuro(val) : val;
     if (t < 1) requestAnimationFrame(step);
-    else el.textContent = to;
+    else el.textContent = useEuro ? fmtEuro(to) : to;
     if (diff > 0 && Math.random() > 0.7) SFX.coinTick();
   }
   requestAnimationFrame(step);
@@ -2152,7 +2157,7 @@ async function doSpin() {
     } else {
       SFX.win();
       const phrases = ['Baxtalo!','Latscho!','Kushti!','Opre!','Sastipen!'];
-      setInfo(`${phrases[Math.floor(Math.random()*phrases.length)]} GEWINN: ${lastWin} €`, 'win-msg');
+      setInfo(`${phrases[Math.floor(Math.random()*phrases.length)]} GEWINN: ${fmtEuro(lastWin)}`, 'win-msg');
 
       if (isMediumWin) {
         // Medium win: more coins + longer celebration
@@ -2243,7 +2248,7 @@ async function doSpin() {
     lockedReels = [false, false, false, false, false];
     if (freeSpinTotalWin > 0) {
       await showFreeSpinTotal(freeSpinTotalWin);
-      setInfo(`Baro Gewinn: ${freeSpinTotalWin} €`, 'win-msg');
+      setInfo(`Baro Gewinn: ${fmtEuro(freeSpinTotalWin)}`, 'win-msg');
     }
     freeSpinTotalWin = 0;
     freeSpinSymbol = null;
@@ -2800,7 +2805,7 @@ function showBigWin(amount) {
   const countUp = setInterval(() => {
     current += step;
     if (current >= amount) { current = amount; clearInterval(countUp); }
-    el.textContent = current + ' €!';
+    el.textContent = fmtEuro(current);
     SFX.coinTick();
   }, 50);
   setTimeout(() => overlay.classList.remove('show'), 4000);
@@ -2928,7 +2933,7 @@ async function showFreeSpinTotal(amount) {
   const countUp = setInterval(() => {
     current += step;
     if (current >= amount) { current = amount; clearInterval(countUp); }
-    el.textContent = current + ' €';
+    el.textContent = fmtEuro(current);
     SFX.coinTick();
   }, 40);
 
@@ -2969,7 +2974,7 @@ function gamblePick(choice) {
       gambleWin *= 2;
       balance += gambleWin / 2;
       document.getElementById('gambleStake').textContent = gambleWin;
-      setInfo(`Verdoppelt! ${gambleWin} €!`, 'win-msg');
+      setInfo(`Verdoppelt! ${fmtEuro(gambleWin)}`, 'win-msg');
     } else {
       SFX.gambleLose();
       balance -= gambleWin;
@@ -2986,7 +2991,7 @@ function gamblePick(choice) {
 function collectGamble() {
   document.getElementById('gambleOverlay').classList.remove('show');
   document.getElementById('gambleBtn').style.display = 'none';
-  setInfo(`${gambleWin} € eingelöst!`, 'win-msg');
+  setInfo(`${fmtEuro(gambleWin)} eingelöst!`, 'win-msg');
   gambleWin = 0;
 }
 
@@ -3133,12 +3138,17 @@ function setInfo(text, cls) {
   bar.className = 'info-bar' + (cls ? ' ' + cls : '');
 }
 
+// Euro-Formatierung mit Tausenderpunkt
+function fmtEuro(n) {
+  return n.toLocaleString('de-DE') + ' €';
+}
+
 function updateUI() {
-  document.getElementById('balVal').textContent = balance;
-  document.getElementById('betVal').textContent = betPerLine;
+  document.getElementById('balVal').textContent = fmtEuro(balance);
+  document.getElementById('betVal').textContent = fmtEuro(betPerLine);
   document.getElementById('linesVal').textContent = lines;
-  document.getElementById('totalBetVal').textContent = betPerLine * lines;
-  document.getElementById('winVal').textContent = lastWin;
+  document.getElementById('totalBetVal').textContent = fmtEuro(betPerLine * lines);
+  document.getElementById('winVal').textContent = fmtEuro(lastWin);
   const winCg = document.getElementById('winCg');
   winCg.classList.toggle('has-win', lastWin > 0);
 }
