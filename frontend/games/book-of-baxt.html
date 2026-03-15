@@ -1971,22 +1971,52 @@ async function doSpin() {
       });
     });
 
-    if (lastWin >= totalBet * 10) {
+    // Determine win tier for celebration intensity
+    const winRatio = lastWin / totalBet;
+    const isBigWin = winRatio >= 10;
+    const isMediumWin = winRatio >= 3;
+
+    if (isBigWin) {
       SFX.bigWin();
-      FX.coinShower(3000);
+      FX.coinShower(4000);
       showBigWin(lastWin);
     } else {
       SFX.win();
-      // Spawn some coins from center
-      FX.spawnCoins(FX.canvas.width / 2, FX.canvas.height / 2, 15);
-      // Romani win phrases
       const phrases = ['Baxtalo!','Latscho!','Kushti!','Opre!','Sastipen!'];
       setInfo(`${phrases[Math.floor(Math.random()*phrases.length)]} GEWINN: ${lastWin} €`, 'win-msg');
+
+      if (isMediumWin) {
+        // Medium win: more coins + longer celebration
+        FX.coinShower(2500);
+        FX.spawnCoins(FX.canvas.width / 2, FX.canvas.height / 2, 25);
+      } else {
+        // Small win: coins from center
+        FX.spawnCoins(FX.canvas.width / 2, FX.canvas.height / 2, 15);
+      }
     }
 
-    // Animate balance counter
-    animateCounter('balVal', oldBal, balance, 600);
-    animateCounter('winVal', 0, lastWin, 600);
+    // Animate counters — slower for bigger wins
+    const counterDuration = isBigWin ? 2000 : isMediumWin ? 1500 : 1000;
+    animateCounter('balVal', oldBal, balance, counterDuration);
+    animateCounter('winVal', 0, lastWin, counterDuration);
+
+    // Repeat sparkles during celebration
+    const sparkleInterval = setInterval(() => {
+      wins.lines.forEach(w => {
+        w.positions.forEach(([r, row]) => {
+          const colW = vp.clientWidth / 5;
+          const rowH = vp.clientHeight / 3;
+          const px = (vpRect.left - wrapRect.left) + r * colW + colW / 2;
+          const py = (vpRect.top - wrapRect.top) + row * rowH + rowH / 2;
+          FX.spawnSparkles(px, py, 4);
+        });
+      });
+    }, 600);
+
+    // Win celebration pause — min 3 seconds
+    const celebrationTime = isBigWin ? 5000 : isMediumWin ? 3500 : 3000;
+    await new Promise(resolve => setTimeout(resolve, celebrationTime));
+    clearInterval(sparkleInterval);
 
     if (freeSpins <= 0) {
       document.getElementById('gambleBtn').style.display = '';
@@ -2042,9 +2072,9 @@ async function doSpin() {
     freeSpinSymbol = null;
   }
 
-  // Auto play
+  // Auto play — wait after win celebration
   if (autoPlay && (freeSpins > 0 || balance >= betPerLine * lines)) {
-    setTimeout(doSpin, 800);
+    setTimeout(doSpin, lastWin > 0 ? 500 : 800);
   }
 }
 
