@@ -2104,9 +2104,12 @@ async function doSpin() {
     }
   }
 
-  // If 4+ reels are locked, reset locks for next free spin cycle
-  if (freeSpinSymbol && lockedReels.filter(Boolean).length >= 4) {
-    await new Promise(r => setTimeout(r, 1500));
+  // If all 5 reels are locked, reset for next cycle
+  // If only 4 are locked, the 5th will spin alone on the next spin (no reset yet)
+  if (freeSpinSymbol && lockedReels.filter(Boolean).length === 5) {
+    await new Promise(r => setTimeout(r, 2000));
+    setInfo('Alle Walzen voll! Neue Runde...', 'fs-msg');
+    await new Promise(r => setTimeout(r, 1000));
     // Clear golden glow from all reels
     const vp = document.getElementById('reelsVP');
     vp.querySelectorAll('.reel-col').forEach(col => { col.style.boxShadow = ''; });
@@ -2114,6 +2117,10 @@ async function doSpin() {
     if (freeSpins > 0) {
       setInfo(`Walzen zurückgesetzt! Noch ${freeSpins} Freispiele`, 'fs-msg');
     }
+  } else if (freeSpinSymbol && lockedReels.filter(Boolean).length === 4) {
+    // 4 locked — let the player know only one reel will spin
+    const unlockedIdx = lockedReels.indexOf(false) + 1;
+    setInfo(`Nur noch Walze ${unlockedIdx} dreht!`, 'fs-msg');
   }
 
   updateUI();
