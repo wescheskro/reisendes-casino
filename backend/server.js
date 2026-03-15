@@ -1113,12 +1113,20 @@ function removeBotFromTable(table, botId) {
   const p = table.players.get(botId);
   if (!p || !p.isBot) return false;
   const seatIdx = table.seats.indexOf(botId);
+  const wasCurrentSeat = (table.currentSeat === seatIdx);
   if (seatIdx >= 0) table.seats[seatIdx] = null;
   if (p) p.folded = true;
   table.players.delete(botId);
   io.to('pk-' + table.id).emit('poker:playerLeft', { username: p.username });
-  if (table.phase !== 'waiting' && pokerActivePlayers(table) <= 1) pokerShowdown(table);
-  else emitPokerState(table);
+  const active = pokerActivePlayers(table);
+  if (table.phase !== 'waiting' && active <= 1) {
+    pokerShowdown(table);
+  } else if (wasCurrentSeat && table.phase !== 'waiting') {
+    // Bot war am Zug → nächsten Spieler finden
+    pokerNextPlayer(table, seatIdx);
+  } else {
+    emitPokerState(table);
+  }
   return true;
 }
 
