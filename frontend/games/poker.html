@@ -62,6 +62,33 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 }
 .phase-label{font-size:12px;color:rgba(240,230,211,.4);margin-top:10px;text-transform:uppercase;letter-spacing:3px}
 
+/* ============ FLIEGENDE KARTEN ANIMATION ============ */
+.flying-card{
+  position:fixed;
+  width:32px;height:46px;
+  border-radius:5px;
+  z-index:9999;
+  pointer-events:none;
+  transition:none;
+  box-shadow:0 4px 16px rgba(0,0,0,.6);
+}
+.flying-card.face-down{
+  background:url('img/card-back.jpg') center/cover no-repeat;
+  border:1.5px solid rgba(212,175,55,.5);
+}
+.flying-card.face-up{
+  background:linear-gradient(165deg,#fff,#f0ece3);
+  border:1.5px solid rgba(212,175,55,.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;
+}
+.flying-card.face-up.red{color:#c0392b}
+.flying-card.fold-card{
+  background:url('img/card-back.jpg') center/cover no-repeat;
+  border:1.5px solid rgba(212,175,55,.3);
+  opacity:.7;
+}
+
 /* ============ CARDS (Community / Flop – volle Breite) ============ */
 .card{
   flex:1;
@@ -1191,6 +1218,142 @@ const PokerSFX = {
   }
 };
 
+// ===================== KARTEN-FLUG-ANIMATIONEN =====================
+const CardAnim = {
+  // Dealer-Position (Mitte oben)
+  dealerPos() {
+    return { x: window.innerWidth / 2, y: window.innerHeight * 0.15 };
+  },
+
+  // Position eines Seats auf dem Bildschirm
+  seatPos(seatIdx) {
+    const el = document.querySelector(`.seat[data-pos="${seatIdx}"]`);
+    if (el) {
+      const r = el.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    }
+    // Fallback: geschätzte Positionen
+    const positions = [
+      {x: 0.10, y: 0.34}, {x: 0.30, y: 0.29}, {x: 0.50, y: 0.27},
+      {x: 0.70, y: 0.29}, {x: 0.90, y: 0.34}, {x: 0.50, y: 0.31}
+    ];
+    const p = positions[seatIdx] || {x:0.5, y:0.3};
+    return { x: window.innerWidth * p.x, y: window.innerHeight * p.y };
+  },
+
+  // Community-Karten Position
+  communityPos(cardIdx) {
+    const cc = document.getElementById('communityCards');
+    if (cc) {
+      const r = cc.getBoundingClientRect();
+      const cardW = r.width / 5;
+      return { x: r.left + cardW * cardIdx + cardW / 2, y: r.top + r.height / 2 };
+    }
+    return { x: window.innerWidth * (0.3 + cardIdx * 0.1), y: window.innerHeight * 0.54 };
+  },
+
+  // Meine Hand Position
+  myHandPos() {
+    const h = document.getElementById('myHand');
+    if (h) {
+      const r = h.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    }
+    return { x: window.innerWidth / 2, y: window.innerHeight * 0.85 };
+  },
+
+  // Pot/Mitte Position
+  centerPos() {
+    return { x: window.innerWidth / 2, y: window.innerHeight * 0.48 };
+  },
+
+  // Fliegende Karte erstellen und animieren
+  flyCard(from, to, opts = {}) {
+    const card = document.createElement('div');
+    card.className = 'flying-card ' + (opts.cls || 'face-down');
+    if (opts.content) card.innerHTML = opts.content;
+    card.style.left = from.x - 16 + 'px';
+    card.style.top = from.y - 23 + 'px';
+    card.style.transform = `rotate(${opts.startRot || 0}deg) scale(${opts.startScale || 0.5})`;
+    card.style.opacity = '1';
+    document.body.appendChild(card);
+
+    const dur = opts.duration || 400;
+    const endRot = opts.endRot || (Math.random() * 10 - 5);
+    const endScale = opts.endScale || 1;
+
+    requestAnimationFrame(() => {
+      card.style.transition = `left ${dur}ms ease-out, top ${dur}ms ease-out, transform ${dur}ms ease-out, opacity ${dur}ms ease`;
+      card.style.left = to.x - 16 + 'px';
+      card.style.top = to.y - 23 + 'px';
+      card.style.transform = `rotate(${endRot}deg) scale(${endScale})`;
+      if (opts.fadeOut) card.style.opacity = '0';
+    });
+
+    setTimeout(() => card.remove(), dur + 50);
+  },
+
+  // Karten austeilen: vom Dealer zu jedem Spieler
+  animateDeal(seatIndices) {
+    const dealer = this.dealerPos();
+    seatIndices.forEach((seatIdx, i) => {
+      // Zwei Karten pro Spieler
+      setTimeout(() => {
+        this.flyCard(dealer, this.seatPos(seatIdx), { duration: 350, startRot: -20, endRot: -8 + Math.random() * 6 });
+        PokerSFX.cardDeal();
+      }, i * 120);
+      setTimeout(() => {
+        this.flyCard(dealer, this.seatPos(seatIdx), { duration: 350, startRot: 20, endRot: 3 + Math.random() * 6 });
+        PokerSFX.cardDeal();
+      }, i * 120 + 80);
+    });
+    // Karten zum eigenen Hand-Bereich
+    const myIdx = seatIndices.length;
+    setTimeout(() => {
+      this.flyCard(dealer, this.myHandPos(), { duration: 400, startScale: 0.4, endScale: 1.2, startRot: -15 });
+      PokerSFX.cardDeal();
+    }, myIdx * 120);
+    setTimeout(() => {
+      this.flyCard(dealer, this.myHandPos(), { duration: 400, startScale: 0.4, endScale: 1.2, startRot: 15 });
+      PokerSFX.cardDeal();
+    }, myIdx * 120 + 80);
+  },
+
+  // Community-Karten: fliegen zur Mitte
+  animateCommunity(count, offset) {
+    const dealer = this.dealerPos();
+    for (let i = 0; i < count; i++) {
+      const cardIdx = offset + i; // Flop: offset=0 → 0,1,2 | Turn: offset=3 → 3 | River: offset=4 → 4
+      setTimeout(() => {
+        this.flyCard(dealer, this.communityPos(cardIdx), { duration: 350, startRot: -10, endRot: 0 });
+        PokerSFX.cardDeal();
+      }, i * 120);
+    }
+  },
+
+  // Fold: Karten fliegen zur Mitte und verschwinden
+  animateFold(seatIdx) {
+    const from = this.seatPos(seatIdx);
+    const to = this.centerPos();
+    this.flyCard(from, to, { cls: 'fold-card', duration: 350, fadeOut: true, startRot: -10, endRot: 30, endScale: 0.6 });
+    setTimeout(() => {
+      this.flyCard({ x: from.x + 8, y: from.y + 4 }, to, { cls: 'fold-card', duration: 350, fadeOut: true, startRot: 10, endRot: -20, endScale: 0.6 });
+    }, 60);
+  },
+
+  // Gewinner: Chips/Karten fliegen zum Gewinner
+  animateWin(seatIdx) {
+    const to = this.seatPos(seatIdx);
+    const center = this.centerPos();
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => {
+        const from = { x: center.x + (Math.random() - 0.5) * 60, y: center.y + (Math.random() - 0.5) * 30 };
+        this.flyCard(from, to, { cls: 'face-down', duration: 300 + Math.random() * 200, endScale: 0.3, fadeOut: true });
+      }, i * 80);
+    }
+  }
+};
+
 // Sound initialisieren bei erster Interaktion
 document.addEventListener('click', function initSound() {
   PokerSFX.init();
@@ -1266,6 +1429,7 @@ window.submitName = function() {
 let myState = null;
 let mySeat = -1;
 let currentPhase = 'waiting';
+let prevFoldState = [false,false,false,false,false,false]; // Fold-Status pro Seat tracken
 let raiseAmount = 200;
 let turnTimer = null;
 let turnTimerStart = 0;
@@ -1314,13 +1478,24 @@ function renderState(state) {
   const prevPhase = currentPhase;
   currentPhase = state.phase;
 
-  // Phase change announcements
+  // Phase change announcements + Fluganimationen
   if (prevPhase !== state.phase && state.phase !== 'waiting') {
     const announcements = { preflop:'Neue Runde!', flop:'Flop!', turn:'Turn!', river:'River!', showdown:'Aufdecken!' };
     if (announcements[state.phase]) showPhase(announcements[state.phase]);
-    // Phase-Sounds
-    if (state.phase === 'preflop') { PokerSFX.cardDeal(); setTimeout(() => PokerSFX.cardDeal(), 150); }
-    else if (state.phase === 'flop' || state.phase === 'turn' || state.phase === 'river') PokerSFX.community();
+    // Phase-Sounds + Kartenflug
+    if (state.phase === 'preflop') {
+      // Karten an alle besetzten Plätze fliegen lassen
+      const occupiedSeats = [];
+      for (let i = 0; i < 6; i++) {
+        if (state.seats[i] && !state.seats[i].isYou) occupiedSeats.push(i);
+      }
+      CardAnim.animateDeal(occupiedSeats);
+      // Fold-States zurücksetzen für neue Runde
+      prevFoldState = [false,false,false,false,false,false];
+    }
+    else if (state.phase === 'flop') { CardAnim.animateCommunity(3, 0); }
+    else if (state.phase === 'turn') { CardAnim.animateCommunity(1, 3); }
+    else if (state.phase === 'river') { CardAnim.animateCommunity(1, 4); }
     else if (state.phase === 'showdown') PokerSFX.showdown();
   }
   // Du bist dran
@@ -1386,6 +1561,20 @@ function renderState(state) {
       </div>`;
     }
     container.appendChild(div);
+  }
+
+  // Fold-Animationen: erkennen wer gerade gefoldet hat
+  for (let i = 0; i < 6; i++) {
+    const s = state.seats[i];
+    const nowFolded = s && s.folded;
+    if (nowFolded && !prevFoldState[i]) {
+      // Spieler hat gerade gefoldet → Karten fliegen zur Mitte
+      if (!s.isYou) {
+        CardAnim.animateFold(i);
+        PokerSFX.fold(); // Sound nur für andere Spieler (eigener Fold spielt Sound in doFold)
+      }
+    }
+    prevFoldState[i] = !!nowFolded;
   }
 
   // Timer for active turn
@@ -1673,7 +1862,19 @@ function joinSeat(seat) {
 }
 function doCall() { PokerSFX.call(); socket.emit('poker:call'); }
 function doRaise() { PokerSFX.raise(); socket.emit('poker:raise', { amount: raiseAmount }); }
-function doFold() { PokerSFX.fold(); socket.emit('poker:fold'); }
+function doFold() {
+  PokerSFX.fold();
+  // Eigene Karten fliegen zur Mitte
+  if (mySeat >= 0) {
+    const from = CardAnim.myHandPos();
+    const to = CardAnim.centerPos();
+    CardAnim.flyCard(from, to, { cls:'fold-card', duration:350, fadeOut:true, startRot:-10, endRot:30, endScale:0.6 });
+    setTimeout(() => {
+      CardAnim.flyCard({x:from.x+8,y:from.y+4}, to, { cls:'fold-card', duration:350, fadeOut:true, startRot:10, endRot:-20, endScale:0.6 });
+    }, 60);
+  }
+  socket.emit('poker:fold');
+}
 function doCheck() { PokerSFX.check(); socket.emit('poker:check'); }
 function doAllIn() {
   PokerSFX.raise();
@@ -1734,6 +1935,25 @@ function setupSocketEvents() {
     const me = myState && myState.seats.find(s => s && s.isYou);
     if (me && d.username === me.username) PokerSFX.win();
     else PokerSFX.lose();
+    // Gewinner-Animation: Karten/Chips fliegen zum Gewinner-Seat
+    if (myState) {
+      const winnerIdx = myState.seats.findIndex(s => s && s.username === d.username);
+      if (winnerIdx >= 0) {
+        if (myState.seats[winnerIdx].isYou) {
+          // Eigener Gewinn → zum Hand-Bereich fliegen
+          const to = CardAnim.myHandPos();
+          const center = CardAnim.centerPos();
+          for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+              const from = { x: center.x + (Math.random()-.5)*60, y: center.y + (Math.random()-.5)*30 };
+              CardAnim.flyCard(from, to, { cls:'face-down', duration: 300+Math.random()*200, endScale:0.4, fadeOut:true });
+            }, i * 80);
+          }
+        } else {
+          CardAnim.animateWin(winnerIdx);
+        }
+      }
+    }
     showWinner(d);
   });
 
