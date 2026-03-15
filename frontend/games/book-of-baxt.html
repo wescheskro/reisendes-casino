@@ -1768,6 +1768,25 @@ function init() {
   createReels();
   fillInitialGrid();
   updateUI();
+
+  // Sound pausieren wenn App in Hintergrund (Android/iOS)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // Alle laufenden Sounds stoppen
+      if (SFX.ctx && SFX.ctx.state === 'running') {
+        SFX.ctx.suspend();
+      }
+      // Alle MP3 Audio-Elemente pausieren
+      document.querySelectorAll('audio').forEach(a => { a.pause(); });
+      // Wheel-Sound stoppen
+      SFX.stopReelAmbience();
+    } else {
+      // Sound wieder aktivieren wenn zurück
+      if (SFX.ctx && SFX.ctx.state === 'suspended' && !SFX.muted) {
+        SFX.ctx.resume();
+      }
+    }
+  });
 }
 
 function createBackground() {
