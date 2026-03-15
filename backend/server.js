@@ -195,6 +195,31 @@ app.use(express.json());
 // Serve frontend
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
+// ===================== BESUCHER-TRACKING =====================
+const visitorLog = new Map(); // dateKey -> Set of IPs
+
+function getDateKey(d) {
+  const dt = d || new Date();
+  return dt.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function trackVisitor(req) {
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+  const today = getDateKey();
+  if (!visitorLog.has(today)) visitorLog.set(today, new Set());
+  visitorLog.get(today).add(ip);
+  // Alte Tage aufräumen (nur letzte 30 Tage behalten)
+  for (const [key] of visitorLog) {
+    if ([...visitorLog.keys()].indexOf(key) < visitorLog.size - 30) visitorLog.delete(key);
+  }
+}
+
+// Jeden Seitenaufruf tracken
+app.use((req, res, next) => {
+  if (req.path === '/' || req.path.endsWith('.html')) trackVisitor(req);
+  next();
+});
+
 // Geo-Blocking Middleware
 app.use('/api', (req, res, next) => {
   // Skip geo-check in development
@@ -477,6 +502,17 @@ app.get('/api/leaderboard/me', authMiddleware, (req, res) => {
 // Vergangene Gewinner
 app.get('/api/leaderboard/winners', (req, res) => {
   res.json({ winners: db.weeklyWinners.slice(-10).reverse() });
+});
+
+// Besucher-Statistik
+app.get('/api/stats/visitors', (req, res) => {
+  const result = {};
+  for (const [date, ips] of visitorLog) {
+    result[date] = ips.size;
+  }
+  const today = getDateKey();
+  const todayCount = visitorLog.has(today) ? visitorLog.get(today).size : 0;
+  res.json({ today: todayCount, history: result });
 });
 
 // Name-Verfügbarkeit prüfen
@@ -1634,6 +1670,11 @@ function emitPokerState(table) {
 // ===================== SOCKET EVENTS =====================
 io.on('connection', (socket) => {
   console.log(`🔌 ${socket.user.username} connected`);
+  // Besucher-Tracking auch für Socket-Verbindungen
+  const sockIp = socket.handshake.headers['x-forwarded-for']?.split(',')[0]?.trim() || socket.handshake.address || 'unknown';
+  const today = getDateKey();
+  if (!visitorLog.has(today)) visitorLog.set(today, new Set());
+  visitorLog.get(today).add(sockIp);
 
   // --- LOBBY ---
   socket.on('lobby:tables', () => {
