@@ -918,6 +918,230 @@ setVH();
 window.addEventListener('resize', setVH);
 window.addEventListener('orientationchange', () => setTimeout(setVH, 100));
 
+// ===================== POKER SOUND SYSTEM =====================
+const PokerSFX = {
+  ctx: null,
+  muted: false,
+
+  init() {
+    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  },
+
+  resume() {
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+
+  // Hilfsfunktionen
+  _osc(freq, dur, vol, type='sine') {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(this.ctx.destination);
+    o.start(t); o.stop(t + dur);
+  },
+
+  _noise(dur, vol, freq=4000) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * dur, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const f = this.ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 2;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.connect(f); f.connect(g); g.connect(this.ctx.destination);
+    src.start(t);
+  },
+
+  // 🃏 Karte austeilen – schnelles "Fwipp"
+  cardDeal() {
+    this._noise(0.08, 0.3, 5000);
+    this._osc(800, 0.04, 0.08, 'triangle');
+  },
+
+  // 👀 Karte aufdecken/peek – sanftes Umdrehen
+  cardPeek() {
+    this._noise(0.06, 0.15, 6000);
+    setTimeout(() => this._osc(1200, 0.05, 0.06, 'sine'), 30);
+  },
+
+  // 🪙 Chips setzen – Klackern von Chips
+  chipBet() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    for (let i = 0; i < 4; i++) {
+      const delay = i * 0.035;
+      const o = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      o.type = 'triangle';
+      o.frequency.value = 2800 + Math.random() * 1200;
+      g.gain.setValueAtTime(0.12, t + delay);
+      g.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.06);
+      o.connect(g); g.connect(this.ctx.destination);
+      o.start(t + delay); o.stop(t + delay + 0.06);
+    }
+    this._noise(0.12, 0.08, 7000);
+  },
+
+  // ✅ Check – kurzes Klopfen auf den Tisch
+  check() {
+    this._noise(0.05, 0.25, 800);
+    this._osc(180, 0.08, 0.15, 'sine');
+  },
+
+  // ❌ Fold – Karten wegschieben
+  fold() {
+    if (!this.ctx || this.muted) return;
+    this._noise(0.15, 0.12, 3000);
+    const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(500, t);
+    o.frequency.exponentialRampToValueAtTime(200, t + 0.2);
+    g.gain.setValueAtTime(0.08, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    o.connect(g); g.connect(this.ctx.destination);
+    o.start(t); o.stop(t + 0.25);
+  },
+
+  // 📈 Raise – aufsteigender Ton + Chips
+  raise() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(400, t);
+    o.frequency.exponentialRampToValueAtTime(900, t + 0.15);
+    g.gain.setValueAtTime(0.1, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    o.connect(g); g.connect(this.ctx.destination);
+    o.start(t); o.stop(t + 0.25);
+    setTimeout(() => this.chipBet(), 100);
+  },
+
+  // 📞 Call – bestätigender Doppelton
+  call() {
+    this._osc(600, 0.08, 0.1, 'triangle');
+    setTimeout(() => this._osc(800, 0.08, 0.1, 'triangle'), 90);
+    setTimeout(() => this.chipBet(), 120);
+  },
+
+  // 🏆 Gewonnen – triumphale Fanfare
+  win() {
+    if (!this.ctx || this.muted) return;
+    const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6
+    notes.forEach((freq, i) => {
+      setTimeout(() => {
+        this._osc(freq, 0.3, 0.12, 'triangle');
+        this._osc(freq * 0.5, 0.3, 0.06, 'sine');
+      }, i * 120);
+    });
+    // Chip-Regen
+    setTimeout(() => {
+      for (let i = 0; i < 8; i++) {
+        setTimeout(() => {
+          this._osc(2500 + Math.random() * 2000, 0.05, 0.06, 'triangle');
+        }, i * 40);
+      }
+    }, 500);
+  },
+
+  // 💀 Verloren – absteigender Ton
+  lose() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(400, t);
+    o.frequency.exponentialRampToValueAtTime(150, t + 0.5);
+    g.gain.setValueAtTime(0.1, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    o.connect(g); g.connect(this.ctx.destination);
+    o.start(t); o.stop(t + 0.6);
+  },
+
+  // 🔔 Du bist dran – aufmerksamkeits Glocke
+  yourTurn() {
+    if (!this.ctx || this.muted) return;
+    const notes = [880, 1100, 880]; // A5-C#6-A5
+    notes.forEach((freq, i) => {
+      setTimeout(() => this._osc(freq, 0.15, 0.1, 'sine'), i * 130);
+    });
+  },
+
+  // 🃏 Flop/Turn/River – neue Community Cards
+  community() {
+    if (!this.ctx || this.muted) return;
+    for (let i = 0; i < 3; i++) {
+      setTimeout(() => {
+        this._noise(0.06, 0.2, 5000);
+        this._osc(700 + i * 100, 0.04, 0.05, 'triangle');
+      }, i * 100);
+    }
+  },
+
+  // 🎭 Showdown – dramatischer Reveal
+  showdown() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    // Trommelwirbel
+    for (let i = 0; i < 12; i++) {
+      const d = i * 0.04;
+      setTimeout(() => this._noise(0.03, 0.08 + i * 0.01, 1500), d * 1000);
+    }
+    // Schluss-Gong
+    setTimeout(() => {
+      this._osc(220, 0.8, 0.12, 'sine');
+      this._osc(330, 0.6, 0.08, 'sine');
+      this._osc(440, 0.4, 0.06, 'triangle');
+    }, 500);
+  },
+
+  // 👤 Spieler setzt sich / verlässt
+  playerJoin() {
+    this._osc(440, 0.1, 0.06, 'sine');
+    setTimeout(() => this._osc(660, 0.1, 0.06, 'sine'), 80);
+  },
+
+  playerLeave() {
+    this._osc(660, 0.1, 0.06, 'sine');
+    setTimeout(() => this._osc(440, 0.1, 0.06, 'sine'), 80);
+  },
+
+  // 🔘 Button klick
+  btnClick() {
+    this._osc(1000, 0.03, 0.08, 'square');
+    this._noise(0.02, 0.05, 8000);
+  },
+
+  // ⏰ Timer tickt – letzte Sekunden
+  timerTick() {
+    this._osc(600, 0.05, 0.06, 'square');
+  }
+};
+
+// Sound initialisieren bei erster Interaktion
+document.addEventListener('click', function initSound() {
+  PokerSFX.init();
+  PokerSFX.resume();
+  document.removeEventListener('click', initSound);
+}, { once: true });
+document.addEventListener('touchstart', function initSoundTouch() {
+  PokerSFX.init();
+  PokerSFX.resume();
+  document.removeEventListener('touchstart', initSoundTouch);
+}, { once: true });
+
 // VC-Menü ausklappen/einklappen
 function toggleVcMenu() {
   const menu = document.getElementById('vcControls');
@@ -992,7 +1216,15 @@ function renderState(state) {
   if (prevPhase !== state.phase && state.phase !== 'waiting') {
     const announcements = { preflop:'Neue Runde!', flop:'Flop!', turn:'Turn!', river:'River!', showdown:'Aufdecken!' };
     if (announcements[state.phase]) showPhase(announcements[state.phase]);
+    // Phase-Sounds
+    if (state.phase === 'preflop') { PokerSFX.cardDeal(); setTimeout(() => PokerSFX.cardDeal(), 150); }
+    else if (state.phase === 'flop' || state.phase === 'turn' || state.phase === 'river') PokerSFX.community();
+    else if (state.phase === 'showdown') PokerSFX.showdown();
   }
+  // Du bist dran
+  const wasMyTurn = prevPhase && myState && myState.currentSeat >= 0 && myState.seats[myState.currentSeat] && myState.seats[myState.currentSeat].isYou;
+  const isNowMyTurn = state.currentSeat >= 0 && state.seats[state.currentSeat] && state.seats[state.currentSeat].isYou;
+  if (!wasMyTurn && isNowMyTurn && state.phase !== 'waiting') PokerSFX.yourTurn();
 
   // Pot
   document.getElementById('potAmount').textContent = state.pot.toLocaleString('de-DE');
@@ -1105,6 +1337,9 @@ let isPeeking = false;
 // Eine einzelne Karte umdrehen
 function flipCard(el, show, e) {
   if (e) e.stopPropagation();
+  if (show && el.classList.contains('flipped')) {
+    PokerSFX.cardPeek();
+  }
   if (show) {
     el.classList.remove('flipped');
   } else {
@@ -1117,10 +1352,12 @@ function flipCard(el, show, e) {
 function flipAllCards(show, e) {
   if (e) { e.stopPropagation(); e.preventDefault(); }
   const wraps = document.querySelectorAll('.hand-card-wrap');
+  const wasFlipped = [...wraps].some(w => w.classList.contains('flipped'));
   wraps.forEach(w => {
     if (show) w.classList.remove('flipped');
     else w.classList.add('flipped');
   });
+  if (show && wasFlipped) PokerSFX.cardPeek();
   updatePeekState();
 }
 
@@ -1332,11 +1569,12 @@ function joinSeat(seat) {
   document.getElementById('takeSeatArea').classList.add('hidden');
   document.getElementById('controls').style.display = '';
 }
-function doCall() { socket.emit('poker:call'); }
-function doRaise() { socket.emit('poker:raise', { amount: raiseAmount }); }
-function doFold() { socket.emit('poker:fold'); }
-function doCheck() { socket.emit('poker:check'); }
+function doCall() { PokerSFX.call(); socket.emit('poker:call'); }
+function doRaise() { PokerSFX.raise(); socket.emit('poker:raise', { amount: raiseAmount }); }
+function doFold() { PokerSFX.fold(); socket.emit('poker:fold'); }
+function doCheck() { PokerSFX.check(); socket.emit('poker:check'); }
 function doAllIn() {
+  PokerSFX.raise();
   const me = myState && myState.seats.find(s => s && s.isYou);
   if (me) socket.emit('poker:raise', { amount: me.chips });
 }
@@ -1387,9 +1625,14 @@ socket.on('disconnect', () => {
 });
 
 socket.on('poker:state', renderState);
-socket.on('poker:playerJoined', d => showPhase(d.username + ' setzt sich!'));
-socket.on('poker:playerLeft', d => showPhase(d.username + ' geht...'));
-socket.on('poker:winner', d => showWinner(d));
+socket.on('poker:playerJoined', d => { PokerSFX.playerJoin(); showPhase(d.username + ' setzt sich!'); });
+socket.on('poker:playerLeft', d => { PokerSFX.playerLeave(); showPhase(d.username + ' geht...'); });
+socket.on('poker:winner', d => {
+  const me = myState && myState.seats.find(s => s && s.isYou);
+  if (me && d.username === me.username) PokerSFX.win();
+  else PokerSFX.lose();
+  showWinner(d);
+});
 
 socket.on('chat:msg', d => {
   const msgs = document.getElementById('chatMessages');
