@@ -2840,7 +2840,7 @@ document.head.appendChild(style);
     const toggle = document.createElement('button');
     toggle.id = 'reelDebugToggle';
     toggle.textContent = '\u2699 Tuning';
-    toggle.addEventListener('click', () => { panel.style.display = ''; toggle.style.display = 'none'; });
+    toggle.addEventListener('click', () => { panel.style.display = 'block'; toggle.style.display = 'none'; });
 
     // Close button
     const closeBtn = document.createElement('button');
@@ -2976,11 +2976,11 @@ document.head.appendChild(style);
       const pw = prompt('PIN:');
       if (pw === '1986') {
         const p = document.getElementById('reelDebugPanel');
-        if (p) p.style.display = p.style.display === 'none' ? '' : 'none';
+        if (p) p.style.display = (p.style.display === 'none' || getComputedStyle(p).display === 'none') ? 'block' : 'none';
       }
     });
     // Put it next to the LOBBY button
-    const lobbyBtn = document.querySelector('.lobby-btn');
+    const lobbyBtn = document.querySelector('.back-btn');
     if (lobbyBtn) lobbyBtn.parentElement.appendChild(adminBtn);
   });
 
