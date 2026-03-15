@@ -1232,15 +1232,35 @@ function startGame(playerName) {
 
 window.submitName = function() {
   var inp = document.getElementById('nameInput');
+  var btn = document.getElementById('nameBtn');
   var name = inp.value.trim();
   if (!name || name.length < 2) {
     inp.style.borderColor = '#e74c3c';
     inp.placeholder = 'Mindestens 2 Zeichen!';
     return;
   }
-  localStorage.setItem('pokerPlayerName', name);
-  try { PokerSFX.init(); PokerSFX.btnClick(); } catch(e) {}
-  startGame(name);
+  btn.disabled = true;
+  btn.textContent = 'Prüfe...';
+  fetch('/api/check-name?name=' + encodeURIComponent(name))
+    .then(r => r.json())
+    .then(d => {
+      if (!d.available) {
+        inp.style.borderColor = '#e74c3c';
+        inp.value = '';
+        inp.placeholder = '„' + name + '" ist vergeben!';
+        btn.disabled = false;
+        btn.textContent = 'Eintreten';
+        return;
+      }
+      localStorage.setItem('pokerPlayerName', name);
+      try { PokerSFX.init(); PokerSFX.btnClick(); } catch(e) {}
+      startGame(name);
+    })
+    .catch(() => {
+      // Bei Fehler trotzdem erlauben
+      localStorage.setItem('pokerPlayerName', name);
+      startGame(name);
+    });
 };
 
 let myState = null;

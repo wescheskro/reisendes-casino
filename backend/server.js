@@ -479,6 +479,25 @@ app.get('/api/leaderboard/winners', (req, res) => {
   res.json({ winners: db.weeklyWinners.slice(-10).reverse() });
 });
 
+// Name-Verfügbarkeit prüfen
+app.get('/api/check-name', (req, res) => {
+  const name = (req.query.name || '').trim().toLowerCase();
+  if (!name) return res.json({ available: false });
+  // Registrierte User prüfen
+  for (const [, user] of db.users) {
+    if (user.username.toLowerCase() === name) {
+      return res.json({ available: false });
+    }
+  }
+  // Aktuell verbundene Spieler prüfen
+  for (const [, sock] of io.sockets.sockets) {
+    if (sock.user && sock.user.username.toLowerCase() === name) {
+      return res.json({ available: false });
+    }
+  }
+  res.json({ available: true });
+});
+
 // Live Online-Status
 app.get('/api/online', (req, res) => {
   const total = io.sockets.sockets.size;
