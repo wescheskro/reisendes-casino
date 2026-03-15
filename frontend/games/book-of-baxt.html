@@ -499,9 +499,60 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   .gold-frame-l,.gold-frame-r{width:18px}
   .spin-btn{width:30px !important;height:30px !important}
 }
+
+/* ========== FULLSCREEN SPLASH (mobile) ========== */
+.fs-splash{
+  display:none;position:fixed;inset:0;z-index:99998;
+  background:rgba(0,0,0,.95);
+  flex-direction:column;align-items:center;justify-content:center;
+  color:#D4AF37;font-family:'Cinzel',serif;text-align:center;
+  cursor:pointer;
+}
+.fs-splash .fs-splash-icon{font-size:48px;margin-bottom:16px}
+.fs-splash .fs-splash-title{
+  font-family:'Uncial Antiqua',serif;font-size:28px;letter-spacing:3px;
+  background:linear-gradient(180deg,#fff5cc,#F4D03F,#D4AF37);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:12px;
+}
+.fs-splash .fs-splash-btn{
+  background:linear-gradient(135deg,#D4AF37,#F4D03F,#D4AF37);
+  color:#000;font-family:'Cinzel',serif;font-weight:900;
+  font-size:16px;padding:14px 40px;border:none;border-radius:50px;
+  cursor:pointer;letter-spacing:2px;text-transform:uppercase;
+  box-shadow:0 6px 30px rgba(212,175,55,.4);
+  animation:fsSplashPulse 2s ease-in-out infinite;
+}
+@keyframes fsSplashPulse{
+  0%,100%{box-shadow:0 6px 30px rgba(212,175,55,.4)}
+  50%{box-shadow:0 6px 40px rgba(212,175,55,.7)}
+}
+.fs-splash .fs-splash-sub{
+  font-size:11px;color:rgba(212,175,55,.4);margin-top:12px;
+}
+
+/* Fullscreen toggle button in top bar */
+.fullscreen-btn{
+  background:none;border:1px solid rgba(212,175,55,.3);color:#D4AF37;
+  width:28px;height:28px;border-radius:4px;cursor:pointer;
+  font-size:14px;display:none;align-items:center;justify-content:center;
+  transition:.2s;margin-left:6px;flex-shrink:0;
+}
+.fullscreen-btn:hover{background:rgba(212,175,55,.15);border-color:#D4AF37}
+@media(max-height:500px){
+  .fullscreen-btn{display:flex;width:22px;height:22px;font-size:11px}
+}
 </style>
 </head>
 <body>
+
+<!-- ========== FULLSCREEN SPLASH (mobile) ========== -->
+<div class="fs-splash" id="fsSplash" onclick="enterFullscreen()">
+  <div class="fs-splash-icon">🦔</div>
+  <div class="fs-splash-title">Stachelingo Rodern</div>
+  <button class="fs-splash-btn" onclick="enterFullscreen()">Vollbild starten</button>
+  <div class="fs-splash-sub">Tippe zum Spielen im Vollbild</div>
+</div>
 
 <!-- ========== ROTATE PHONE OVERLAY ========== -->
 <div class="rotate-overlay">
@@ -537,6 +588,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
       <div class="bl">GUTHABEN</div>
       <div class="bv" id="balVal">10000</div>
     </div>
+    <button class="fullscreen-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Vollbild">⛶</button>
   </div>
 
   <!-- Main game area -->
@@ -2814,8 +2866,52 @@ document.head.appendChild(style);
   else document.addEventListener('DOMContentLoaded', build);
 })();
 
+// ===== FULLSCREEN =====
+function isMobile() {
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerHeight <= 500;
+}
+
+function enterFullscreen() {
+  const el = document.documentElement;
+  const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+  if (rfs) {
+    rfs.call(el).then(() => {
+      // Try to lock to landscape
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    }).catch(() => {});
+  }
+  // Hide splash regardless (even if fullscreen fails on some browsers)
+  document.getElementById('fsSplash').style.display = 'none';
+}
+
+function toggleFullscreen() {
+  if (document.fullscreenElement || document.webkitFullscreenElement) {
+    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  } else {
+    enterFullscreen();
+  }
+}
+
+// Show fullscreen splash on mobile
+function checkFullscreenSplash() {
+  if (isMobile() && !document.fullscreenElement && !document.webkitFullscreenElement) {
+    document.getElementById('fsSplash').style.display = 'flex';
+  }
+}
+
+// Update fullscreen button icon
+document.addEventListener('fullscreenchange', () => {
+  const btn = document.getElementById('fullscreenBtn');
+  if (btn) btn.textContent = document.fullscreenElement ? '⛶' : '⛶';
+});
+
 // ===== START =====
-window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('DOMContentLoaded', () => {
+  init();
+  checkFullscreenSplash();
+});
 window.addEventListener('load', () => setTimeout(onResize, 100));
 </script>
 </body>
