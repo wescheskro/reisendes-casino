@@ -591,13 +591,57 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .btn:active{transform:scale(.95)}
 .btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
 
-.raise-slider{
-  display:flex;align-items:center;gap:8px;
-  background:rgba(255,255,255,.04);padding:6px 14px;border-radius:10px;
-  border:1px solid rgba(212,175,55,.1);
+/* Chip-Buttons zum Erhöhen */
+.raise-chips{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;
+  background:rgba(255,255,255,.04);padding:8px 12px;border-radius:12px;
+  border:1px solid rgba(212,175,55,.1);margin-top:6px;
 }
-.raise-slider input[type=range]{width:130px;accent-color:#D4AF37}
-.raise-slider .raise-val{color:#F4D03F;font-weight:700;font-size:14px;min-width:65px;text-align:center}
+.raise-chips .raise-label{
+  font-size:11px;color:rgba(240,230,211,.4);width:100%;text-align:center;margin-bottom:2px;
+}
+.chip-btn{
+  width:52px;height:52px;border-radius:50%;border:3px solid;cursor:pointer;
+  font-family:'Playfair Display',serif;font-weight:900;font-size:11px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 10px rgba(0,0,0,.4), inset 0 2px 4px rgba(255,255,255,.25);
+  transition:transform .15s, box-shadow .15s;
+  position:relative;
+  -webkit-tap-highlight-color:transparent;
+  text-shadow:0 1px 2px rgba(0,0,0,.3);
+}
+.chip-btn::before{
+  content:'';position:absolute;inset:4px;border-radius:50%;
+  border:2px dashed rgba(255,255,255,.3);pointer-events:none;
+}
+.chip-btn:active{transform:scale(.9);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.chip-btn.selected{transform:scale(1.15);box-shadow:0 0 16px rgba(244,208,63,.6), 0 4px 14px rgba(0,0,0,.5)}
+/* Chip-Farben wie im Casino */
+.chip-100{background:linear-gradient(145deg,#f5f5f5,#ccc);border-color:#999;color:#333}
+.chip-200{background:linear-gradient(145deg,#e74c3c,#c0392b);border-color:#922;color:#fff}
+.chip-500{background:linear-gradient(145deg,#8e44ad,#6c3483);border-color:#5b2c6f;color:#fff}
+.chip-1k{background:linear-gradient(145deg,#f39c12,#d68910);border-color:#b7770a;color:#fff}
+.chip-2k{background:linear-gradient(145deg,#2ecc71,#1a9c54);border-color:#148f47;color:#fff}
+.chip-5k{background:linear-gradient(145deg,#1a1a2e,#2c3e50);border-color:#111;color:#D4AF37}
+.chip-10k{background:linear-gradient(145deg,#D4AF37,#F4D03F);border-color:#b8960f;color:#1a1a2e}
+.chip-custom{background:linear-gradient(145deg,#3498db,#2471a3);border-color:#1a5276;color:#fff;font-size:9px;width:52px}
+.raise-total{
+  font-size:18px;font-weight:900;color:#F4D03F;
+  min-width:80px;text-align:center;
+  text-shadow:0 2px 6px rgba(0,0,0,.6);
+}
+.raise-reset{
+  font-size:16px;cursor:pointer;width:32px;height:32px;border-radius:50%;
+  border:2px solid rgba(212,175,55,.3);background:rgba(231,76,60,.2);
+  color:#e74c3c;display:flex;align-items:center;justify-content:center;
+  transition:.2s;
+}
+.raise-reset:active{transform:scale(.9)}
+@media(max-width:600px){
+  .chip-btn{width:46px;height:46px;font-size:10px}
+  .raise-total{font-size:16px;min-width:70px}
+  .raise-chips{gap:5px;padding:6px 8px}
+}
 
 /* ============ WINNER BANNER ============ */
 .winner-banner{
@@ -1031,7 +1075,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 <script>
 // iPhone: Prevent bounce scroll, double-tap zoom, pull-to-refresh
 document.addEventListener('touchmove', function(e) {
-  if (!e.target.closest('.chat-box, .video-grid, .raise-slider')) e.preventDefault();
+  if (!e.target.closest('.chat-box, .video-grid, .raise-chips')) e.preventDefault();
 }, { passive: false });
 
 // Prevent iOS double-tap zoom on buttons
@@ -1973,16 +2017,33 @@ function renderControls(state) {
   }
   html += '</div>';
 
-  // Erhöhen-Slider
+  // Chip-Buttons zum Erhöhen
   if (myChips > toCall) {
     const minR = Math.max(state.currentBet * 2, 200);
-    const maxR = myChips;
-    html += `<div class="raise-slider">
-      <span style="font-size:11px;color:rgba(240,230,211,.35)">Erhöhen:</span>
-      <input type="range" min="${minR}" max="${maxR}" step="100" value="${raiseAmount}"
-        oninput="raiseAmount=parseInt(this.value);document.getElementById('raiseVal').textContent=raiseAmount.toLocaleString('de-DE')">
-      <span class="raise-val" id="raiseVal">${raiseAmount.toLocaleString('de-DE')}</span>
+    const chips = [
+      { val:100, cls:'chip-100', label:'100' },
+      { val:200, cls:'chip-200', label:'200' },
+      { val:500, cls:'chip-500', label:'500' },
+      { val:1000, cls:'chip-1k', label:'1K' },
+      { val:2000, cls:'chip-2k', label:'2K' },
+      { val:5000, cls:'chip-5k', label:'5K' },
+      { val:10000, cls:'chip-10k', label:'10K' },
+    ];
+    html += `<div class="raise-chips">
+      <div class="raise-label">Einsatz wählen</div>`;
+    chips.forEach(c => {
+      if (c.val <= myChips) {
+        const sel = raiseAmount === c.val ? ' selected' : '';
+        html += `<button class="chip-btn ${c.cls}${sel}" onclick="setRaise(${c.val})" ontouchstart="">${c.label}</button>`;
+      }
+    });
+    // Eigenen Betrag, falls keiner der Chips passt
+    html += `<button class="chip-btn chip-custom${![100,200,500,1000,2000,5000,10000].includes(raiseAmount)?' selected':''}" onclick="customRaise(${minR},${myChips})">✎</button>`;
+    html += `<div style="display:flex;align-items:center;gap:6px;width:100%;justify-content:center;margin-top:4px">
+      <button class="raise-reset" onclick="setRaise(${minR})" title="Zurücksetzen">↺</button>
+      <span class="raise-total" id="raiseVal">${raiseAmount.toLocaleString('de-DE')}</span>
     </div>`;
+    html += `</div>`;
   }
 
   ctrl.innerHTML = html;
@@ -2011,6 +2072,29 @@ function doFold() {
   socket.emit('poker:fold');
 }
 function doCheck() { PokerSFX.check(); socket.emit('poker:check'); }
+
+function setRaise(val) {
+  raiseAmount = val;
+  PokerSFX.chipBet();
+  // UI aktualisieren
+  const valEl = document.getElementById('raiseVal');
+  if (valEl) valEl.textContent = val.toLocaleString('de-DE');
+  // Chip-Buttons selected-Status updaten
+  document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('selected'));
+  const chips = [100,200,500,1000,2000,5000,10000];
+  const idx = chips.indexOf(val);
+  const btns = document.querySelectorAll('.chip-btn');
+  if (idx >= 0 && btns[idx]) btns[idx].classList.add('selected');
+  else if (btns.length > 0) btns[btns.length-1].classList.add('selected');
+}
+
+function customRaise(min, max) {
+  const input = prompt('Einsatz eingeben (' + min.toLocaleString('de-DE') + ' - ' + max.toLocaleString('de-DE') + '):', raiseAmount);
+  if (input === null) return;
+  const val = parseInt(input.replace(/\./g,'').replace(/,/g,''));
+  if (isNaN(val) || val < min || val > max) return;
+  setRaise(val);
+}
 function doAllIn() {
   PokerSFX.raise();
   const me = myState && myState.seats.find(s => s && s.isYou);
