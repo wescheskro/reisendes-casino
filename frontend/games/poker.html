@@ -340,6 +340,28 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   filter:drop-shadow(0 2px 4px rgba(0,0,0,.1));
 }
 
+/* Beide-Karten-Button */
+.hand-flip-both{
+  align-self:center;
+  pointer-events:auto;
+  cursor:pointer;
+  font-size:22px;
+  width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(20,10,5,.7);
+  border:2px solid rgba(212,175,55,.4);
+  border-radius:50%;
+  transition:transform .2s, background .2s;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  margin:0 -6px;
+  z-index:5;
+}
+.hand-flip-both:active{
+  transform:scale(1.15);
+  background:rgba(212,175,55,.3);
+}
+
 /* Chips-Info neben den Karten */
 .my-hand .hand-info{
   display:flex;flex-direction:column;
@@ -1074,7 +1096,7 @@ function renderHandCard(c, index) {
       <div class="h-corner-br"><span class="hc-rank">${rank}</span><span class="hc-suit">${suit}</span></div>`;
   }
   // Karten starten immer verdeckt (flipped) – Antippen dreht um
-  return `<div class="hand-card-wrap flipped" data-card-idx="${index}" ontouchstart="toggleCardFlip(this, true)" ontouchend="toggleCardFlip(this, false)" onmousedown="toggleCardFlip(this, true)" onmouseup="toggleCardFlip(this, false)" onmouseleave="toggleCardFlip(this, false)">
+  return `<div class="hand-card-wrap flipped" data-card-idx="${index}" ontouchstart="flipCard(this, true, event)" ontouchend="flipCard(this, false, event)" onmousedown="flipCard(this, true, event)" onmouseup="flipCard(this, false, event)" onmouseleave="flipCard(this, false, event)">
     <div class="hand-card-inner">
       <div class="${faceClass}">${faceHtml}</div>
       <div class="hand-card-back"></div>
@@ -1083,13 +1105,30 @@ function renderHandCard(c, index) {
 }
 
 let isPeeking = false;
-function toggleCardFlip(el, show) {
+
+// Eine einzelne Karte umdrehen
+function flipCard(el, show, e) {
+  if (e) e.stopPropagation();
   if (show) {
     el.classList.remove('flipped');
   } else {
     el.classList.add('flipped');
   }
-  // Prüfen ob mindestens eine Karte aufgedeckt ist
+  updatePeekState();
+}
+
+// Beide Karten umdrehen
+function flipAllCards(show, e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  const wraps = document.querySelectorAll('.hand-card-wrap');
+  wraps.forEach(w => {
+    if (show) w.classList.remove('flipped');
+    else w.classList.add('flipped');
+  });
+  updatePeekState();
+}
+
+function updatePeekState() {
   const wraps = document.querySelectorAll('.hand-card-wrap');
   const anyOpen = [...wraps].some(w => !w.classList.contains('flipped'));
   if (anyOpen !== isPeeking) {
@@ -1120,6 +1159,9 @@ function updateMyHand(state) {
   cards.forEach((c, i) => {
     html += renderHandCard(c, i);
   });
+
+  // Beide-Karten-Button zwischen den Karten
+  html += `<div class="hand-flip-both" ontouchstart="flipAllCards(true, event)" ontouchend="flipAllCards(false, event)" onmousedown="flipAllCards(true, event)" onmouseup="flipAllCards(false, event)" onmouseleave="flipAllCards(false, event)">👁</div>`;
 
   // Chips-Info zwischen den Karten
   const chipsStr = (me.chips || 0).toLocaleString('de-DE');
