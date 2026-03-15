@@ -2700,12 +2700,117 @@ function showBigWin(amount) {
 }
 
 // ===== FREE SPINS TOTAL WIN =====
+// Django Reinhardt style gypsy violin melody
+function playDjangoViolin(duration) {
+  if (!SFX.ctx || SFX.muted) return;
+  const ctx = SFX.ctx;
+  const t = ctx.currentTime;
+
+  // Gypsy jazz scale notes (D minor / harmonic minor feel)
+  // D4, F4, G4, A4, Bb4, C#5, D5, F5, A5
+  const scale = [293.66, 349.23, 392.00, 440.00, 466.16, 554.37, 587.33, 698.46, 880.00];
+
+  // Fast swing pattern — Django-style rapid arpeggios
+  const bpm = 200;
+  const noteLen = 60 / bpm;
+  const totalNotes = Math.floor(duration / noteLen);
+
+  for (let i = 0; i < totalNotes; i++) {
+    const noteTime = t + i * noteLen;
+
+    // Pick notes in gypsy jazz pattern (mix of ascending runs and jumps)
+    let noteIdx;
+    const pattern = i % 8;
+    if (pattern < 4) {
+      // Ascending run
+      noteIdx = Math.min(pattern + Math.floor(i / 8) % 3, scale.length - 1);
+    } else if (pattern === 4 || pattern === 5) {
+      // Jump to high note
+      noteIdx = 5 + Math.floor(Math.random() * 3);
+    } else {
+      // Back down
+      noteIdx = 3 - (pattern - 6);
+    }
+    noteIdx = Math.max(0, Math.min(noteIdx, scale.length - 1));
+    const freq = scale[noteIdx];
+
+    // Sawtooth for violin-like timbre
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq, noteTime);
+    // Slight vibrato
+    const vibrato = ctx.createOscillator();
+    const vibratoGain = ctx.createGain();
+    vibrato.frequency.value = 5 + Math.random() * 2;
+    vibratoGain.gain.value = freq * 0.008;
+    vibrato.connect(vibratoGain);
+    vibratoGain.connect(osc.frequency);
+    vibrato.start(noteTime);
+    vibrato.stop(noteTime + noteLen + 0.05);
+
+    // Bandpass to make it more violin-like
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = freq * 2;
+    bp.Q.value = 2;
+
+    // Volume envelope — short staccato swing feel
+    const g = ctx.createGain();
+    const vol = 0.06 + Math.random() * 0.02;
+    // Accent on beats 1 and 3
+    const accent = (i % 4 === 0 || i % 4 === 2) ? 1.4 : 1.0;
+    g.gain.setValueAtTime(0, noteTime);
+    g.gain.linearRampToValueAtTime(vol * accent, noteTime + 0.008);
+    g.gain.setValueAtTime(vol * accent * 0.8, noteTime + noteLen * 0.6);
+    g.gain.exponentialRampToValueAtTime(0.001, noteTime + noteLen * 0.95);
+
+    osc.connect(bp);
+    bp.connect(g);
+    g.connect(ctx.destination);
+    osc.start(noteTime);
+    osc.stop(noteTime + noteLen + 0.02);
+  }
+
+  // Rhythm guitar chords underneath (muted strums)
+  const chords = [
+    [293.66, 440.00, 554.37], // Dm
+    [261.63, 392.00, 523.25], // C
+    [233.08, 349.23, 466.16], // Bb
+    [277.18, 349.23, 554.37], // A7
+  ];
+  const chordLen = noteLen * 4;
+  for (let c = 0; c < Math.floor(duration / chordLen); c++) {
+    const chord = chords[c % chords.length];
+    const chordTime = t + c * chordLen;
+    // Two strums per chord (swing rhythm)
+    [0, chordLen * 0.6].forEach((offset, si) => {
+      chord.forEach((f, fi) => {
+        const o = ctx.createOscillator();
+        o.type = 'triangle';
+        o.frequency.value = f * 0.5; // octave lower
+        const cg = ctx.createGain();
+        const cv = si === 0 ? 0.025 : 0.015;
+        cg.gain.setValueAtTime(0, chordTime + offset);
+        cg.gain.linearRampToValueAtTime(cv, chordTime + offset + 0.005);
+        cg.gain.exponentialRampToValueAtTime(0.001, chordTime + offset + 0.15);
+        o.connect(cg);
+        cg.connect(ctx.destination);
+        o.start(chordTime + offset + fi * 0.008);
+        o.stop(chordTime + offset + 0.2);
+      });
+    });
+  }
+}
+
 async function showFreeSpinTotal(amount) {
-  SFX.bigWin();
+  SFX.resume();
   FX.coinShower(5000);
   const overlay = document.getElementById('fsTotalOverlay');
   const el = document.getElementById('fsTotalAmount');
   overlay.classList.add('show');
+
+  // Django Reinhardt Geigenmusik statt bigWin Sound
+  playDjangoViolin(6);
 
   // Count up animation
   el.textContent = '0 €';
@@ -2722,8 +2827,8 @@ async function showFreeSpinTotal(amount) {
   setTimeout(() => FX.coinShower(2000), 1500);
   setTimeout(() => FX.coinShower(2000), 3000);
 
-  // Show for 5 seconds
-  await new Promise(resolve => setTimeout(resolve, 5000));
+  // Show for 6 seconds (match music duration)
+  await new Promise(resolve => setTimeout(resolve, 6000));
   overlay.classList.remove('show');
 }
 
