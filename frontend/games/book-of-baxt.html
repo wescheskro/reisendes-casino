@@ -2145,6 +2145,9 @@ async function doSpin() {
     lastWin = wins.totalWin;
     balance += lastWin;
 
+    // Leaderboard melden (wenn eingeloggt)
+    submitToLeaderboard(lastWin);
+
     if (freeSpinSymbol) freeSpinTotalWin += lastWin;
 
     // Show win effects
@@ -3516,6 +3519,23 @@ window.addEventListener('DOMContentLoaded', () => {
   checkFullscreenSplash();
 });
 window.addEventListener('load', () => { setTimeout(onResize, 100); fixMobileHeight(); });
+
+// =========================================================================
+// LEADERBOARD INTEGRATION
+// =========================================================================
+function submitToLeaderboard(winAmount) {
+  const token = localStorage.getItem('casinoToken');
+  if (!token || !winAmount || winAmount <= 0) return;
+
+  fetch('/api/leaderboard/submit', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    },
+    body: JSON.stringify({ winAmount, game: 'stachelingo-rodern' })
+  }).catch(() => {}); // Stille Fehler – Spiel soll nicht gestört werden
+}
 </script>
 </body>
 </html>

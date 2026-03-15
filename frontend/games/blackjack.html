@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Blackjack – Reisendes Casino</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#0a0a12}
+body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
+
+/* TABLE */
+.table-bg{
+  position:fixed;inset:0;
+  background:radial-gradient(ellipse at 50% 60%, #0d5c2e 0%, #0a4423 40%, #062e17 70%, #021a0d 100%);
+}
+.table-felt{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:min(96vw,900px);height:min(85vh,600px);
+  border-radius:50%;
+  border:8px solid #8B6914;
+  box-shadow:0 0 0 4px #D4AF37,0 0 40px rgba(0,0,0,.5),inset 0 0 60px rgba(0,0,0,.3);
+  background:radial-gradient(ellipse at 50% 50%, #1a7a42 0%, #0f5c2e 60%, #0a4423 100%);
+}
+
+/* TOP BAR */
+.top-bar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 16px;
+  background:linear-gradient(180deg,rgba(0,0,0,.8),rgba(0,0,0,.4));
+}
+.top-bar .logo{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;color:#D4AF37}
+.top-bar .back{background:none;border:1px solid rgba(212,175,55,.3);color:#D4AF37;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px}
+.top-bar .info{font-size:12px;color:rgba(240,230,211,.5)}
+
+/* DEALER AREA */
+.dealer-area{
+  position:fixed;top:60px;left:50%;transform:translateX(-50%);
+  text-align:center;z-index:10;
+}
+.dealer-label{font-size:13px;color:rgba(240,230,211,.5);margin-bottom:4px;letter-spacing:2px;text-transform:uppercase}
+.dealer-cards{display:flex;gap:6px;justify-content:center;min-height:90px;align-items:center}
+.dealer-value{font-size:18px;font-weight:700;color:#F4D03F;margin-top:4px}
+
+/* CARDS */
+.card{
+  width:60px;height:84px;border-radius:8px;
+  background:#fff;color:#333;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:18px;font-weight:900;
+  box-shadow:0 4px 12px rgba(0,0,0,.4);
+  transition:transform .3s;
+  position:relative;
+}
+.card.red{color:#CC0000}
+.card.hidden{
+  background:linear-gradient(135deg,#1a237e,#283593);
+  color:#fff;font-size:24px;
+}
+.card .suit{font-size:14px}
+.card .rank{font-size:20px;font-weight:900;line-height:1}
+
+/* SEATS */
+.seats{
+  position:fixed;bottom:180px;left:50%;transform:translateX(-50%);
+  display:flex;gap:8px;z-index:10;
+  width:min(96vw,900px);justify-content:center;
+}
+.seat{
+  width:clamp(80px,14vw,120px);
+  text-align:center;
+  cursor:pointer;
+  transition:.2s;
+}
+.seat-cards{display:flex;gap:3px;justify-content:center;min-height:84px;align-items:flex-end}
+.seat-cards .card{width:48px;height:67px;font-size:14px}
+.seat-cards .card .rank{font-size:16px}
+.seat-cards .card .suit{font-size:11px}
+.seat-name{
+  font-size:11px;color:#D4AF37;margin-top:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.seat-bet{font-size:10px;color:rgba(240,230,211,.5)}
+.seat-status{
+  font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
+  display:inline-block;margin-top:2px;
+}
+.seat-status.win{background:rgba(68,221,68,.2);color:#4d4}
+.seat-status.lose,.seat-status.bust{background:rgba(221,68,68,.2);color:#d44}
+.seat-status.push{background:rgba(221,221,68,.2);color:#dd4}
+.seat-status.blackjack{background:rgba(255,215,0,.2);color:#FFD700}
+.seat.empty{opacity:.3}
+.seat.empty:hover{opacity:.6}
+.seat.active{box-shadow:0 0 20px rgba(212,175,55,.4);border-radius:8px}
+.seat.you .seat-name{color:#F4D03F;font-weight:700}
+.seat-value{font-size:14px;font-weight:700;color:#fff;margin-top:2px}
+
+/* EMPTY SEAT */
+.seat.empty .seat-cards{
+  display:flex;align-items:center;justify-content:center;
+}
+.seat.empty .seat-cards::after{
+  content:'+';font-size:28px;color:rgba(212,175,55,.3);
+  width:48px;height:67px;border:2px dashed rgba(212,175,55,.2);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* CONTROLS */
+.controls{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:linear-gradient(180deg,rgba(0,0,0,.4),rgba(0,0,0,.9));
+  padding:12px 16px 20px;
+  display:flex;flex-direction:column;gap:10px;align-items:center;
+}
+.bet-controls,.action-controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.btn{
+  padding:10px 20px;border-radius:8px;font-family:inherit;font-weight:700;
+  font-size:14px;cursor:pointer;transition:.2s;border:none;
+}
+.btn-hit{background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff}
+.btn-stand{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff}
+.btn-double{background:linear-gradient(135deg,#f39c12,#d68910);color:#fff}
+.btn-bet{
+  background:linear-gradient(180deg,rgba(50,35,15,.9),rgba(25,18,8,.95));
+  border:1px solid rgba(212,175,55,.4);color:#D4AF37;
+}
+.btn-bet.selected{background:linear-gradient(135deg,#D4AF37,#F4D03F);color:#000;border:none}
+.btn:hover{transform:scale(1.05)}
+.btn:active{transform:scale(.95)}
+.btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+
+.bet-confirm{
+  background:linear-gradient(135deg,#D4AF37,#F4D03F);color:#000;
+  font-size:16px;padding:12px 32px;border-radius:10px;
+}
+
+/* PHASE INFO */
+.phase-info{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:50;text-align:center;
+  font-size:24px;font-weight:900;color:#F4D03F;
+  text-shadow:0 0 20px rgba(244,208,63,.5);
+  pointer-events:none;
+  opacity:0;transition:opacity .5s;
+}
+.phase-info.show{opacity:1}
+
+/* CHAT */
+.chat-box{
+  position:fixed;bottom:170px;right:8px;z-index:20;
+  width:200px;max-height:150px;overflow-y:auto;
+  background:rgba(0,0,0,.5);border-radius:8px;padding:6px;
+  font-size:11px;color:rgba(240,230,211,.7);
+}
+.chat-msg .name{color:#D4AF37;font-weight:700}
+.chat-input{
+  position:fixed;bottom:170px;right:8px;z-index:21;
+  display:none;
+}
+
+@media(max-width:600px){
+  .seat{width:clamp(55px,16vw,80px)}
+  .seat-cards .card{width:36px;height:50px;font-size:11px}
+  .seat-cards .card .rank{font-size:13px}
+  .seat-cards .card .suit{font-size:9px}
+  .card{width:50px;height:70px}
+  .seats{gap:4px}
+  .chat-box{display:none}
+}
+</style>
+</head>
+<body>
+<div class="table-bg"></div>
+<div class="table-felt"></div>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="logo">🃏 Blackjack</div>
+  <div class="info" id="tableInfo">Verbinde...</div>
+  <button class="back" onclick="location.href='/'">← Zurück</button>
+</div>
+
+<!-- DEALER -->
+<div class="dealer-area">
+  <div class="dealer-label">Dealer</div>
+  <div class="dealer-cards" id="dealerCards"></div>
+  <div class="dealer-value" id="dealerValue"></div>
+</div>
+
+<!-- SEATS -->
+<div class="seats" id="seats"></div>
+
+<!-- PHASE INFO -->
+<div class="phase-info" id="phaseInfo"></div>
+
+<!-- CONTROLS -->
+<div class="controls" id="controls">
+  <div id="waitingMsg" style="color:rgba(240,230,211,.5);font-size:14px">Wähle einen Platz am Tisch...</div>
+</div>
+
+<!-- CHAT -->
+<div class="chat-box" id="chatBox"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const token = localStorage.getItem('casinoToken');
+const user = (() => { try { return JSON.parse(localStorage.getItem('casinoUser')); } catch(e) { return null; } })();
+
+const socket = io({ auth: { token } });
+const tableId = new URLSearchParams(location.search).get('table') || 'tisch-1';
+let myState = null;
+let mySeat = -1;
+let currentPhase = 'waiting';
+let selectedBet = 500;
+
+function renderCard(c) {
+  if (c === '??' || !c) return '<div class="card hidden">🂠</div>';
+  const rank = c.slice(0, -1);
+  const suit = c.slice(-1);
+  const red = (suit === '♥' || suit === '♦') ? ' red' : '';
+  return `<div class="card${red}"><span class="rank">${rank}</span><span class="suit">${suit}</span></div>`;
+}
+
+function renderState(state) {
+  myState = state;
+  currentPhase = state.phase;
+
+  // Dealer
+  const dc = document.getElementById('dealerCards');
+  dc.innerHTML = (state.dealer.cards || []).map(renderCard).join('');
+  document.getElementById('dealerValue').textContent = state.dealer.value || '';
+
+  // Seats
+  const seatsEl = document.getElementById('seats');
+  seatsEl.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const s = state.seats[i];
+    const div = document.createElement('div');
+    div.className = 'seat';
+    if (!s) {
+      div.className += ' empty';
+      div.innerHTML = '<div class="seat-cards"></div><div class="seat-name">Freier Platz</div>';
+      div.onclick = () => joinSeat(i);
+    } else {
+      if (s.isYou) { div.className += ' you'; mySeat = i; }
+      if (state.currentSeat === i) div.className += ' active';
+      const statusCls = s.status && ['win','lose','bust','push','blackjack'].includes(s.status) ? s.status : '';
+      div.innerHTML = `
+        <div class="seat-cards">${s.cards.map(renderCard).join('')}</div>
+        <div class="seat-value">${s.value || ''}</div>
+        <div class="seat-name">${s.username}${s.isYou ? ' (Du)' : ''}</div>
+        <div class="seat-bet">${s.bet > 0 ? s.bet.toLocaleString('de-DE') + ' €' : ''}</div>
+        ${statusCls ? `<div class="seat-status ${statusCls}">${statusMap(s.status)}</div>` : ''}
+      `;
+    }
+    seatsEl.appendChild(div);
+  }
+
+  // Table info
+  document.getElementById('tableInfo').textContent =
+    `Tisch ${tableId} · ${state.playerCount} Spieler · ${phaseMap(state.phase)}`;
+
+  // Controls
+  renderControls(state);
+}
+
+function statusMap(s) {
+  const m = {win:'Gewonnen!',lose:'Verloren',bust:'Überkauft!',push:'Unentschieden',blackjack:'BLACKJACK!',betting:'Wettet...',ready:'Bereit',playing:'Am Zug',stand:'Stand',spectating:'Zuschauer'};
+  return m[s] || s;
+}
+function phaseMap(p) {
+  const m = {waiting:'Wartet...',betting:'Einsätze',playing:'Karten',dealer:'Dealer zieht',payout:'Auszahlung'};
+  return m[p] || p;
+}
+
+function renderControls(state) {
+  const ctrl = document.getElementById('controls');
+  const meInGame = state.seats.some(s => s && s.isYou);
+
+  if (!meInGame) {
+    ctrl.innerHTML = '<div style="color:rgba(240,230,211,.5);font-size:14px">Klicke auf einen freien Platz um mitzuspielen!</div>';
+    return;
+  }
+
+  if (state.phase === 'betting') {
+    const me = state.seats.find(s => s && s.isYou);
+    if (me && me.status === 'ready') {
+      ctrl.innerHTML = `<div style="color:#4d4;font-size:16px">✅ Einsatz: ${selectedBet.toLocaleString('de-DE')} € – Warten auf andere...</div>`;
+    } else {
+      ctrl.innerHTML = `
+        <div class="bet-controls">
+          ${[100,500,1000,5000,10000].map(b =>
+            `<button class="btn btn-bet${selectedBet===b?' selected':''}" onclick="selectedBet=${b};renderControls(myState)">${b.toLocaleString('de-DE')}</button>`
+          ).join('')}
+        </div>
+        <button class="btn bet-confirm" onclick="placeBet()">Setzen: ${selectedBet.toLocaleString('de-DE')} €</button>
+      `;
+    }
+  } else if (state.phase === 'playing' && state.currentSeat >= 0) {
+    const currentPlayer = state.seats[state.currentSeat];
+    if (currentPlayer && currentPlayer.isYou) {
+      const canDouble = currentPlayer.cards.length === 2;
+      ctrl.innerHTML = `
+        <div class="action-controls">
+          <button class="btn btn-hit" onclick="socket.emit('bj:hit')">🃏 Karte</button>
+          <button class="btn btn-stand" onclick="socket.emit('bj:stand')">✋ Halten</button>
+          <button class="btn btn-double" onclick="socket.emit('bj:double')" ${canDouble?'':'disabled'}>×2 Verdoppeln</button>
+        </div>
+      `;
+    } else {
+      ctrl.innerHTML = `<div style="color:rgba(240,230,211,.5);font-size:14px">${currentPlayer?.username || '?'} ist am Zug...</div>`;
+    }
+  } else if (state.phase === 'payout' || state.phase === 'dealer') {
+    const me = state.seats.find(s => s && s.isYou);
+    if (me && me.payout > 0) {
+      ctrl.innerHTML = `<div style="color:#4d4;font-size:20px;font-weight:700">${statusMap(me.status)} +${me.payout.toLocaleString('de-DE')} €</div>`;
+    } else if (me) {
+      ctrl.innerHTML = `<div style="color:#d44;font-size:18px">${statusMap(me.status)}</div>`;
+    } else {
+      ctrl.innerHTML = `<div style="color:rgba(240,230,211,.5)">Nächste Runde startet gleich...</div>`;
+    }
+  } else {
+    ctrl.innerHTML = '<div style="color:rgba(240,230,211,.5);font-size:14px">Warte auf nächste Runde...</div>';
+  }
+}
+
+function joinSeat(seat) {
+  socket.emit('bj:join', { tableId, seat });
+}
+
+function placeBet() {
+  socket.emit('bj:bet', { amount: selectedBet });
+}
+
+function showPhase(text) {
+  const el = document.getElementById('phaseInfo');
+  el.textContent = text;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// Socket events
+socket.on('connect', () => {
+  socket.emit('bj:join', { tableId, seat: -1 }); // Just spectate first
+  // Actually, let's request the state
+  document.getElementById('tableInfo').textContent = 'Verbunden!';
+});
+
+socket.on('bj:state', renderState);
+socket.on('bj:playerJoined', d => showPhase(d.username + ' setzt sich!'));
+socket.on('bj:playerLeft', d => showPhase(d.username + ' geht...'));
+socket.on('bj:results', d => {
+  console.log('Results:', d);
+});
+
+socket.on('chat:msg', d => {
+  const box = document.getElementById('chatBox');
+  box.innerHTML += `<div class="chat-msg"><span class="name">${d.username}:</span> ${d.msg}</div>`;
+  box.scrollTop = box.scrollHeight;
+});
+
+socket.on('error', msg => {
+  showPhase(msg);
+});
+</script>
+</body>
+</html>

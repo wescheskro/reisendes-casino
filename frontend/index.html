@@ -323,6 +323,109 @@
       flex-shrink: 0;
     }
 
+    /* ============ SPIELELOBBY ============ */
+    .lobby-section {
+      max-width: 560px;
+      width: 100%;
+      padding: 0 20px;
+      margin-bottom: 30px;
+    }
+    .lobby-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 900;
+      color: #D4AF37;
+      text-align: center;
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+    .lobby-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    .lobby-card {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border: 1px solid rgba(212,175,55,.2);
+      border-radius: 14px;
+      padding: 20px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: .3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .lobby-card:hover {
+      border-color: rgba(212,175,55,.5);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(0,0,0,.4), 0 0 20px rgba(212,175,55,.1);
+    }
+    .lobby-card .lc-icon {
+      font-size: 40px;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.3));
+    }
+    .lobby-card .lc-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #F0E6D3;
+      margin-bottom: 4px;
+    }
+    .lobby-card .lc-desc {
+      font-size: 11px;
+      color: rgba(240,230,211,.5);
+      margin-bottom: 10px;
+    }
+    .lobby-card .lc-players {
+      font-size: 10px;
+      color: rgba(240,230,211,.4);
+    }
+    .lobby-card .lc-players .online {
+      color: #4d4;
+      font-weight: 700;
+    }
+    .lobby-card .lc-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .lobby-card .lc-badge.multi {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+    }
+    .lobby-card .lc-play {
+      display: inline-block;
+      background: linear-gradient(135deg, #D4AF37, #F4D03F);
+      color: #000;
+      font-family: 'Playfair Display', serif;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 20px;
+      border-radius: 20px;
+      margin-top: 6px;
+    }
+    .lobby-tables {
+      margin-top: 8px;
+    }
+    .lobby-tables select {
+      background: rgba(0,0,0,.4);
+      border: 1px solid rgba(212,175,55,.3);
+      color: #D4AF37;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
     /* Guthaben aufladen */
     .topup-section {
       max-width: 500px;
@@ -378,6 +481,588 @@
       border-color: rgba(255,80,80,.5);
       color: #ff6666;
       background: linear-gradient(180deg, rgba(60,15,15,.9), rgba(30,8,8,.95));
+    }
+
+    /* ============================================
+       LOGIN / MITGLIED
+       ============================================ */
+    .auth-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .auth-btn {
+      background: linear-gradient(180deg, rgba(50,35,15,.9), rgba(25,18,8,.95));
+      border: 1px solid rgba(212,175,55,.4);
+      color: #D4AF37;
+      font-family: 'Playfair Display', serif;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: .2s;
+      letter-spacing: .5px;
+    }
+    .auth-btn:hover {
+      border-color: rgba(244,208,63,.7);
+      color: #F4D03F;
+      box-shadow: 0 0 10px rgba(212,175,55,.2);
+    }
+    .auth-btn.primary {
+      background: linear-gradient(135deg, #D4AF37, #F4D03F, #D4AF37);
+      color: #000;
+      border: none;
+    }
+    .auth-btn.primary:hover {
+      box-shadow: 0 4px 16px rgba(212,175,55,.5);
+    }
+    .auth-btn.logout {
+      border-color: rgba(180,40,40,.4);
+      color: rgba(255,100,100,.7);
+      font-size: 11px;
+      padding: 6px 10px;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #D4AF37, #8B6914);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #000;
+    }
+    .user-name {
+      font-family: 'Playfair Display', serif;
+      color: #D4AF37;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .user-rank {
+      font-size: 10px;
+      color: rgba(240,230,211,.5);
+    }
+
+    /* AUTH MODAL */
+    .auth-modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s;
+    }
+    .auth-modal-overlay.active {
+      opacity: 1; pointer-events: auto;
+    }
+    .auth-modal {
+      background: linear-gradient(180deg, #1a1520, #0a0a12);
+      border: 1px solid rgba(212,175,55,.3);
+      border-radius: 16px;
+      padding: 28px 24px;
+      max-width: 380px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,.8), 0 0 40px rgba(212,175,55,.1);
+    }
+    .auth-modal h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: #D4AF37;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .auth-modal .auth-sub {
+      text-align: center;
+      font-size: 12px;
+      color: rgba(240,230,211,.5);
+      margin-bottom: 20px;
+    }
+    .auth-tabs {
+      display: flex; gap: 0;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(212,175,55,.2);
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 14px;
+      font-weight: 700;
+      background: transparent;
+      color: rgba(240,230,211,.5);
+      border: none;
+      cursor: pointer;
+      transition: .2s;
+    }
+    .auth-tab.active {
+      background: rgba(212,175,55,.15);
+      color: #D4AF37;
+    }
+    .auth-input {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(0,0,0,.4);
+      border: 1px solid rgba(212,175,55,.2);
+      border-radius: 8px;
+      color: #F0E6D3;
+      font-size: 15px;
+      margin-bottom: 10px;
+      outline: none;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .auth-input:focus {
+      border-color: rgba(212,175,55,.5);
+      box-shadow: 0 0 8px rgba(212,175,55,.1);
+    }
+    .auth-input::placeholder {
+      color: rgba(240,230,211,.3);
+    }
+    .auth-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #D4AF37, #F4D03F, #D4AF37);
+      color: #000;
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 900;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: .2s;
+      letter-spacing: 1px;
+    }
+    .auth-submit:hover { box-shadow: 0 4px 20px rgba(212,175,55,.5); }
+    .auth-submit:active { transform: scale(.97); }
+    .auth-error {
+      background: rgba(200,30,30,.15);
+      border: 1px solid rgba(255,80,80,.3);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #ff6666;
+      margin-bottom: 10px;
+      display: none;
+    }
+    .auth-close {
+      position: absolute; top: 12px; right: 16px;
+      background: none; border: none;
+      color: rgba(240,230,211,.4);
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    /* ============================================
+       MÜNZEN-SHOP
+       ============================================ */
+    .shop-section {
+      max-width: 500px;
+      width: 100%;
+      padding: 0 20px;
+      margin-bottom: 30px;
+    }
+    .shop-title {
+      text-align: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      background: linear-gradient(135deg, #D4AF37, #F4D03F);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 4px;
+    }
+    .shop-sub {
+      text-align: center;
+      font-size: 12px;
+      color: rgba(240,230,211,.5);
+      margin-bottom: 16px;
+    }
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .shop-card {
+      position: relative;
+      background: linear-gradient(180deg, rgba(30,22,10,.95), rgba(12,8,3,.98));
+      border: 1px solid rgba(212,175,55,.2);
+      border-radius: 12px;
+      padding: 16px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: .25s;
+      overflow: hidden;
+    }
+    .shop-card:hover {
+      border-color: rgba(244,208,63,.5);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.4), 0 0 16px rgba(212,175,55,.1);
+    }
+    .shop-card.popular {
+      border-color: rgba(244,208,63,.45);
+      box-shadow: 0 0 12px rgba(212,175,55,.1);
+    }
+    .shop-badge {
+      position: absolute;
+      top: -1px; right: -1px;
+      background: linear-gradient(135deg, #FF6B35, #FF4444);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 0 11px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .shop-badge.best {
+      background: linear-gradient(135deg, #D4AF37, #F4D03F);
+      color: #000;
+    }
+    .shop-coins {
+      font-size: 28px;
+      margin-bottom: 2px;
+    }
+    .shop-amount {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #F4D03F;
+      margin-bottom: 2px;
+    }
+    .shop-bonus {
+      font-size: 11px;
+      color: rgba(240,230,211,.4);
+      margin-bottom: 10px;
+      min-height: 16px;
+    }
+    .shop-price {
+      display: inline-block;
+      background: linear-gradient(135deg, #D4AF37, #F4D03F, #D4AF37);
+      color: #000;
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 900;
+      padding: 8px 20px;
+      border-radius: 20px;
+      transition: .2s;
+    }
+    .shop-card:hover .shop-price {
+      box-shadow: 0 4px 12px rgba(212,175,55,.4);
+    }
+    .shop-free {
+      margin-top: 12px;
+      text-align: center;
+    }
+    .shop-free-btn {
+      background: linear-gradient(180deg, rgba(50,35,15,.9), rgba(25,18,8,.95));
+      border: 1px solid rgba(212,175,55,.25);
+      color: #D4AF37;
+      font-family: 'Playfair Display', serif;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: .2s;
+    }
+    .shop-free-btn:hover {
+      border-color: rgba(244,208,63,.5);
+      color: #F4D03F;
+    }
+    .shop-free-btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+    .shop-methods {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 12px;
+      font-size: 11px;
+      color: rgba(240,230,211,.35);
+    }
+    .shop-methods span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Payment Modal */
+    .pay-modal-overlay {
+      position: fixed; inset: 0; z-index: 1001;
+      background: rgba(0,0,0,.75);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s;
+    }
+    .pay-modal-overlay.active {
+      opacity: 1; pointer-events: auto;
+    }
+    .pay-modal {
+      background: linear-gradient(180deg, #1a1520, #0a0a12);
+      border: 1px solid rgba(212,175,55,.3);
+      border-radius: 16px;
+      padding: 28px 24px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.8);
+      position: relative;
+    }
+    .pay-modal h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: #D4AF37;
+      margin-bottom: 6px;
+    }
+    .pay-summary {
+      font-size: 14px;
+      color: rgba(240,230,211,.7);
+      margin-bottom: 20px;
+    }
+    .pay-summary strong {
+      color: #F4D03F;
+      font-size: 18px;
+    }
+    #paypal-button-container {
+      min-height: 50px;
+      margin-bottom: 12px;
+    }
+
+    /* Zahlungsmethoden-Tabs */
+    .pay-methods {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(212,175,55,.2);
+    }
+    .pay-method-tab {
+      flex: 1;
+      padding: 10px 6px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      background: transparent;
+      color: rgba(240,230,211,.4);
+      border: none;
+      cursor: pointer;
+      transition: .2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+    .pay-method-tab .pay-icon { font-size: 20px; }
+    .pay-method-tab.active {
+      background: rgba(212,175,55,.15);
+      color: #D4AF37;
+    }
+    .pay-method-tab:hover {
+      color: #D4AF37;
+      background: rgba(212,175,55,.08);
+    }
+    .pay-panel { display: none; }
+    .pay-panel.active { display: block; }
+
+    /* Überweisung / Amazon Gutschein Panel */
+    .pay-manual {
+      background: rgba(0,0,0,.3);
+      border: 1px solid rgba(212,175,55,.15);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: left;
+      font-size: 13px;
+      color: rgba(240,230,211,.7);
+      line-height: 1.7;
+    }
+    .pay-manual .label {
+      color: #D4AF37;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 2px;
+    }
+    .pay-manual .value {
+      color: #F0E6D3;
+      font-size: 14px;
+      margin-bottom: 10px;
+      word-break: break-all;
+    }
+    .pay-manual .value.copyable {
+      cursor: pointer;
+      background: rgba(0,0,0,.3);
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(212,175,55,.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pay-manual .value.copyable::after {
+      content: '📋';
+      font-size: 14px;
+      opacity: .5;
+    }
+    .pay-manual .hint {
+      font-size: 11px;
+      color: rgba(240,230,211,.35);
+      font-style: italic;
+      margin-top: 8px;
+    }
+
+    .pay-alt {
+      font-size: 12px;
+      color: rgba(240,230,211,.4);
+      margin-top: 12px;
+    }
+    .pay-alt a {
+      color: #D4AF37;
+      text-decoration: none;
+    }
+
+    /* WhatsApp Button */
+    .pay-whatsapp {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      color: #fff;
+      font-family: 'Playfair Display', serif;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: .2s;
+      width: 100%;
+      justify-content: center;
+    }
+    .pay-whatsapp:hover {
+      box-shadow: 0 4px 16px rgba(37,211,102,.3);
+      transform: scale(1.02);
+    }
+
+    /* ============================================
+       TOPLISTE
+       ============================================ */
+    .topliste-section {
+      max-width: 500px;
+      width: 100%;
+      padding: 0 20px;
+      margin-bottom: 30px;
+    }
+    .topliste-header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .topliste-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      background: linear-gradient(135deg, #D4AF37, #F4D03F);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 4px;
+    }
+    .topliste-header .week-info {
+      font-size: 12px;
+      color: rgba(240,230,211,.5);
+    }
+    .topliste-header .prize-info {
+      font-size: 13px;
+      color: #F4D03F;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .topliste-timer {
+      text-align: center;
+      font-size: 13px;
+      color: rgba(240,230,211,.6);
+      margin-bottom: 12px;
+    }
+    .topliste-timer span {
+      color: #F4D03F;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .topliste-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .topliste-table th {
+      font-family: 'Playfair Display', serif;
+      font-size: 11px;
+      color: #D4AF37;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 8px 6px;
+      border-bottom: 1px solid rgba(212,175,55,.2);
+      text-align: left;
+    }
+    .topliste-table th:last-child { text-align: right; }
+    .topliste-table td {
+      padding: 10px 6px;
+      font-size: 14px;
+      color: rgba(240,230,211,.8);
+      border-bottom: 1px solid rgba(255,255,255,.03);
+    }
+    .topliste-table td:last-child { text-align: right; font-weight: 700; color: #F4D03F; }
+    .topliste-table tr:hover td { background: rgba(212,175,55,.03); }
+    .rank-medal {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; box-shadow: 0 0 10px rgba(255,215,0,.4); }
+    .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); color: #000; }
+    .rank-3 { background: linear-gradient(135deg, #CD7F32, #A0522D); color: #fff; }
+    .rank-other { background: rgba(255,255,255,.05); color: rgba(240,230,211,.5); }
+    .topliste-you { background: rgba(212,175,55,.08) !important; }
+    .topliste-you td { color: #F4D03F !important; }
+    .topliste-empty {
+      text-align: center;
+      padding: 24px;
+      font-size: 14px;
+      color: rgba(240,230,211,.4);
+      font-style: italic;
+    }
+    .topliste-cta {
+      text-align: center;
+      margin-top: 12px;
+    }
+    .topliste-cta-btn {
+      background: linear-gradient(180deg, rgba(50,35,15,.9), rgba(25,18,8,.95));
+      border: 1px solid rgba(212,175,55,.35);
+      color: #D4AF37;
+      font-family: 'Playfair Display', serif;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: .2s;
+    }
+    .topliste-cta-btn:hover {
+      border-color: rgba(244,208,63,.6);
+      color: #F4D03F;
+      box-shadow: 0 0 10px rgba(212,175,55,.2);
     }
 
     /* Footer */
@@ -448,7 +1133,18 @@
         <div class="logo-sub">Put Baxt!</div>
       </div>
     </div>
-    <div></div>
+    <div class="auth-bar" id="authBar">
+      <button class="auth-btn" onclick="showAuth('login')" id="loginBtn">Anmelden</button>
+      <button class="auth-btn primary" onclick="showAuth('register')" id="registerBtn">Mitglied werden</button>
+      <div class="user-info" id="userInfo" style="display:none">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <div>
+          <div class="user-name" id="userName">-</div>
+          <div class="user-rank" id="userRank">-</div>
+        </div>
+        <button class="auth-btn logout" onclick="logout()">✕</button>
+      </div>
+    </div>
   </nav>
 
   <!-- MAIN CONTENT -->
@@ -494,16 +1190,96 @@
       Jetzt Spielen
     </button>
 
-    <!-- GUTHABEN AUFLADEN -->
+    <!-- SPIELELOBBY -->
+    <div class="lobby-section">
+      <h2 class="lobby-title">🎮 Alle Spiele</h2>
+      <div class="lobby-grid">
+        <!-- Slot -->
+        <div class="lobby-card" onclick="playGame()">
+          <div class="lc-icon">🦔</div>
+          <div class="lc-name">Stachelingo Rodern</div>
+          <div class="lc-desc">Slot-Automat mit Freispielen</div>
+          <div class="lc-play">▶ Spielen</div>
+        </div>
+        <!-- Blackjack -->
+        <div class="lobby-card" onclick="openBlackjack()">
+          <div class="lc-badge multi">Multiplayer</div>
+          <div class="lc-icon">🃏</div>
+          <div class="lc-name">Blackjack</div>
+          <div class="lc-desc">7 Plätze · Echtzeit</div>
+          <div class="lobby-tables">
+            <select id="bjTableSelect">
+              <option value="tisch-1">Tisch 1</option>
+              <option value="tisch-2">Tisch 2</option>
+              <option value="tisch-3">Tisch 3</option>
+            </select>
+          </div>
+          <div class="lc-play">▶ Beitreten</div>
+        </div>
+        <!-- Poker -->
+        <div class="lobby-card" onclick="openPoker()">
+          <div class="lc-badge multi">Multiplayer</div>
+          <div class="lc-icon">♠</div>
+          <div class="lc-name">Texas Hold'em</div>
+          <div class="lc-desc">6 Plätze · No Limit</div>
+          <div class="lobby-tables">
+            <select id="pkTableSelect">
+              <option value="tisch-1">Tisch 1</option>
+              <option value="tisch-2">Tisch 2</option>
+            </select>
+          </div>
+          <div class="lc-play">▶ Beitreten</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUTHABEN & SHOP -->
     <div class="topup-section">
       <div class="topup-balance">
         Dein Guthaben: <span id="landingBalance">10.000 €</span>
       </div>
-      <div class="topup-buttons">
-        <button class="topup-btn" onclick="topUp(5000)">+5.000 €</button>
-        <button class="topup-btn" onclick="topUp(10000)">+10.000 €</button>
-        <button class="topup-btn" onclick="topUp(50000)">+50.000 €</button>
-        <button class="topup-btn reset" onclick="resetBalance()">Zurücksetzen</button>
+    </div>
+
+    <!-- MÜNZEN-SHOP -->
+    <div class="shop-section">
+      <h2 class="shop-title">🪙 Münzen-Shop</h2>
+      <div class="shop-sub">Kaufe Spielmünzen und spiele um den Wochenpreis!</div>
+      <div class="shop-grid">
+        <div class="shop-card" onclick="buyCoins('small')">
+          <div class="shop-coins">🪙</div>
+          <div class="shop-amount">10.000</div>
+          <div class="shop-bonus">&nbsp;</div>
+          <div class="shop-price">1,99 €</div>
+        </div>
+        <div class="shop-card popular" onclick="buyCoins('medium')">
+          <div class="shop-badge">Beliebt</div>
+          <div class="shop-coins">🪙🪙</div>
+          <div class="shop-amount">50.000</div>
+          <div class="shop-bonus">+10.000 Bonus!</div>
+          <div class="shop-price">4,99 €</div>
+        </div>
+        <div class="shop-card" onclick="buyCoins('large')">
+          <div class="shop-badge best">Bester Deal</div>
+          <div class="shop-coins">🪙🪙🪙</div>
+          <div class="shop-amount">150.000</div>
+          <div class="shop-bonus">+50.000 Bonus!</div>
+          <div class="shop-price">9,99 €</div>
+        </div>
+        <div class="shop-card" onclick="buyCoins('vip')">
+          <div class="shop-coins">👑</div>
+          <div class="shop-amount">500.000</div>
+          <div class="shop-bonus">+200.000 Bonus!</div>
+          <div class="shop-price">24,99 €</div>
+        </div>
+      </div>
+      <div class="shop-free">
+        <button class="shop-free-btn" id="dailyFreeBtn" onclick="claimDailyFree()">🎁 Tägliche Gratis-Münzen: 5.000</button>
+      </div>
+      <div class="shop-methods">
+        <span>💳 PayPal</span>
+        <span>🎁 Amazon</span>
+        <span>🏦 Überweisung</span>
+        <span>🔒 Sicher</span>
       </div>
     </div>
 
@@ -512,6 +1288,33 @@
       <span class="install-icon">📲</span> App Installieren
     </button>
     <div class="install-hint" id="installHint" style="display:none"></div>
+
+    <!-- TOPLISTE -->
+    <div class="topliste-section" id="toplisteSection">
+      <div class="topliste-header">
+        <h2>🏆 Topliste</h2>
+        <div class="week-info" id="toplisteWeek">Kalenderwoche</div>
+        <div class="prize-info">🎁 Platz 1 gewinnt jede Woche 100€ – PayPal, Amazon oder aufs Konto!</div>
+      </div>
+      <div class="topliste-timer" id="toplisteTimer">
+        Endet in: <span id="timerCountdown">--:--:--</span>
+      </div>
+      <table class="topliste-table" id="toplisteTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Spieler</th>
+            <th>Gewinne</th>
+          </tr>
+        </thead>
+        <tbody id="toplisteBody">
+          <tr><td colspan="3" class="topliste-empty">Noch keine Einträge diese Woche.<br>Werde Mitglied und spiele mit!</td></tr>
+        </tbody>
+      </table>
+      <div class="topliste-cta" id="toplisteCta">
+        <button class="topliste-cta-btn" onclick="showAuth('register')">🦔 Mitglied werden &amp; mitspielen</button>
+      </div>
+    </div>
 
     <!-- BADGES -->
     <div class="game-badges">
@@ -585,6 +1388,109 @@
     </div>
   </div>
 
+  <!-- AUTH MODAL -->
+  <div class="auth-modal-overlay" id="authModal">
+    <div class="auth-modal" style="position:relative">
+      <button class="auth-close" onclick="closeAuth()">&times;</button>
+      <h2 id="authTitle">Mitglied werden</h2>
+      <div class="auth-sub">Tritt der Reisenden-Community bei & spiele um den Wochenpreis!</div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabRegister" onclick="switchTab('register')">Registrieren</button>
+        <button class="auth-tab" id="tabLogin" onclick="switchTab('login')">Anmelden</button>
+      </div>
+
+      <div class="auth-error" id="authError"></div>
+
+      <!-- REGISTER FORM -->
+      <form id="registerForm" onsubmit="doRegister(event)">
+        <input class="auth-input" type="text" id="regUsername" placeholder="Dein Spielername" maxlength="20" required>
+        <input class="auth-input" type="tel" id="regPhone" placeholder="Handy-Nummer" required>
+        <input class="auth-input" type="password" id="regPin" placeholder="4-stelliger PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
+        <button class="auth-submit" type="submit">🦔 Jetzt Mitglied werden</button>
+      </form>
+
+      <!-- LOGIN FORM -->
+      <form id="loginForm" onsubmit="doLogin(event)" style="display:none">
+        <input class="auth-input" type="tel" id="loginPhone" placeholder="Handy-Nummer" required>
+        <input class="auth-input" type="password" id="loginPin" placeholder="4-stelliger PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
+        <button class="auth-submit" type="submit">Anmelden</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- PAYMENT MODAL -->
+  <div class="pay-modal-overlay" id="payModal">
+    <div class="pay-modal">
+      <button class="auth-close" onclick="closePayModal()">&times;</button>
+      <h3>🪙 Münzen kaufen</h3>
+      <div class="pay-summary" id="paySummary">
+        <strong id="payCoinsDisplay">50.000 Münzen</strong><br>
+        für <strong id="payPriceDisplay">4,99 €</strong>
+      </div>
+
+      <!-- Zahlungsmethoden Tabs -->
+      <div class="pay-methods">
+        <button class="pay-method-tab active" onclick="switchPayMethod('paypal')">
+          <span class="pay-icon">💳</span> PayPal
+        </button>
+        <button class="pay-method-tab" onclick="switchPayMethod('amazon')">
+          <span class="pay-icon">🎁</span> Amazon
+        </button>
+        <button class="pay-method-tab" onclick="switchPayMethod('bank')">
+          <span class="pay-icon">🏦</span> Überweisung
+        </button>
+      </div>
+
+      <!-- PayPal Panel -->
+      <div class="pay-panel active" id="payPanel-paypal">
+        <div id="paypal-button-container"></div>
+      </div>
+
+      <!-- Amazon Gutschein Panel -->
+      <div class="pay-panel" id="payPanel-amazon">
+        <div class="pay-manual">
+          <div class="label">So geht's:</div>
+          <div style="margin-bottom:10px">
+            1. Kaufe einen <b>Amazon-Gutschein</b> über den Betrag<br>
+            2. Sende den <b>Gutschein-Code</b> per WhatsApp<br>
+            3. Münzen werden sofort gutgeschrieben!
+          </div>
+          <button class="pay-whatsapp" onclick="sendWhatsApp('amazon')">
+            💬 Gutschein-Code per WhatsApp senden
+          </button>
+          <div class="hint">Gutschein-Codes werden innerhalb von 10 Min. freigeschaltet</div>
+        </div>
+      </div>
+
+      <!-- Überweisung Panel -->
+      <div class="pay-panel" id="payPanel-bank">
+        <div class="pay-manual">
+          <div class="label">Empfänger</div>
+          <div class="value">Reisendes Casino</div>
+          <div class="label">IBAN</div>
+          <div class="value copyable" onclick="copyText('DE89 3704 0044 0532 0130 00', this)">
+            DE89 3704 0044 0532 0130 00
+          </div>
+          <div class="label">Verwendungszweck</div>
+          <div class="value copyable" id="payRef" onclick="copyText(this.textContent.trim(), this)">
+            CASINO-COINS
+          </div>
+          <div class="hint">
+            ⚡ Sende uns nach der Überweisung eine WhatsApp-Nachricht mit dem Betrag – wir schreiben die Münzen sofort gut!
+          </div>
+          <button class="pay-whatsapp" onclick="sendWhatsApp('bank')">
+            💬 Überweisung bestätigen per WhatsApp
+          </button>
+        </div>
+      </div>
+
+      <div class="pay-alt">
+        Fragen? <a href="mailto:support@reisendes-casino.com">support@reisendes-casino.com</a>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
@@ -599,24 +1505,246 @@
       document.getElementById('landingBalance').textContent = fmtEuro(bal);
     }
 
-    function topUp(amount) {
+    function addCoins(amount) {
       let bal = parseInt(localStorage.getItem('slotBalance')) || 10000;
       bal += amount;
       localStorage.setItem('slotBalance', bal);
       updateLandingBalance();
-      // Kurze Animation
       const el = document.getElementById('landingBalance');
-      el.style.transform = 'scale(1.2)';
-      setTimeout(() => el.style.transform = 'scale(1)', 300);
-    }
-
-    function resetBalance() {
-      localStorage.setItem('slotBalance', 10000);
-      updateLandingBalance();
+      el.style.transform = 'scale(1.3)';
+      el.style.color = '#44ff44';
+      setTimeout(() => { el.style.transform = 'scale(1)'; el.style.color = ''; }, 500);
     }
 
     // Balance beim Laden anzeigen
     updateLandingBalance();
+
+    // =========================================================================
+    // MÜNZEN-SHOP
+    // =========================================================================
+    const COIN_PACKAGES = {
+      small:  { coins: 10000,  price: '1.99',  priceDisplay: '1,99 €',  coinsDisplay: '10.000 Münzen' },
+      medium: { coins: 60000,  price: '4.99',  priceDisplay: '4,99 €',  coinsDisplay: '60.000 Münzen (inkl. 10.000 Bonus!)' },
+      large:  { coins: 200000, price: '9.99',  priceDisplay: '9,99 €',  coinsDisplay: '200.000 Münzen (inkl. 50.000 Bonus!)' },
+      vip:    { coins: 700000, price: '24.99', priceDisplay: '24,99 €', coinsDisplay: '700.000 Münzen (inkl. 200.000 Bonus!)' }
+    };
+
+    let selectedPackage = null;
+
+    function buyCoins(pkg) {
+      selectedPackage = COIN_PACKAGES[pkg];
+      if (!selectedPackage) return;
+
+      document.getElementById('payCoinsDisplay').textContent = selectedPackage.coinsDisplay;
+      document.getElementById('payPriceDisplay').textContent = selectedPackage.priceDisplay;
+      document.getElementById('payModal').classList.add('active');
+
+      // Tabs zurücksetzen
+      switchPayMethod('paypal');
+      updatePayRef();
+
+      // PayPal Buttons rendern
+      renderPayPalButtons();
+    }
+
+    function closePayModal() {
+      document.getElementById('payModal').classList.remove('active');
+    }
+    document.getElementById('payModal')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closePayModal();
+    });
+
+    // Zahlungsmethode wechseln
+    function switchPayMethod(method) {
+      document.querySelectorAll('.pay-method-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.pay-panel').forEach(p => p.classList.remove('active'));
+      document.querySelector(`.pay-method-tab[onclick*="${method}"]`)?.classList.add('active');
+      document.getElementById('payPanel-' + method)?.classList.add('active');
+    }
+
+    // Text kopieren
+    function copyText(text, el) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('📋 Kopiert!');
+        if (el) {
+          el.style.borderColor = 'rgba(68,221,68,.5)';
+          setTimeout(() => el.style.borderColor = '', 1000);
+        }
+      }).catch(() => {
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('📋 Kopiert!');
+      });
+    }
+
+    // WhatsApp Nachricht senden
+    // WICHTIG: Ersetze die Nummer mit deiner echten WhatsApp Business Nummer
+    const WHATSAPP_NUMBER = '491234567890'; // ← Deine Nummer hier (mit Ländercode, ohne +)
+
+    function sendWhatsApp(method) {
+      if (!selectedPackage) return;
+      const user = getUser();
+      const username = user ? user.username : 'Gast';
+
+      let msg = '';
+      if (method === 'amazon') {
+        msg = `Hallo! 🦔\n\nIch möchte ${selectedPackage.coinsDisplay} kaufen (${selectedPackage.priceDisplay}).\n\nMein Spielername: ${username}\n\nZahlung: Amazon-Gutschein\nGutschein-Code: [HIER CODE EINFÜGEN]\n\nBitte Münzen gutschreiben!`;
+      } else if (method === 'bank') {
+        msg = `Hallo! 🦔\n\nIch habe ${selectedPackage.priceDisplay} überwiesen für ${selectedPackage.coinsDisplay}.\n\nMein Spielername: ${username}\n\nBitte Münzen gutschreiben!`;
+      }
+
+      const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+    }
+
+    // Verwendungszweck mit Username aktualisieren
+    function updatePayRef() {
+      const user = getUser();
+      const ref = document.getElementById('payRef');
+      if (ref && user) {
+        ref.textContent = 'CASINO-' + user.username.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      }
+    }
+
+    // PayPal Integration
+    // WICHTIG: Ersetze die Client-ID mit deiner echten PayPal Client-ID
+    // Hol dir eine auf: https://developer.paypal.com/dashboard/applications
+    const PAYPAL_CLIENT_ID = 'YOUR_PAYPAL_CLIENT_ID'; // ← Hier deine ID eintragen
+
+    let paypalLoaded = false;
+    function loadPayPalSDK() {
+      if (paypalLoaded) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        // Wenn noch keine echte ID: simulieren
+        if (PAYPAL_CLIENT_ID === 'YOUR_PAYPAL_CLIENT_ID') {
+          paypalLoaded = true;
+          resolve();
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=EUR`;
+        script.onload = () => { paypalLoaded = true; resolve(); };
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+
+    async function renderPayPalButtons() {
+      const container = document.getElementById('paypal-button-container');
+      container.innerHTML = '';
+
+      await loadPayPalSDK();
+
+      // Demo-Modus (solange keine PayPal Client-ID)
+      if (PAYPAL_CLIENT_ID === 'YOUR_PAYPAL_CLIENT_ID') {
+        container.innerHTML = `
+          <button class="auth-submit" onclick="demoPurchase()" style="margin-bottom:8px">
+            💳 Jetzt bezahlen – ${selectedPackage.priceDisplay}
+          </button>
+          <div style="font-size:11px;color:rgba(240,230,211,.35);margin-top:4px">
+            Demo-Modus · PayPal wird nach Aktivierung verfügbar
+          </div>
+        `;
+        return;
+      }
+
+      // Echte PayPal Buttons
+      paypal.Buttons({
+        style: {
+          layout: 'vertical',
+          color: 'gold',
+          shape: 'rect',
+          label: 'pay',
+          height: 45
+        },
+        createOrder: function(data, actions) {
+          return actions.order.create({
+            purchase_units: [{
+              description: selectedPackage.coinsDisplay,
+              amount: {
+                currency_code: 'EUR',
+                value: selectedPackage.price
+              }
+            }]
+          });
+        },
+        onApprove: function(data, actions) {
+          return actions.order.capture().then(function(details) {
+            // Zahlung erfolgreich!
+            addCoins(selectedPackage.coins);
+            closePayModal();
+            showToast('✅ ' + selectedPackage.coinsDisplay + ' gutgeschrieben!');
+
+            // Server benachrichtigen
+            const token = getToken();
+            if (token) {
+              fetch(API + '/api/shop/purchase', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                  orderId: details.id,
+                  packageId: Object.keys(COIN_PACKAGES).find(k => COIN_PACKAGES[k] === selectedPackage),
+                  coins: selectedPackage.coins,
+                  amount: selectedPackage.price,
+                  payerEmail: details.payer?.email_address
+                })
+              }).catch(() => {});
+            }
+          });
+        },
+        onError: function(err) {
+          showToast('❌ Zahlung fehlgeschlagen');
+          console.error('PayPal error:', err);
+        }
+      }).render('#paypal-button-container');
+    }
+
+    // Demo-Kauf (für Tests ohne PayPal)
+    function demoPurchase() {
+      if (!selectedPackage) return;
+      addCoins(selectedPackage.coins);
+      closePayModal();
+      showToast('✅ ' + selectedPackage.coinsDisplay + ' gutgeschrieben!');
+    }
+
+    // Tägliche Gratis-Münzen
+    function claimDailyFree() {
+      const lastClaim = localStorage.getItem('lastFreeClaim');
+      const today = new Date().toDateString();
+
+      if (lastClaim === today) {
+        showToast('Du hast heute schon deine Gratis-Münzen abgeholt! 🕐');
+        return;
+      }
+
+      localStorage.setItem('lastFreeClaim', today);
+      addCoins(5000);
+      showToast('🎁 5.000 Gratis-Münzen! Komm morgen wieder!');
+      updateDailyBtn();
+    }
+
+    function updateDailyBtn() {
+      const btn = document.getElementById('dailyFreeBtn');
+      const lastClaim = localStorage.getItem('lastFreeClaim');
+      const today = new Date().toDateString();
+
+      if (lastClaim === today) {
+        btn.disabled = true;
+        btn.textContent = '✅ Heute schon abgeholt – morgen wieder!';
+      } else {
+        btn.disabled = false;
+        btn.textContent = '🎁 Tägliche Gratis-Münzen: 5.000';
+      }
+    }
+    updateDailyBtn();
 
     // PWA Install
     let deferredPrompt = null;
@@ -680,6 +1808,16 @@
       window.location.href = '/games/book-of-baxt.html';
     }
 
+    function openBlackjack() {
+      const table = document.getElementById('bjTableSelect').value;
+      window.location.href = '/games/blackjack.html?table=' + table;
+    }
+
+    function openPoker() {
+      const table = document.getElementById('pkTableSelect').value;
+      window.location.href = '/games/poker.html?table=' + table;
+    }
+
     function showSupport(e) {
       e.preventDefault();
       document.getElementById('support-modal').classList.add('active');
@@ -688,12 +1826,226 @@
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Escape') {
         document.getElementById('support-modal').classList.remove('active');
+        closeAuth();
+        closePayModal();
       }
     });
 
     document.getElementById('support-modal')?.addEventListener('click', (e) => {
       if (e.target === e.currentTarget) e.target.classList.remove('active');
     });
+
+    // =========================================================================
+    // AUTH SYSTEM
+    // =========================================================================
+    const API = window.location.origin;
+
+    function getToken() { return localStorage.getItem('casinoToken'); }
+    function setToken(t) { localStorage.setItem('casinoToken', t); }
+    function getUser() {
+      try { return JSON.parse(localStorage.getItem('casinoUser')); } catch(e) { return null; }
+    }
+    function setUser(u) { localStorage.setItem('casinoUser', JSON.stringify(u)); }
+
+    function showAuth(tab) {
+      document.getElementById('authModal').classList.add('active');
+      switchTab(tab || 'register');
+    }
+    function closeAuth() {
+      document.getElementById('authModal').classList.remove('active');
+      document.getElementById('authError').style.display = 'none';
+    }
+    document.getElementById('authModal')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeAuth();
+    });
+
+    function switchTab(tab) {
+      const isReg = tab === 'register';
+      document.getElementById('tabRegister').classList.toggle('active', isReg);
+      document.getElementById('tabLogin').classList.toggle('active', !isReg);
+      document.getElementById('registerForm').style.display = isReg ? 'block' : 'none';
+      document.getElementById('loginForm').style.display = isReg ? 'none' : 'block';
+      document.getElementById('authTitle').textContent = isReg ? 'Mitglied werden' : 'Anmelden';
+      document.getElementById('authError').style.display = 'none';
+    }
+
+    function showAuthError(msg) {
+      const el = document.getElementById('authError');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    async function doRegister(e) {
+      e.preventDefault();
+      const username = document.getElementById('regUsername').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const pin = document.getElementById('regPin').value;
+
+      if (pin.length !== 4) { showAuthError('PIN muss 4 Ziffern haben!'); return; }
+      if (username.length < 2) { showAuthError('Name zu kurz!'); return; }
+
+      try {
+        const res = await fetch(API + '/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, phone, pin })
+        });
+        const data = await res.json();
+        if (!res.ok) { showAuthError(data.error === 'Phone already registered' ? 'Nummer bereits registriert!' : (data.error || 'Fehler')); return; }
+
+        setToken(data.token);
+        setUser(data.user);
+        closeAuth();
+        updateAuthUI();
+        showToast('Willkommen ' + data.user.username + '! 🦔');
+        loadLeaderboard();
+      } catch(err) {
+        showAuthError('Verbindungsfehler – Server läuft?');
+      }
+    }
+
+    async function doLogin(e) {
+      e.preventDefault();
+      const phone = document.getElementById('loginPhone').value.trim();
+      const pin = document.getElementById('loginPin').value;
+
+      try {
+        const res = await fetch(API + '/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, pin })
+        });
+        const data = await res.json();
+        if (!res.ok) { showAuthError('Falsche Daten!'); return; }
+
+        setToken(data.token);
+        setUser(data.user);
+        closeAuth();
+        updateAuthUI();
+        showToast('Willkommen zurück, ' + data.user.username + '! 🎰');
+        loadLeaderboard();
+      } catch(err) {
+        showAuthError('Verbindungsfehler – Server läuft?');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('casinoToken');
+      localStorage.removeItem('casinoUser');
+      updateAuthUI();
+      showToast('Abgemeldet');
+      loadLeaderboard();
+    }
+
+    function updateAuthUI() {
+      const user = getUser();
+      const token = getToken();
+      const loggedIn = !!(user && token);
+
+      document.getElementById('loginBtn').style.display = loggedIn ? 'none' : '';
+      document.getElementById('registerBtn').style.display = loggedIn ? 'none' : '';
+      document.getElementById('userInfo').style.display = loggedIn ? 'flex' : 'none';
+      document.getElementById('toplisteCta').style.display = loggedIn ? 'none' : 'block';
+
+      if (loggedIn) {
+        document.getElementById('userName').textContent = user.username;
+        document.getElementById('userAvatar').textContent = user.username.charAt(0).toUpperCase();
+        // Rang laden
+        loadMyRank();
+      }
+    }
+
+    async function loadMyRank() {
+      const token = getToken();
+      if (!token) return;
+      try {
+        const res = await fetch(API + '/api/leaderboard/me', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const rankEl = document.getElementById('userRank');
+          rankEl.textContent = data.rank > 0
+            ? 'Platz ' + data.rank + ' · ' + fmtEuro(data.totalWin) + ' Gewinne'
+            : 'Noch keine Gewinne diese Woche';
+        }
+      } catch(e) {}
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // =========================================================================
+    // TOPLISTE LADEN
+    // =========================================================================
+    async function loadLeaderboard() {
+      try {
+        const res = await fetch(API + '/api/leaderboard');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Woche anzeigen
+        document.getElementById('toplisteWeek').textContent = data.week;
+
+        // Countdown
+        if (data.endsAt) startCountdown(new Date(data.endsAt));
+
+        // Tabelle füllen
+        const tbody = document.getElementById('toplisteBody');
+        const user = getUser();
+
+        if (!data.entries || data.entries.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" class="topliste-empty">Noch keine Einträge diese Woche.<br>Werde Mitglied und spiele mit!</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.entries.map(e => {
+          const isYou = user && (e.username === user.username);
+          const medalCls = e.rank <= 3 ? 'rank-' + e.rank : 'rank-other';
+          const medals = ['', '🥇', '🥈', '🥉'];
+          const rankDisplay = e.rank <= 3
+            ? '<span class="rank-medal ' + medalCls + '">' + medals[e.rank] + '</span>'
+            : '<span class="rank-medal rank-other">' + e.rank + '</span>';
+          return '<tr class="' + (isYou ? 'topliste-you' : '') + '">'
+            + '<td>' + rankDisplay + '</td>'
+            + '<td>' + e.username + (isYou ? ' <small>(Du)</small>' : '') + '</td>'
+            + '<td>' + fmtEuro(e.totalWin) + '</td>'
+            + '</tr>';
+        }).join('');
+      } catch(e) {
+        // Server nicht erreichbar – kein Problem
+      }
+    }
+
+    let countdownInterval = null;
+    function startCountdown(endDate) {
+      if (countdownInterval) clearInterval(countdownInterval);
+      const el = document.getElementById('timerCountdown');
+      function tick() {
+        const now = new Date();
+        const diff = endDate - now;
+        if (diff <= 0) { el.textContent = 'Auswertung läuft...'; return; }
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        el.textContent = (d > 0 ? d + 'T ' : '') + h + 'h ' + m + 'm ' + s + 's';
+      }
+      tick();
+      countdownInterval = setInterval(tick, 1000);
+    }
+
+    // =========================================================================
+    // INIT
+    // =========================================================================
+    updateAuthUI();
+    loadLeaderboard();
+    // Refresh leaderboard alle 30 Sekunden
+    setInterval(loadLeaderboard, 30000);
   </script>
 
 </body>
