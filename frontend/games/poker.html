@@ -156,9 +156,11 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .seat{
   position:absolute;pointer-events:all;
   width:clamp(70px,15vw,105px);
-  text-align:center;cursor:pointer;transition:.2s;
+  text-align:center;cursor:grab;
   transform:translate(-50%,-50%);
+  touch-action:none;
 }
+.seat.dragging{cursor:grabbing;z-index:50;opacity:.85}
 /* Gegner – mittig zwischen Top-Bar und Pot */
 .seat[data-pos="0"]{top:34%;left:10%}
 .seat[data-pos="1"]{top:29%;left:30%}
@@ -1307,16 +1309,18 @@ const CardAnim = {
         PokerSFX.cardDeal();
       }, i * 120 + 80);
     });
-    // Karten zum eigenen Hand-Bereich
-    const myIdx = seatIndices.length;
-    setTimeout(() => {
-      this.flyCard(dealer, this.myHandPos(), { duration: 400, startScale: 0.4, endScale: 1.2, startRot: -15 });
-      PokerSFX.cardDeal();
-    }, myIdx * 120);
-    setTimeout(() => {
-      this.flyCard(dealer, this.myHandPos(), { duration: 400, startScale: 0.4, endScale: 1.2, startRot: 15 });
-      PokerSFX.cardDeal();
-    }, myIdx * 120 + 80);
+    // Karten zum eigenen Hand-Bereich (nur wenn am Tisch)
+    if (mySeat >= 0) {
+      const myIdx = seatIndices.length;
+      setTimeout(() => {
+        this.flyCard(dealer, this.myHandPos(), { duration: 400, startScale: 0.4, endScale: 1.2, startRot: -15 });
+        PokerSFX.cardDeal();
+      }, myIdx * 120);
+      setTimeout(() => {
+        this.flyCard(dealer, this.myHandPos(), { duration: 400, startScale: 0.4, endScale: 1.2, startRot: 15 });
+        PokerSFX.cardDeal();
+      }, myIdx * 120 + 80);
+    }
   },
 
   // Community-Karten: fliegen zur Mitte
@@ -1429,7 +1433,78 @@ window.submitName = function() {
 let myState = null;
 let mySeat = -1;
 let currentPhase = 'waiting';
-let prevFoldState = [false,false,false,false,false,false]; // Fold-Status pro Seat tracken
+let prevFoldState = [false,false,false,false,false,false];
+
+// ===================== DRAGGABLE SEATS =====================
+// Gespeicherte Positionen laden
+const seatPositions = (() => {
+  try { return JSON.parse(localStorage.getItem('pokerSeatPositions')) || {}; }
+  catch(e) { return {}; }
+})();
+
+function saveSeatPositions() {
+  try { localStorage.setItem('pokerSeatPositions', JSON.stringify(seatPositions)); } catch(e) {}
+}
+
+function initSeatDrag(el, seatIdx) {
+  let isDragging = false;
+  let startX, startY, origLeft, origTop;
+  let dragMoved = false;
+
+  function getPos(e) {
+    if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  function onStart(e) {
+    if (el.classList.contains('you')) return;
+    const pos = getPos(e);
+    startX = pos.x; startY = pos.y;
+    // getBoundingClientRect berücksichtigt transform:translate(-50%,-50%)
+    const r = el.getBoundingClientRect();
+    origLeft = r.left + r.width/2; // center X (wegen translate -50%)
+    origTop = r.top + r.height/2;  // center Y
+    isDragging = true; dragMoved = false;
+    el.classList.add('dragging');
+  }
+
+  function onMove(e) {
+    if (!isDragging) return;
+    const pos = getPos(e);
+    const dx = pos.x - startX;
+    const dy = pos.y - startY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragMoved = true;
+    if (!dragMoved) return;
+    e.preventDefault();
+    const newLeft = origLeft + dx;
+    const newTop = origTop + dy;
+    const maxX = window.innerWidth - 20;
+    const maxY = window.innerHeight - 20;
+    // Setze pixel-Position (transform translate(-50%,-50%) zentriert automatisch)
+    el.style.left = Math.max(10, Math.min(maxX, newLeft)) + 'px';
+    el.style.top = Math.max(40, Math.min(maxY, newTop)) + 'px';
+  }
+
+  function onEnd(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    el.classList.remove('dragging');
+    el._dragMoved = dragMoved;
+    if (dragMoved) {
+      seatPositions[seatIdx] = { top: el.style.top, left: el.style.left };
+      saveSeatPositions();
+    }
+    // Reset nach kurzem Delay (damit onclick den Status noch lesen kann)
+    setTimeout(() => { el._dragMoved = false; }, 50);
+  }
+
+  el.addEventListener('mousedown', onStart);
+  el.addEventListener('touchstart', onStart, { passive: true });
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('mouseup', onEnd);
+  window.addEventListener('touchend', onEnd);
+}
 let raiseAmount = 200;
 let turnTimer = null;
 let turnTimerStart = 0;
@@ -1483,20 +1558,20 @@ function renderState(state) {
     const announcements = { preflop:'Neue Runde!', flop:'Flop!', turn:'Turn!', river:'River!', showdown:'Aufdecken!' };
     if (announcements[state.phase]) showPhase(announcements[state.phase]);
     // Phase-Sounds + Kartenflug
-    if (state.phase === 'preflop') {
-      // Karten an alle besetzten Plätze fliegen lassen
-      const occupiedSeats = [];
-      for (let i = 0; i < 6; i++) {
-        if (state.seats[i] && !state.seats[i].isYou) occupiedSeats.push(i);
+    try {
+      if (state.phase === 'preflop') {
+        const occupiedSeats = [];
+        for (let i = 0; i < 6; i++) {
+          if (state.seats[i] && !state.seats[i].isYou) occupiedSeats.push(i);
+        }
+        CardAnim.animateDeal(occupiedSeats);
+        prevFoldState = [false,false,false,false,false,false];
       }
-      CardAnim.animateDeal(occupiedSeats);
-      // Fold-States zurücksetzen für neue Runde
-      prevFoldState = [false,false,false,false,false,false];
-    }
-    else if (state.phase === 'flop') { CardAnim.animateCommunity(3, 0); }
-    else if (state.phase === 'turn') { CardAnim.animateCommunity(1, 3); }
-    else if (state.phase === 'river') { CardAnim.animateCommunity(1, 4); }
-    else if (state.phase === 'showdown') PokerSFX.showdown();
+      else if (state.phase === 'flop') { CardAnim.animateCommunity(3, 0); }
+      else if (state.phase === 'turn') { CardAnim.animateCommunity(1, 3); }
+      else if (state.phase === 'river') { CardAnim.animateCommunity(1, 4); }
+      else if (state.phase === 'showdown') PokerSFX.showdown();
+    } catch(e) { console.warn('CardAnim error:', e); }
   }
   // Du bist dran
   const wasMyTurn = prevPhase && myState && myState.currentSeat >= 0 && myState.seats[myState.currentSeat] && myState.seats[myState.currentSeat].isYou;
@@ -1521,30 +1596,46 @@ function renderState(state) {
   // Phase label
   document.getElementById('phaseLabel').textContent = phaseMap(state.phase);
 
-  // Seats
+  // Seats – in-place Update (Position bleibt erhalten bei Drag)
   const container = document.getElementById('seatsContainer');
-  container.innerHTML = '';
   mySeat = -1;
 
   for (let i = 0; i < 6; i++) {
     const s = state.seats[i];
-    const div = document.createElement('div');
-    div.className = 'seat';
-    div.setAttribute('data-pos', i);
+    let div = container.querySelector(`.seat[data-pos="${i}"]`);
+    if (!div) {
+      div = document.createElement('div');
+      div.className = 'seat';
+      div.setAttribute('data-pos', i);
+      container.appendChild(div);
+      // Gespeicherte Position laden
+      const saved = seatPositions[i];
+      if (saved) { div.style.top = saved.top; div.style.left = saved.left; }
+      // Drag initialisieren
+      initSeatDrag(div, i);
+    }
 
+    // Klassen setzen (ohne Position zu verlieren)
+    let cls = 'seat';
     if (!s) {
-      div.className += ' empty';
+      cls += ' empty';
+    } else {
+      if (s.isYou) { cls += ' you'; mySeat = i; }
+      if (state.currentSeat === i) cls += ' active';
+      if (s.folded) cls += ' folded';
+      if (s.peeking) cls += ' peeking';
+    }
+    if (div.classList.contains('dragging')) cls += ' dragging';
+    div.className = cls;
+
+    // Inhalt aktualisieren
+    if (!s) {
       div.innerHTML = `<div class="seat-inner">
         <div class="seat-cards"></div>
         <div class="seat-name">Freier Platz</div>
       </div>`;
-      div.onclick = () => joinSeat(i);
+      div.onclick = (e) => { if (!div._dragMoved) joinSeat(i); };
     } else {
-      if (s.isYou) { div.className += ' you'; mySeat = i; }
-      if (state.currentSeat === i) div.className += ' active';
-      if (s.folded) div.className += ' folded';
-      if (s.peeking) div.className += ' peeking';
-
       const dealerChip = s.isDealer ? '<div class="dealer-chip">D</div>' : '';
       const betBubble = s.bet > 0 ? `<div class="seat-bet-bubble">${s.bet.toLocaleString('de-DE')}</div>` : '';
       const handName = s.handName ? `<div class="seat-hand">${s.handName}</div>` : '';
@@ -1559,23 +1650,24 @@ function renderState(state) {
         <div class="seat-chips">💰 ${(s.chips || 0).toLocaleString('de-DE')}</div>
         ${botStyle}${betBubble}${handName}${foldedLabel}
       </div>`;
+      div.onclick = null;
     }
-    container.appendChild(div);
   }
 
   // Fold-Animationen: erkennen wer gerade gefoldet hat
-  for (let i = 0; i < 6; i++) {
-    const s = state.seats[i];
-    const nowFolded = s && s.folded;
-    if (nowFolded && !prevFoldState[i]) {
-      // Spieler hat gerade gefoldet → Karten fliegen zur Mitte
-      if (!s.isYou) {
-        CardAnim.animateFold(i);
-        PokerSFX.fold(); // Sound nur für andere Spieler (eigener Fold spielt Sound in doFold)
+  try {
+    for (let i = 0; i < 6; i++) {
+      const s = state.seats[i];
+      const nowFolded = s && s.folded;
+      if (nowFolded && !prevFoldState[i]) {
+        if (!s.isYou) {
+          CardAnim.animateFold(i);
+          PokerSFX.fold();
+        }
       }
+      prevFoldState[i] = !!nowFolded;
     }
-    prevFoldState[i] = !!nowFolded;
-  }
+  } catch(e) { console.warn('Fold anim error:', e); }
 
   // Timer for active turn
   const isMyTurn = state.currentSeat >= 0 && state.seats[state.currentSeat] && state.seats[state.currentSeat].isYou;
