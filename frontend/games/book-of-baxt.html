@@ -1974,6 +1974,22 @@ async function doSpin() {
     }
   }
 
+  // Scatter VOR dem Expanding zählen (sonst werden Bücher überschrieben!)
+  let preExpandScatterCount = 0;
+  let preExpandScatterPositions = [];
+  if (freeSpinSymbol) {
+    for (let r = 0; r < 5; r++) {
+      if (!lockedReels[r]) { // nur nicht-gelockte Walzen prüfen
+        for (let row = 0; row < VISIBLE_ROWS; row++) {
+          if (grid[r][row].id === 'book') {
+            preExpandScatterCount++;
+            preExpandScatterPositions.push([r, row]);
+          }
+        }
+      }
+    }
+  }
+
   // Free spin expanding symbol: if the chosen symbol appears on a reel, fill the ENTIRE reel
   if (freeSpinSymbol && freeSpins >= 0) {
     // Keep already locked reels filled
@@ -2015,6 +2031,20 @@ async function doSpin() {
 
   // Check wins
   const wins = checkWins();
+
+  // Im Freispiel: Scatter-Count von VOR dem Expanding verwenden
+  if (freeSpinSymbol && preExpandScatterCount > wins.scatterCount) {
+    wins.scatterCount = preExpandScatterCount;
+    wins.scatterPositions = preExpandScatterPositions;
+    // Scatter-Gewinn nachrechnen
+    if (preExpandScatterCount >= 3) {
+      const bookSym = SYMBOLS[0];
+      const scatterPay = bookSym.mult[preExpandScatterCount - 1] * betPerLine * lines;
+      // Nur die Differenz addieren falls schon Scatter-Gewinn drin
+      const existingScatterPay = wins.scatterCount >= 3 ? bookSym.mult[wins.scatterCount - 1] * betPerLine * lines : 0;
+      wins.totalWin += scatterPay - existingScatterPay;
+    }
+  }
 
   if (wins.totalWin > 0) {
     const oldBal = balance;
