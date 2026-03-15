@@ -671,6 +671,11 @@
       document.getElementById('installBtn').style.display = 'none';
     }
 
+    // Service Worker registrieren (nötig für PWA Install)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
     function playGame() {
       window.location.href = '/games/book-of-baxt.html';
     }
