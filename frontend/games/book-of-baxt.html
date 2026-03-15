@@ -1001,14 +1001,19 @@ const SFX = {
     if (!this.ctx || this.muted) return;
     // Clear any previous wheel sound loop (important for free spins / rapid play)
     if (this._wheelInterval) { clearTimeout(this._wheelInterval); this._wheelInterval = null; }
+    if (this._wheelSafetyTimeout) { clearTimeout(this._wheelSafetyTimeout); }
 
     // Rhythmic clicking that accelerates - like a wooden wagon wheel
-    // Matches 4-phase animation: 200ms accel, 1.5s cruise, 1.8s decel, 300ms bounce
-    this._wheelSpeed = 160; // start interval (ms between clicks)
+    this._wheelSpeed = 160;
     this._wheelStopping = false;
-    this._reelsLanding = false; // true once first reel stops → no more acceleration
+    this._reelsLanding = false;
     let clickCount = 0;
     const self = this;
+
+    // Safety: Sound nach max 8 Sekunden IMMER stoppen (falls Callback verpasst)
+    this._wheelSafetyTimeout = setTimeout(() => {
+      self.stopReelAmbience();
+    }, 8000);
 
     const doClick = () => {
       if (self.muted || self._wheelStopping) return;
@@ -1078,17 +1083,17 @@ const SFX = {
     // Stronger bump on each reel impact — wheel jerks slower
     this._wheelSpeed = Math.min(300, this._wheelSpeed + 20 + idx * 12);
 
-    // Last reel: one final click then immediate silence
-    if (idx === 4) {
+    // Last reel (idx 4) OR wenn alle Walzen stehen: sofort stoppen
+    if (idx >= 4) {
       this._wheelStopping = true;
+      if (this._wheelSafetyTimeout) { clearTimeout(this._wheelSafetyTimeout); }
       setTimeout(() => {
-        if (this.muted) return;
         this._tick(55, 0.04, 0.03, 'sine');
         clearTimeout(this._wheelInterval);
         this._wheelInterval = null;
         this._wheelStopping = false;
         this._reelsLanding = false;
-      }, 200);
+      }, 150);
     }
   },
 
@@ -1163,8 +1168,10 @@ const SFX = {
   startReelAmbience() { this.spinStart(); },
   stopReelAmbience() {
     this._wheelStopping = true;
+    this._reelsLanding = false;
     clearTimeout(this._wheelInterval);
     this._wheelInterval = null;
+    if (this._wheelSafetyTimeout) { clearTimeout(this._wheelSafetyTimeout); this._wheelSafetyTimeout = null; }
   }
 };
 
@@ -2250,6 +2257,7 @@ async function doSpin() {
 
   updateUI();
   spinning = false;
+  SFX.stopReelAmbience(); // Sicherheit: Sound IMMER stoppen wenn Spin fertig
   document.getElementById('spinBtn').disabled = false;
   document.getElementById('spinBtn').classList.remove('is-stop');
 
