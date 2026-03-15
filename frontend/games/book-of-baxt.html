@@ -441,11 +441,10 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 
 /* ========== MUTE BUTTON ========== */
 .mute-btn{
-  position:absolute;top:4px;right:4px;z-index:90;
   background:none;border:1px solid rgba(212,175,55,.3);color:#D4AF37;
   width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;
   display:flex;align-items:center;justify-content:center;
-  transition:.2s;opacity:.6;
+  transition:.2s;opacity:.6;flex-shrink:0;margin-left:4px;
 }
 .mute-btn:hover{opacity:1;border-color:#D4AF37}
 
@@ -509,7 +508,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   .side-btn{padding:2px 5px;font-size:7px}
   .frame-bar{height:3px}
   .sym-cell{aspect-ratio:1/1}
-  .mute-btn{width:20px;height:20px;font-size:10px;top:1px;right:1px}
+  .mute-btn{width:20px;height:20px;font-size:10px}
   .hand-switch{font-size:12px;padding:1px 4px}
   /* Reels take all remaining space */
   .reels-vp{flex:1;min-height:0}
@@ -690,6 +689,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
       <div class="bl">GUTHABEN</div>
       <div class="bv" id="balVal">10000</div>
     </div>
+    <button class="mute-btn" id="muteBtn" onclick="toggleMute()" title="Ton an/aus">🔊</button>
     <button class="fullscreen-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Vollbild">⛶</button>
   </div>
 
@@ -788,9 +788,6 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
     </div>
     <div class="gamble-info">Verdopple deinen Gewinn oder verliere alles!</div>
   </div>
-
-  <!-- Mute button -->
-  <button class="mute-btn" id="muteBtn" onclick="toggleMute()" title="Ton an/aus">🔊</button>
 
   <!-- Coin/particle canvas overlay -->
   <canvas id="fxCanvas" style="position:absolute;inset:0;z-index:80;pointer-events:none"></canvas>
@@ -3012,22 +3009,29 @@ function toggleFullscreen() {
   }
 }
 
-// Show fullscreen splash on mobile (landscape only, portrait shows rotate overlay)
+// Show fullscreen splash on mobile
 function checkFullscreenSplash() {
-  if (isMobile() && !document.fullscreenElement && !document.webkitFullscreenElement && !isStandalone()) {
-    // Only show in landscape — portrait shows rotate overlay instead
-    if (window.innerWidth > window.innerHeight) {
-      document.getElementById('fsSplash').style.display = 'flex';
-      // iOS: show homescreen guide instead of fullscreen button
-      if (isIOS()) {
-        document.getElementById('fsSplashBtn').style.display = 'none';
-        document.getElementById('fsSplashSub').style.display = 'none';
-        document.getElementById('iosGuide').style.display = 'block';
-      } else {
-        document.getElementById('fsSplashBtn').style.display = '';
-        document.getElementById('fsSplashSub').style.display = '';
-        document.getElementById('iosGuide').style.display = 'none';
-      }
+  if (!isMobile() || isStandalone()) return;
+  if (document.fullscreenElement || document.webkitFullscreenElement) return;
+
+  const splash = document.getElementById('fsSplash');
+  const isLandscape = window.innerWidth > window.innerHeight;
+
+  if (isIOS()) {
+    // iOS: show guide in both orientations (rotate overlay handles portrait separately)
+    if (isLandscape) {
+      splash.style.display = 'flex';
+      document.getElementById('fsSplashBtn').style.display = 'none';
+      document.getElementById('fsSplashSub').style.display = 'none';
+      document.getElementById('iosGuide').style.display = 'block';
+    }
+  } else {
+    // Android/other: show fullscreen button in landscape
+    if (isLandscape) {
+      splash.style.display = 'flex';
+      document.getElementById('fsSplashBtn').style.display = '';
+      document.getElementById('fsSplashSub').style.display = '';
+      document.getElementById('iosGuide').style.display = 'none';
     }
   }
 }
