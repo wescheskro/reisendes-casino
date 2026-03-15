@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Buch des Baxt - Reisendes Casino</title>
+<title>Stachelingo Rodern - Reisendes Casino</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Uncial+Antiqua&display=swap" rel="stylesheet">
 <style>
@@ -435,18 +435,80 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 }
 .mute-btn:hover{opacity:1;border-color:#D4AF37}
 
-/* ========== RESPONSIVE ========== */
-@media(max-width:600px){
+/* ========== ROTATE PHONE OVERLAY ========== */
+.rotate-overlay{
+  display:none;position:fixed;inset:0;z-index:99999;
+  background:#000;
+  flex-direction:column;align-items:center;justify-content:center;
+  color:#D4AF37;font-family:'Cinzel',serif;text-align:center;
+}
+.rotate-overlay .rotate-icon{
+  font-size:64px;margin-bottom:20px;
+  animation:rotateHint 2s ease-in-out infinite;
+}
+@keyframes rotateHint{
+  0%,100%{transform:rotate(0deg)}
+  25%{transform:rotate(-90deg)}
+  50%{transform:rotate(-90deg)}
+  75%{transform:rotate(0deg)}
+}
+.rotate-overlay .rotate-text{
+  font-size:18px;letter-spacing:2px;
+}
+.rotate-overlay .rotate-sub{
+  font-size:12px;color:rgba(212,175,55,.5);margin-top:8px;
+}
+
+/* Show rotate overlay only in portrait on small screens */
+@media(max-width:600px) and (orientation:portrait){
+  .rotate-overlay{display:flex}
+  .game-wrap{display:none !important}
+}
+
+/* ========== RESPONSIVE - Landscape Mobile ========== */
+@media(max-height:500px){
   .game-wrap{border-radius:0;width:100vw;height:100vh;max-height:none;aspect-ratio:auto}
-  .gold-frame-l,.gold-frame-r{width:28px}
-  .pln{width:22px;height:18px;font-size:8px}
-  .top-bar{height:44px}
-  .ctrl-panel{height:48px}
-  .cg{min-width:50px;padding:2px 4px}
+  .gold-frame-l,.gold-frame-r{width:22px}
+  .pln{width:18px;height:15px;font-size:7px}
+  .top-bar{height:32px;padding:0 8px}
+  .top-bar h1{font-size:14px !important;letter-spacing:1px}
+  .top-bar .sub{display:none}
+  .back-btn{padding:3px 8px;font-size:9px}
+  .bal-display{padding:2px 8px}
+  .bal-display .bv{font-size:13px}
+  .bal-display .bl{font-size:6px}
+  .info-bar{height:22px;font-size:10px}
+  .ctrl-panel{height:40px;gap:2px;padding:0 4px}
+  .cg{min-width:42px;padding:1px 3px}
+  .cg .cg-label{font-size:6px}
+  .cg .cg-val{font-size:12px}
+  .cg-btns button{width:18px;height:14px;font-size:10px}
+  .spin-wrap{margin:0 4px}
+  .spin-btn{width:36px !important;height:36px !important}
+  .side-btn{padding:3px 6px;font-size:8px}
+  .frame-bar{height:4px}
+  .sym-cell{aspect-ratio:1/1}
+  .mute-btn{width:22px;height:22px;font-size:11px;top:2px;right:2px}
+}
+
+/* Extra small landscape (e.g. older phones) */
+@media(max-height:380px){
+  .top-bar{height:26px}
+  .ctrl-panel{height:34px}
+  .info-bar{height:18px;font-size:9px}
+  .gold-frame-l,.gold-frame-r{width:18px}
+  .spin-btn{width:30px !important;height:30px !important}
 }
 </style>
 </head>
 <body>
+
+<!-- ========== ROTATE PHONE OVERLAY ========== -->
+<div class="rotate-overlay">
+  <div class="rotate-icon">📱</div>
+  <div class="rotate-text">Dreh dein Handy!</div>
+  <div class="rotate-sub">Querformat für das beste Spielerlebnis</div>
+</div>
 
 <!-- ========== BACKGROUND ========== -->
 <div class="bg">
@@ -468,7 +530,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   <div class="top-bar">
     <button class="back-btn" onclick="location.href='/'">◄ LOBBY</button>
     <div class="title-area">
-      <h1>Buch des Baxt</h1>
+      <h1>Stachelingo Rodern</h1>
       <div class="sub">REISENDES CASINO</div>
     </div>
     <div class="bal-display">
@@ -588,7 +650,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 
 <script>
 // ============================================================
-//  BUCH DES BAXT - Professional Slot Engine
+//  STACHELINGO RODERN - Professional Slot Engine
 //  Reisendes Casino © 2026
 // ============================================================
 
@@ -794,6 +856,29 @@ const SFX = {
   gambleLose() { this._playMP3('gambleLoseSound', { maxDuration: 2000 }); },
   coinTick() { this._playMP3('coins', { volume: 0.2, playbackRate: 1.2 + Math.random()*0.6, maxDuration: 400 }); },
 
+  // Mystical shimmer when a book/scatter lands on a reel
+  bookLand() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    // Magical rising chime
+    [523, 659, 784, 1047].forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t + i * 0.06);
+      g.gain.setValueAtTime(0, t + i * 0.06);
+      g.gain.linearRampToValueAtTime(0.12, t + i * 0.06 + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.4);
+      osc.connect(g); g.connect(this.ctx.destination);
+      osc.start(t + i * 0.06);
+      osc.stop(t + i * 0.06 + 0.5);
+    });
+    // Shimmery noise sweep
+    this._noise(0.3, 0.06, 6000);
+    // Deep mystical tone
+    this._tick(130, 0.3, 0.08, 'sine');
+  },
+
   startReelAmbience() { this.spinStart(); },
   stopReelAmbience() {
     this._wheelStopping = true;
@@ -964,12 +1049,12 @@ function animateCounter(elementId, from, to, duration = 500) {
 // ===== SYMBOL DEFINITIONS =====
 // HD SVG symbols with rich gradients and detail
 const SYMBOLS = [
-  {id:'book',   name:'Buch des Baxt', cls:'premium book-sym', mult:[0,0,2,20,200],  scatter:true, wild:true},
+  {id:'book',   name:'Stachelingo',    cls:'premium book-sym', mult:[0,0,2,20,200],  scatter:true, wild:true},
   {id:'mann',   name:'Reisender',     cls:'premium', mult:[0,0,50,100,5000]},
   {id:'wagen',  name:'Wagen',         cls:'premium', mult:[0,0,30,40,400]},
   {id:'pferd',  name:'Grast',         cls:'premium', mult:[0,0,20,30,200]},
   {id:'geige',  name:'Geige',         cls:'premium', mult:[0,0,20,30,150]},
-  {id:'eye',    name:'Auge',          cls:'premium', mult:[0,0,15,15,100]},
+  {id:'eye',    name:'Wahrsagerin',   cls:'premium', mult:[0,0,15,15,100]},
   {id:'A',      name:'A',             cls:'letter',  mult:[0,0,5,10,75]},
   {id:'K',      name:'K',             cls:'letter',  mult:[0,0,5,10,50]},
   {id:'Q',      name:'Q',             cls:'letter',  mult:[0,0,5,10,50]},
@@ -1372,6 +1457,9 @@ let autoPlay = false;
 let freeSpins = 0;
 let freeSpinSymbol = null;
 let freeSpinTotalWin = 0;
+let freeSpinNumber = 0;      // current spin number (for display)
+let freeSpinTotalCount = 0;  // total free spins awarded (incl. re-triggers)
+let lockedReels = [false, false, false, false, false]; // persistent expanded reels
 let gambleWin = 0;
 
 // Grid: 5 reels x 3 rows (visible)
@@ -1524,7 +1612,7 @@ function renderReel(r) {
 
 function randomSymbol() {
   // Weighted random - lower value symbols more frequent
-  const weights = [2, 3, 4, 5, 5, 6, 10, 10, 12, 12, 14];
+  const weights = [5, 3, 4, 5, 5, 6, 10, 10, 12, 12, 14];
   const total = weights.reduce((a,b) => a+b, 0);
   let rand = Math.random() * total;
   for (let i = 0; i < SYMBOLS.length; i++) {
@@ -1585,9 +1673,9 @@ function tweakNearWins(results) {
     }
   }
 
-  // Scatter boost: ~8% chance to upgrade a random symbol to book (scatter)
-  // Makes free spins trigger slightly more often
-  if (Math.random() < 0.08) {
+  // Scatter boost: ~15% chance to upgrade a random symbol to book (scatter)
+  // Makes free spins trigger more often - more Igel on the reels!
+  if (Math.random() < 0.15) {
     const r = Math.floor(Math.random() * 5);
     const row = Math.floor(Math.random() * 3);
     if (!locked[r][row]) {
@@ -1598,7 +1686,11 @@ function tweakNearWins(results) {
 
 // ===== SPIN LOGIC =====
 async function doSpin() {
-  if (spinning) return;
+  // If already spinning, quick-stop all reels
+  if (spinning) {
+    quickStopRequested = true;
+    return;
+  }
 
   const totalBet = betPerLine * lines;
   if (freeSpins <= 0 && balance < totalBet) {
@@ -1609,15 +1701,18 @@ async function doSpin() {
   spinning = true;
   SFX.resume();
   SFX.spinStart();
-  document.getElementById('spinBtn').disabled = true;
-  document.getElementById('spinBtn').classList.add('is-stop');
+  const spinBtn = document.getElementById('spinBtn');
+  spinBtn.classList.add('is-stop');
+  // Allow clicking to quick-stop (don't disable the button)
+  spinBtn.disabled = false;
   document.getElementById('gambleBtn').style.display = 'none';
   clearWinHighlights();
   clearWinLines();
 
   if (freeSpins > 0) {
     freeSpins--;
-    setInfo(`Freispiel ${10 - freeSpins} von 10`, 'fs-msg');
+    freeSpinNumber++;
+    setInfo(`Freispiel ${freeSpinNumber} von ${freeSpinTotalCount}`, 'fs-msg');
   } else {
     balance -= totalBet;
   }
@@ -1627,11 +1722,20 @@ async function doSpin() {
   // Generate results
   const results = [];
   for (let r = 0; r < 5; r++) {
-    const col = [];
-    for (let row = 0; row < VISIBLE_ROWS; row++) {
-      col.push(randomSymbol());
+    if (freeSpinSymbol && lockedReels[r]) {
+      // Locked reel: keep the expanding symbol
+      const col = [];
+      for (let row = 0; row < VISIBLE_ROWS; row++) {
+        col.push(freeSpinSymbol);
+      }
+      results.push(col);
+    } else {
+      const col = [];
+      for (let row = 0; row < VISIBLE_ROWS; row++) {
+        col.push(randomSymbol());
+      }
+      results.push(col);
     }
-    results.push(col);
   }
 
   // "Grade noch so" - extend partial matches so wins barely land more often
@@ -1647,6 +1751,45 @@ async function doSpin() {
     }
   }
 
+  // Free spin expanding symbol: if the chosen symbol appears on a reel, fill the ENTIRE reel
+  if (freeSpinSymbol && freeSpins >= 0) {
+    // Keep already locked reels filled
+    for (let r = 0; r < 5; r++) {
+      if (lockedReels[r]) {
+        for (let row = 0; row < VISIBLE_ROWS; row++) {
+          grid[r][row] = freeSpinSymbol;
+        }
+      }
+    }
+    // Expand newly landed reels and lock them
+    for (let r = 0; r < 5; r++) {
+      if (!lockedReels[r]) {
+        let hasExpand = false;
+        for (let row = 0; row < VISIBLE_ROWS; row++) {
+          if (grid[r][row].id === freeSpinSymbol.id) { hasExpand = true; break; }
+        }
+        if (hasExpand) {
+          lockedReels[r] = true;
+          for (let row = 0; row < VISIBLE_ROWS; row++) {
+            grid[r][row] = freeSpinSymbol;
+          }
+        }
+      }
+    }
+    // Check if 4 reels are locked → next spin only the 5th reel spins, then reset
+    const lockedCount = lockedReels.filter(Boolean).length;
+    if (lockedCount >= 4) {
+      // Find the unlocked reel
+      const unlockedReel = lockedReels.indexOf(false);
+      if (unlockedReel !== -1) {
+        // Mark all 5 as locked for win calculation (5th stays as-is from results)
+        // Don't lock the 5th yet - it will spin alone next round
+      }
+      // After this spin's wins are processed, reset locks for next spin cycle
+      // But first let wins be calculated with current grid
+    }
+  }
+
   // Check wins
   const wins = checkWins();
 
@@ -1655,7 +1798,7 @@ async function doSpin() {
     lastWin = wins.totalWin;
     balance += lastWin;
 
-    if (freeSpins > 0) freeSpinTotalWin += lastWin;
+    if (freeSpinSymbol) freeSpinTotalWin += lastWin;
 
     // Show win effects
     highlightWins(wins);
@@ -1685,7 +1828,7 @@ async function doSpin() {
       FX.spawnCoins(FX.canvas.width / 2, FX.canvas.height / 2, 15);
       // Romani win phrases
       const phrases = ['Baxtalo!','Latscho!','Kushti!','Opre!','Sastipen!'];
-      setInfo(`${phrases[Math.floor(Math.random()*phrases.length)]} GEWINN: ${lastWin}`, 'win-msg');
+      setInfo(`${phrases[Math.floor(Math.random()*phrases.length)]} GEWINN: ${lastWin} €`, 'win-msg');
     }
 
     // Animate balance counter
@@ -1700,10 +1843,32 @@ async function doSpin() {
     setInfo(freeSpins > 0 ? `Noch ${freeSpins} Freispiele` : 'Kein Gewinn');
   }
 
-  // Check for scatter (3+ books = free spins)
-  if (wins.scatterCount >= 3 && freeSpins <= 0) {
-    SFX.scatter();
-    await startFreeSpins();
+  // Check for scatter (3+ books = free spins or re-trigger)
+  if (wins.scatterCount >= 3) {
+    if (freeSpins > 0) {
+      // Re-trigger: 10 more free spins during free spins!
+      freeSpins += 10;
+      freeSpinTotalCount += 10;
+      SFX.scatter();
+      SFX.freeSpins();
+      setInfo(`+10 Freispiele! Jetzt ${freeSpins} Freispiele!`, 'fs-msg');
+      await new Promise(r => setTimeout(r, 2000));
+    } else {
+      SFX.scatter();
+      await startFreeSpins();
+    }
+  }
+
+  // If 4+ reels are locked, reset locks for next free spin cycle
+  if (freeSpinSymbol && lockedReels.filter(Boolean).length >= 4) {
+    await new Promise(r => setTimeout(r, 1500));
+    // Clear golden glow from all reels
+    const vp = document.getElementById('reelsVP');
+    vp.querySelectorAll('.reel-col').forEach(col => { col.style.boxShadow = ''; });
+    lockedReels = [false, false, false, false, false];
+    if (freeSpins > 0) {
+      setInfo(`Walzen zurückgesetzt! Noch ${freeSpins} Freispiele`, 'fs-msg');
+    }
   }
 
   updateUI();
@@ -1712,8 +1877,14 @@ async function doSpin() {
   document.getElementById('spinBtn').classList.remove('is-stop');
 
   // Free spins ended?
-  if (freeSpins === 0 && freeSpinTotalWin > 0) {
-    setInfo(`Freispiele beendet! Gesamtgewinn: ${freeSpinTotalWin}`, 'win-msg');
+  if (freeSpins === 0 && freeSpinSymbol) {
+    // Clear locked reels glow
+    const vp = document.getElementById('reelsVP');
+    vp.querySelectorAll('.reel-col').forEach(col => { col.style.boxShadow = ''; });
+    lockedReels = [false, false, false, false, false];
+    if (freeSpinTotalWin > 0) {
+      setInfo(`Freispiele beendet! Gesamtgewinn: ${freeSpinTotalWin} €`, 'win-msg');
+    }
     freeSpinTotalWin = 0;
     freeSpinSymbol = null;
   }
@@ -1736,14 +1907,98 @@ var REEL_BOUNCE_MS  = 550;   // ms for final bounce/overshoot settle (longer = m
 var REEL_BOUNCE_CELLS = 0.85; // overshoot in cell-heights (0.85 = fast ein ganzes Symbol)
 var REEL_BOUNCE2    = 0;     // secondary wobble OFF – reels snap into place
 
+// Quick-stop: set to true when player taps during spin
+var quickStopRequested = false;
+
 async function animateReels(results) {
+  quickStopRequested = false;
   const t0 = performance.now();
-  const promises = [];
-  for (let r = 0; r < 5; r++) {
-    const stopDelay = r * REEL_STAGGER_MS + Math.random() * 80;
-    promises.push(animateReel(r, results[r], t0, stopDelay));
+
+  if (freeSpinSymbol && freeSpins >= 0) {
+    // Free spins mode: locked reels stay, unlocked reels animate
+    const promises = [];
+    const reelDone = [false, false, false, false, false];
+    const expandDone = [false, false, false, false, false];
+
+    for (let r = 0; r < 5; r++) {
+      if (lockedReels[r]) {
+        // Locked reel: don't animate, just show the expanding symbol visually
+        reelDone[r] = true;
+        expandDone[r] = true;
+        // Keep golden glow on locked reels
+        const vp = document.getElementById('reelsVP');
+        const col = vp.querySelectorAll('.reel-col')[r];
+        col.style.boxShadow = 'inset 0 0 30px rgba(212,175,55,.4), 0 0 20px rgba(212,175,55,.3)';
+        promises.push(Promise.resolve());
+      } else {
+        const stopDelay = r * REEL_STAGGER_MS + Math.random() * 80;
+        promises.push(animateReel(r, results[r], t0, stopDelay));
+      }
+    }
+
+    // Wait for unlocked reels to stop and expand if needed
+    await new Promise(resolveAll => {
+      const checkExpand = setInterval(() => {
+        for (let r = 0; r < 5; r++) {
+          if (reelDone[r] && !expandDone[r]) {
+            expandDone[r] = true;
+            if (!lockedReels[r]) {
+              const hasExpand = results[r].some(s => s.id === freeSpinSymbol.id);
+              if (hasExpand) {
+                expandSingleReel(r, freeSpinSymbol);
+              }
+            }
+          }
+        }
+        if (reelDone.every(d => d)) {
+          clearInterval(checkExpand);
+          resolveAll();
+        }
+      }, 30);
+
+      for (let r = 0; r < 5; r++) {
+        if (!lockedReels[r]) {
+          promises[r].then(() => { reelDone[r] = true; });
+        }
+      }
+    });
+  } else {
+    // Normal mode: all reels animate in parallel
+    const promises = [];
+    for (let r = 0; r < 5; r++) {
+      const stopDelay = r * REEL_STAGGER_MS + Math.random() * 80;
+      promises.push(animateReel(r, results[r], t0, stopDelay));
+    }
+    await Promise.all(promises);
   }
-  await Promise.all(promises);
+}
+
+// Expand a single reel immediately after it stops (free spins)
+function expandSingleReel(reelIdx, symbol) {
+  const vp = document.getElementById('reelsVP');
+  const col = vp.querySelectorAll('.reel-col')[reelIdx];
+  const strip = col.querySelector('.reel-strip');
+  const cells = strip.querySelectorAll('.sym-cell');
+
+  for (let row = 0; row < VISIBLE_ROWS; row++) {
+    const cell = cells[BUFFER + 1 + row];
+    if (cell) {
+      const img = cell.querySelector('.sym-img');
+      img.style.transition = 'transform 0.3s, opacity 0.15s';
+      img.style.opacity = '0';
+      setTimeout(() => {
+        img.innerHTML = SVG[symbol.id] || symbol.name;
+        img.style.transform = 'scale(1.2)';
+        img.style.opacity = '1';
+        setTimeout(() => { img.style.transform = 'scale(1)'; }, 300);
+      }, 120);
+    }
+  }
+
+  // Golden glow
+  col.style.boxShadow = 'inset 0 0 30px rgba(212,175,55,.4), 0 0 20px rgba(212,175,55,.3)';
+  setTimeout(() => { col.style.boxShadow = ''; }, 2500);
+  SFX.bookLand();
 }
 
 function animateReel(reelIdx, finalSymbols, t0, stopDelay) {
@@ -1817,6 +2072,17 @@ function animateReel(reelIdx, finalSymbols, t0, stopDelay) {
     let stopSounded = false;
 
     (function tick(now) {
+      // Quick-stop: jump to final position immediately
+      if (quickStopRequested) {
+        strip.style.transform = `translateY(-${targetY}px)`;
+        col.style.filter = '';
+        if (!stopSounded) { SFX.reelStop(reelIdx); stopSounded = true; }
+        if (finalSymbols.some(s => s.id === 'book')) SFX.bookLand();
+        SFX.stopReelAmbience();
+        resolve();
+        return;
+      }
+
       const elapsed = now - t0;
       let pos;
 
@@ -1856,7 +2122,14 @@ function animateReel(reelIdx, finalSymbols, t0, stopDelay) {
         pos = targetY + bounce;
 
         // Impact sound at main bounce peak (~27% into bounce)
-        if (!stopSounded && t > 0.25) { stopSounded = true; SFX.reelStop(reelIdx); }
+        if (!stopSounded && t > 0.25) {
+          stopSounded = true;
+          SFX.reelStop(reelIdx);
+          // Check if any book/scatter landed on this reel
+          if (finalSymbols.some(s => s.id === 'book')) {
+            SFX.bookLand();
+          }
+        }
 
       } else {
         // ── Done ──
@@ -1881,6 +2154,80 @@ function animateReel(reelIdx, finalSymbols, t0, stopDelay) {
       requestAnimationFrame(tick);
     })(t0);
   });
+}
+
+// ===== EXPANDING SYMBOL ANIMATION (Free Spins) =====
+async function expandReelsVisual(reelIndices, symbol) {
+  const vp = document.getElementById('reelsVP');
+  const cols = vp.querySelectorAll('.reel-col');
+
+  // Animate each expanding reel
+  for (const r of reelIndices) {
+    const col = cols[r];
+    const strip = col.querySelector('.reel-strip');
+    const cells = strip.querySelectorAll('.sym-cell');
+    const colH = col.clientHeight;
+    const cellH = colH / VISIBLE_ROWS;
+
+    // Find the visible cells (the final position ones)
+    // The strip is at targetY position, visible cells start at BUFFER+1
+
+    for (let row = 0; row < VISIBLE_ROWS; row++) {
+      const cell = cells[BUFFER + 1 + row];
+      if (cell) {
+        const img = cell.querySelector('.sym-img');
+        // Flash effect before replacing
+        img.style.transition = 'transform 0.3s, opacity 0.15s';
+        img.style.opacity = '0';
+      }
+    }
+  }
+
+  // Short pause for flash-out
+  await new Promise(r => setTimeout(r, 150));
+
+  // Fill with expanding symbol + flash-in
+  for (const r of reelIndices) {
+    const col = cols[r];
+    const strip = col.querySelector('.reel-strip');
+    const cells = strip.querySelectorAll('.sym-cell');
+
+
+    for (let row = 0; row < VISIBLE_ROWS; row++) {
+      const cell = cells[BUFFER + 1 + row];
+      if (cell) {
+        const img = cell.querySelector('.sym-img');
+        img.innerHTML = SVG[symbol.id] || symbol.name;
+        img.style.transform = 'scale(1.3)';
+        img.style.opacity = '1';
+      }
+    }
+
+    // Golden glow on the expanding reel
+    col.style.boxShadow = 'inset 0 0 30px rgba(212,175,55,.4), 0 0 20px rgba(212,175,55,.3)';
+    SFX.bookLand(); // mystical sound for each expanding reel
+  }
+
+  // Scale back to normal
+  await new Promise(r => setTimeout(r, 400));
+  for (const r of reelIndices) {
+    const col = cols[r];
+    const strip = col.querySelector('.reel-strip');
+    const cells = strip.querySelectorAll('.sym-cell');
+
+    for (let row = 0; row < VISIBLE_ROWS; row++) {
+      const cell = cells[BUFFER + 1 + row];
+      if (cell) {
+        const img = cell.querySelector('.sym-img');
+        img.style.transform = 'scale(1)';
+      }
+    }
+    // Remove glow after a bit
+    setTimeout(() => { col.style.boxShadow = ''; }, 1500);
+  }
+
+  // Small pause before win evaluation
+  await new Promise(r => setTimeout(r, 300));
 }
 
 // ===== WIN CHECKING =====
@@ -1934,22 +2281,6 @@ function checkWins() {
 
     // If all wilds, match as book
     if (matchSym === null) matchSym = SYMBOLS[0];
-
-    // Free spin expanding symbol
-    if (freeSpinSymbol && freeSpins >= 0) {
-      // Check if expanding symbol appears on payline
-      const expandCount = syms.filter(s => s.id === freeSpinSymbol.id || s.id === 'book').length;
-      if (expandCount >= 3) {
-        count = expandCount;
-        positions = [];
-        for (let r = 0; r < 5; r++) {
-          if (syms[r].id === freeSpinSymbol.id || syms[r].id === 'book') {
-            positions.push([r, line[r]]);
-          }
-        }
-        matchSym = freeSpinSymbol;
-      }
-    }
 
     if (count >= 3 && matchSym.mult[count - 1] > 0) {
       const win = matchSym.mult[count - 1] * betPerLine;
@@ -2036,6 +2367,9 @@ async function startFreeSpins() {
   freeSpinSymbol = expandable[Math.floor(Math.random() * expandable.length)];
   freeSpins = 10;
   freeSpinTotalWin = 0;
+  freeSpinNumber = 0;
+  freeSpinTotalCount = 10;
+  lockedReels = [false, false, false, false, false];
 
   SFX.freeSpins();
   FX.coinShower(2500);
@@ -2076,7 +2410,7 @@ function showBigWin(amount) {
   const countUp = setInterval(() => {
     current += step;
     if (current >= amount) { current = amount; clearInterval(countUp); }
-    el.textContent = current + ' Punkte!';
+    el.textContent = current + ' €!';
     SFX.coinTick();
   }, 50);
   setTimeout(() => overlay.classList.remove('show'), 4000);
@@ -2110,7 +2444,7 @@ function gamblePick(choice) {
       gambleWin *= 2;
       balance += gambleWin / 2;
       document.getElementById('gambleStake').textContent = gambleWin;
-      setInfo(`Verdoppelt! ${gambleWin} Punkte!`, 'win-msg');
+      setInfo(`Verdoppelt! ${gambleWin} €!`, 'win-msg');
     } else {
       SFX.gambleLose();
       balance -= gambleWin;
@@ -2127,7 +2461,7 @@ function gamblePick(choice) {
 function collectGamble() {
   document.getElementById('gambleOverlay').classList.remove('show');
   document.getElementById('gambleBtn').style.display = 'none';
-  setInfo(`${gambleWin} Punkte eingelöst!`, 'win-msg');
+  setInfo(`${gambleWin} € eingelöst!`, 'win-msg');
   gambleWin = 0;
 }
 
@@ -2311,7 +2645,7 @@ document.head.appendChild(style);
   // Inject CSS once
   const css = document.createElement('style');
   css.textContent = `
-    #reelDebugPanel{position:fixed;top:10px;right:10px;z-index:99999;background:rgba(0,0,0,.92);color:#ffd700;font:12px monospace;padding:12px 16px;border-radius:10px;border:1px solid #ffd700;max-width:280px;user-select:none;box-shadow:0 4px 20px rgba(0,0,0,.6)}
+    #reelDebugPanel{position:fixed;top:10px;right:10px;z-index:99999;background:rgba(0,0,0,.92);color:#ffd700;font:12px monospace;padding:12px 16px;border-radius:10px;border:1px solid #ffd700;max-width:280px;user-select:none;box-shadow:0 4px 20px rgba(0,0,0,.6);display:none}
     #reelDebugPanel h4{margin:0 0 8px;font-size:13px;text-align:center}
     .dbg-row{display:flex;align-items:center;margin:4px 0;gap:6px}
     .dbg-row label{flex:1;font-size:11px;white-space:nowrap;color:#ffd700}
@@ -2383,16 +2717,98 @@ document.head.appendChild(style);
       panel.appendChild(row);
     });
 
+    // Add data-key to inputs
+    panel.querySelectorAll('.dbg-row').forEach((row, i) => {
+      const inp = row.querySelector('input[type=range]');
+      if (inp && sliders[i]) inp.setAttribute('data-key', sliders[i].key);
+    });
+
+    // Load saved settings from localStorage
+    const saved = localStorage.getItem('reelTuning');
+    if (saved) {
+      try {
+        const vals = JSON.parse(saved);
+        sliders.forEach(s => {
+          if (vals[s.key] !== undefined) {
+            window[s.key] = vals[s.key];
+            const inp = panel.querySelector(`input[data-key="${s.key}"]`);
+            if (inp) {
+              inp.value = vals[s.key];
+              const fmt = s.step < 1 ? parseFloat(vals[s.key]).toFixed(s.step < 0.1 ? 2 : 1) : vals[s.key];
+              inp.nextElementSibling.textContent = fmt;
+            }
+          }
+        });
+      } catch(e) {}
+    }
+
+    // Save button
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:4px;margin-top:10px;';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = '\u{1F4BE} Speichern';
+    saveBtn.style.cssText = 'flex:1;padding:6px;background:linear-gradient(180deg,#1a6b1a,#228b22);color:#ffd700;border:1px solid #ffd700;border-radius:6px;cursor:pointer;font:bold 12px monospace;';
+    saveBtn.addEventListener('click', () => {
+      const vals = {};
+      sliders.forEach(s => { vals[s.key] = window[s.key]; });
+      localStorage.setItem('reelTuning', JSON.stringify(vals));
+      saveBtn.textContent = '\u2705 Gespeichert!';
+      setTimeout(() => { saveBtn.textContent = '\u{1F4BE} Speichern'; }, 1500);
+    });
+
+    const resetBtn = document.createElement('button');
+    resetBtn.textContent = '\u{1F504} Reset';
+    resetBtn.style.cssText = 'flex:1;padding:6px;background:linear-gradient(180deg,#6b4400,#8b5a00);color:#ffd700;border:1px solid #ffd700;border-radius:6px;cursor:pointer;font:bold 12px monospace;';
+    resetBtn.addEventListener('click', () => {
+      localStorage.removeItem('reelTuning');
+      const defaults = { REEL_ACCEL_MS:200, REEL_SHARED_MS:1500, REEL_DECEL_MS:1800, REEL_STAGGER_MS:500, REEL_SPEED:2.5, REEL_BOUNCE_MS:550, REEL_BOUNCE_CELLS:0.85, REEL_BOUNCE2:0 };
+      sliders.forEach(s => {
+        const def = defaults[s.key];
+        if (def !== undefined) {
+          window[s.key] = def;
+          const inp = panel.querySelector(`input[data-key="${s.key}"]`);
+          if (inp) {
+            inp.value = def;
+            inp.nextElementSibling.textContent = s.step < 1 ? parseFloat(def).toFixed(s.step < 0.1 ? 2 : 1) : def;
+          }
+        }
+      });
+      resetBtn.textContent = '\u2705 Zurückgesetzt!';
+      setTimeout(() => { resetBtn.textContent = '\u{1F504} Reset'; }, 1500);
+    });
+
+    btnRow.appendChild(saveBtn);
+    btnRow.appendChild(resetBtn);
+    panel.appendChild(btnRow);
+
     // Free spins test button
     const fsBtn = document.createElement('button');
     fsBtn.textContent = '\u{1F3B2} Freispiele testen';
-    fsBtn.style.cssText = 'width:100%;margin-top:10px;padding:6px;background:linear-gradient(180deg,#8b1515,#cc2020);color:#ffd700;border:1px solid #ffd700;border-radius:6px;cursor:pointer;font:bold 12px monospace;';
+    fsBtn.style.cssText = 'width:100%;margin-top:4px;padding:6px;background:linear-gradient(180deg,#8b1515,#cc2020);color:#ffd700;border:1px solid #ffd700;border-radius:6px;cursor:pointer;font:bold 12px monospace;';
     fsBtn.addEventListener('click', () => { SFX.resume(); startFreeSpins(); });
     panel.appendChild(fsBtn);
 
     document.body.appendChild(panel);
     document.body.appendChild(toggle);
   }
+
+  // Hidden admin button with password
+  document.addEventListener('DOMContentLoaded', () => {
+    const adminBtn = document.createElement('button');
+    adminBtn.textContent = '\u2699';
+    adminBtn.style.cssText = 'background:none;border:none;color:rgba(255,255,255,.15);font-size:12px;cursor:pointer;padding:2px 6px;margin-left:4px;';
+    adminBtn.addEventListener('click', () => {
+      const pw = prompt('PIN:');
+      if (pw === '1986') {
+        const p = document.getElementById('reelDebugPanel');
+        if (p) p.style.display = p.style.display === 'none' ? '' : 'none';
+      }
+    });
+    // Put it next to the LOBBY button
+    const lobbyBtn = document.querySelector('.lobby-btn');
+    if (lobbyBtn) lobbyBtn.parentElement.appendChild(adminBtn);
+  });
 
   if (document.body) build();
   else document.addEventListener('DOMContentLoaded', build);
