@@ -847,7 +847,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
     <button class="side-btn" id="gambleBtn" onclick="startGamble()" style="display:none">RISIKO</button>
 
     <div class="cg win-cg" id="winCg">
-      <div class="cg-label">GEWINN</div>
+      <div class="cg-label">LETZTER GEWINN</div>
       <div class="cg-val" id="winVal">0</div>
     </div>
 
@@ -2033,7 +2033,7 @@ async function doSpin() {
   } else {
     balance -= totalBet;
   }
-  lastWin = 0;
+  // lastWin bleibt stehen bis zum nächsten Gewinn
   updateUI();
 
   // Generate results
