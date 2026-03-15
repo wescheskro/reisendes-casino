@@ -1219,45 +1219,29 @@ document.addEventListener('touchstart', function(e) {
 <script>
 const token = localStorage.getItem('casinoToken');
 const user = (() => { try { return JSON.parse(localStorage.getItem('casinoUser')); } catch(e) { return null; } })();
-const savedName = localStorage.getItem('pokerPlayerName');
 const tableId = new URLSearchParams(location.search).get('table') || 'tisch-1';
 
 let socket = null;
 
-// Name-Dialog: zeigen wenn kein Token (nicht eingeloggt) und kein gespeicherter Name
-function initNameCheck() {
-  if (token || savedName) {
-    // Direkt verbinden
-    document.getElementById('nameOverlay').classList.add('hidden');
-    connectSocket(savedName);
-  } else {
-    // Name-Dialog zeigen
-    document.getElementById('nameOverlay').classList.remove('hidden');
-    const inp = document.getElementById('nameInput');
-    inp.focus();
-    inp.addEventListener('keydown', e => { if (e.key === 'Enter') submitName(); });
-  }
+function startGame(playerName) {
+  if (socket) return; // Schon verbunden
+  document.getElementById('nameOverlay').classList.add('hidden');
+  socket = io({ auth: { token, username: playerName || undefined } });
+  setupSocketEvents();
 }
 
-function submitName() {
-  const inp = document.getElementById('nameInput');
-  const name = inp.value.trim();
+window.submitName = function() {
+  var inp = document.getElementById('nameInput');
+  var name = inp.value.trim();
   if (!name || name.length < 2) {
     inp.style.borderColor = '#e74c3c';
     inp.placeholder = 'Mindestens 2 Zeichen!';
     return;
   }
   localStorage.setItem('pokerPlayerName', name);
-  document.getElementById('nameOverlay').classList.add('hidden');
-  PokerSFX.init();
-  PokerSFX.btnClick();
-  connectSocket(name);
-}
-
-function connectSocket(playerName) {
-  socket = io({ auth: { token, username: playerName || undefined } });
-  setupSocketEvents();
-}
+  try { PokerSFX.init(); PokerSFX.btnClick(); } catch(e) {}
+  startGame(name);
+};
 
 let myState = null;
 let mySeat = -1;
@@ -1746,8 +1730,18 @@ function setupSocketEvents() {
 const bgImg = new Image();
 bgImg.src = '/games/img/poker-bg.png';
 
-// Starte Name-Check → Socket-Verbindung
-initNameCheck();
+// Starte: Prüfe ob Name vorhanden
+(function() {
+  const savedName = localStorage.getItem('pokerPlayerName');
+  if (token || savedName) {
+    startGame(savedName);
+  } else {
+    document.getElementById('nameOverlay').classList.remove('hidden');
+    const inp = document.getElementById('nameInput');
+    setTimeout(() => inp.focus(), 100);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') window.submitName(); });
+  }
+})();
 
 // ===================== VIDEO/SPRACH-CHAT (WebRTC) =====================
 const ICE_SERVERS = [
