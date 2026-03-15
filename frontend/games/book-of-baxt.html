@@ -2534,15 +2534,36 @@ async function startFreeSpins() {
   document.getElementById('fsSym').style.height = '80px';
   overlay.classList.add('show');
 
-  // Play video animation
+  // Play video animation — reset properly before starting
+  video.pause();
   video.currentTime = 0;
+
+  // Wait for seek to complete before playing
+  await new Promise(resolve => {
+    const onSeeked = () => { video.removeEventListener('seeked', onSeeked); resolve(); };
+    video.addEventListener('seeked', onSeeked);
+    // Fallback if seeked doesn't fire (already at 0)
+    setTimeout(resolve, 100);
+  });
+
   video.play().catch(() => {});
 
-  // Wait for video to end or max 6 seconds
+  // Wait for video to end or max duration based on video length
   await new Promise(resolve => {
-    const onEnd = () => { video.removeEventListener('ended', onEnd); resolve(); };
-    video.addEventListener('ended', onEnd);
-    setTimeout(() => { video.removeEventListener('ended', onEnd); resolve(); }, 6000);
+    let resolved = false;
+    const done = () => { if (resolved) return; resolved = true; resolve(); };
+    video.addEventListener('ended', done, { once: true });
+    // Also check via timeupdate in case ended doesn't fire
+    const checkEnd = () => {
+      if (video.duration && video.currentTime >= video.duration - 0.1) {
+        video.removeEventListener('timeupdate', checkEnd);
+        done();
+      }
+    };
+    video.addEventListener('timeupdate', checkEnd);
+    // Max timeout as safety net (video length + 1s buffer)
+    const maxWait = (video.duration && video.duration > 0) ? (video.duration * 1000 + 1000) : 8000;
+    setTimeout(() => { video.removeEventListener('timeupdate', checkEnd); done(); }, maxWait);
   });
 
   overlay.classList.remove('show');
