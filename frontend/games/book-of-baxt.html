@@ -245,81 +245,150 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   background:linear-gradient(90deg,transparent,rgba(244,208,63,.2),transparent);
 }
 
-/* Control group box */
+/* Control group box — Premium Casino Style */
 .cg{
   display:flex;flex-direction:column;align-items:center;
-  background:linear-gradient(180deg,rgba(0,0,0,.4),rgba(0,0,0,.2));
-  border:1px solid rgba(212,175,55,.15);border-radius:6px;
-  padding:2px 6px;min-width:65px;
-}
-.cg .cg-label{font-size:7px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase}
-.cg .cg-val{font-size:clamp(13px,1.8vw,17px);color:#F4D03F;font-weight:700}
-.cg-btns{display:flex;gap:2px;margin-top:1px}
-.cg-btns button{
-  width:22px;height:18px;border-radius:3px;border:1px solid rgba(212,175,55,.2);
-  background:linear-gradient(180deg,rgba(212,175,55,.12),rgba(212,175,55,.04));
-  color:#D4AF37;font-size:13px;cursor:pointer;font-weight:700;
-  display:flex;align-items:center;justify-content:center;transition:.1s;
-}
-.cg-btns button:hover{background:rgba(212,175,55,.2);border-color:#D4AF37}
-.cg-btns button:active{transform:scale(.9)}
-.cg.win-cg{border-color:rgba(139,0,0,.3)}
-.cg.win-cg .cg-val{color:#ff4444}
-.cg.win-cg.has-win .cg-val{color:#F4D03F;text-shadow:0 0 8px rgba(244,208,63,.5)}
-
-/* SPIN button */
-.spin-wrap{margin:0 8px;order:99}
-.spin-btn{
-  width:clamp(44px,7vw,58px);height:clamp(44px,7vw,58px);
-  border-radius:50%;cursor:pointer;border:none;
-  background:radial-gradient(circle at 35% 30%,#33cc33,#1a8a1a,#0d5a0d 70%,#063a06);
-  box-shadow:0 0 0 2px #D4AF37,0 0 0 4px rgba(0,0,0,.6),0 4px 12px rgba(0,0,0,.5),0 0 15px rgba(26,140,26,.3);
-  transition:.15s;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,rgba(30,20,10,.9) 0%,rgba(15,10,5,.95) 50%,rgba(5,3,1,.98) 100%);
+  border:1px solid rgba(212,175,55,.3);
+  border-top:1px solid rgba(244,208,63,.4);
+  border-bottom:1px solid rgba(100,70,20,.3);
+  border-radius:8px;
+  padding:3px 8px;min-width:65px;
+  box-shadow:0 1px 4px rgba(0,0,0,.6),inset 0 1px 0 rgba(244,208,63,.08),inset 0 -1px 0 rgba(0,0,0,.3);
   position:relative;
 }
-/* Linkshänder switch button */
-.hand-switch{
-  order:-1;background:none;border:1px solid rgba(212,175,55,.25);
-  color:rgba(212,175,55,.6);font-size:16px;padding:2px 6px;
-  border-radius:4px;cursor:pointer;transition:.2s;flex-shrink:0;
+.cg::after{
+  content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(244,208,63,.3),transparent);
 }
-.hand-switch:hover{background:rgba(212,175,55,.1);color:#D4AF37}
-/* When left-handed, spin goes to left side */
-.ctrl-panel.lefty .spin-wrap{order:-2}
-.ctrl-panel.lefty .hand-switch{order:100}
+.cg .cg-label{font-size:7px;color:rgba(212,175,55,.5);letter-spacing:2px;text-transform:uppercase;font-weight:600}
+.cg .cg-val{font-size:clamp(13px,1.8vw,17px);color:#F4D03F;font-weight:700;text-shadow:0 0 6px rgba(244,208,63,.2)}
+.cg-btns{display:flex;gap:3px;margin-top:2px}
+.cg-btns button{
+  width:24px;height:20px;border-radius:5px;
+  border:1px solid rgba(212,175,55,.35);
+  border-top:1px solid rgba(244,208,63,.5);
+  border-bottom:1px solid rgba(100,70,20,.4);
+  background:linear-gradient(180deg,rgba(50,35,15,.9) 0%,rgba(30,20,8,.95) 50%,rgba(15,10,3,.98) 100%);
+  color:#D4AF37;font-size:14px;cursor:pointer;font-weight:700;
+  display:flex;align-items:center;justify-content:center;transition:.15s;
+  box-shadow:0 2px 4px rgba(0,0,0,.5),inset 0 1px 0 rgba(244,208,63,.1);
+  text-shadow:0 0 4px rgba(212,175,55,.3);
+}
+.cg-btns button:hover{
+  background:linear-gradient(180deg,rgba(80,55,20,.9),rgba(50,35,12,.95));
+  border-color:rgba(244,208,63,.6);color:#F4D03F;
+  box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 8px rgba(212,175,55,.15),inset 0 1px 0 rgba(244,208,63,.2);
+}
+.cg-btns button:active{transform:scale(.9);box-shadow:inset 0 2px 4px rgba(0,0,0,.5)}
+.cg.win-cg{border-color:rgba(139,0,0,.4)}
+.cg.win-cg .cg-val{color:#ff4444}
+.cg.win-cg.has-win .cg-val{color:#F4D03F;text-shadow:0 0 10px rgba(244,208,63,.6)}
+
+/* SPIN button — Premium 3D Casino Button */
+.spin-wrap{margin:0 10px;order:99}
+.spin-btn{
+  width:clamp(48px,7vw,62px);height:clamp(48px,7vw,62px);
+  border-radius:50%;cursor:pointer;border:none;
+  background:radial-gradient(circle at 35% 25%,#44dd44,#2aaa2a 30%,#1a8a1a 50%,#0d6a0d 75%,#063a06);
+  box-shadow:
+    0 0 0 3px #B8860B,
+    0 0 0 4px #D4AF37,
+    0 0 0 6px rgba(0,0,0,.7),
+    0 4px 12px rgba(0,0,0,.7),
+    0 0 20px rgba(26,180,26,.25),
+    inset 0 -3px 6px rgba(0,0,0,.4);
+  transition:.2s;display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
 .spin-btn::before{
-  content:'';position:absolute;inset:3px;border-radius:50%;
-  background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.15),transparent 60%);
-  border:1px solid rgba(255,255,255,.1);
+  content:'';position:absolute;inset:4px;border-radius:50%;
+  background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.25),rgba(255,255,255,.05) 40%,transparent 65%);
+  border:1px solid rgba(255,255,255,.08);
+}
+.spin-btn::after{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  box-shadow:inset 0 2px 3px rgba(255,255,255,.15);
 }
 .spin-btn:hover:not(:disabled){
-  transform:scale(1.08);
-  box-shadow:0 0 0 2px #F4D03F,0 0 0 4px rgba(0,0,0,.6),0 4px 15px rgba(0,0,0,.5),0 0 25px rgba(26,140,26,.5);
+  transform:scale(1.1);
+  background:radial-gradient(circle at 35% 25%,#55ee55,#33bb33 30%,#22aa22 50%,#118811 75%,#085508);
+  box-shadow:
+    0 0 0 3px #D4AF37,
+    0 0 0 5px #F4D03F,
+    0 0 0 7px rgba(0,0,0,.6),
+    0 6px 20px rgba(0,0,0,.6),
+    0 0 30px rgba(26,200,26,.4),
+    inset 0 -3px 6px rgba(0,0,0,.3);
 }
-.spin-btn:active:not(:disabled){transform:scale(.93)}
+.spin-btn:active:not(:disabled){
+  transform:scale(.92);
+  box-shadow:
+    0 0 0 3px #8B6914,
+    0 0 0 5px rgba(0,0,0,.7),
+    0 2px 6px rgba(0,0,0,.6),
+    inset 0 3px 8px rgba(0,0,0,.5);
+}
 .spin-btn:disabled{opacity:.35;cursor:not-allowed}
 .spin-btn .play-tri{
-  width:0;height:0;position:relative;z-index:1;margin-left:3px;
+  width:0;height:0;position:relative;z-index:2;margin-left:3px;
   border-top:clamp(10px,1.5vw,14px) solid transparent;
   border-bottom:clamp(10px,1.5vw,14px) solid transparent;
   border-left:clamp(16px,2.5vw,20px) solid #fff;
-  filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.6));
 }
 .spin-btn.is-stop .play-tri{
   border:none;width:clamp(16px,2.5vw,20px);height:clamp(16px,2.5vw,20px);
   background:#fff;border-radius:2px;margin-left:0;
 }
 
+/* Linkshänder switch button — Premium */
+.hand-switch{
+  order:-1;
+  background:linear-gradient(180deg,rgba(50,35,15,.9),rgba(25,18,8,.95));
+  border:1px solid rgba(212,175,55,.35);
+  border-top:1px solid rgba(244,208,63,.45);
+  border-bottom:1px solid rgba(100,70,20,.4);
+  color:rgba(212,175,55,.7);font-size:16px;padding:4px 8px;
+  border-radius:6px;cursor:pointer;transition:.2s;flex-shrink:0;
+  box-shadow:0 2px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(244,208,63,.1);
+  text-shadow:0 0 4px rgba(212,175,55,.2);
+}
+.hand-switch:hover{
+  background:linear-gradient(180deg,rgba(80,55,20,.9),rgba(45,30,12,.95));
+  border-color:rgba(244,208,63,.6);color:#F4D03F;
+  box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 10px rgba(212,175,55,.15),inset 0 1px 0 rgba(244,208,63,.2);
+}
+.hand-switch:active{transform:scale(.92);box-shadow:inset 0 2px 4px rgba(0,0,0,.5)}
+/* When left-handed, spin goes to left side */
+.ctrl-panel.lefty .spin-wrap{order:-2}
+.ctrl-panel.lefty .hand-switch{order:100}
+
 /* Side buttons */
 .side-btn{
-  padding:5px 8px;border-radius:5px;
-  border:1px solid rgba(212,175,55,.15);
-  background:linear-gradient(180deg,rgba(212,175,55,.08),rgba(212,175,55,.02));
+  padding:5px 10px;border-radius:6px;
+  border:1px solid rgba(212,175,55,.3);
+  border-top:1px solid rgba(244,208,63,.4);
+  border-bottom:1px solid rgba(100,70,20,.35);
+  background:linear-gradient(180deg,rgba(50,35,15,.9) 0%,rgba(30,20,8,.95) 50%,rgba(15,10,3,.98) 100%);
   color:#D4AF37;font-size:9px;cursor:pointer;font-family:inherit;
-  letter-spacing:.5px;text-transform:uppercase;transition:.15s;
+  letter-spacing:1px;text-transform:uppercase;transition:.2s;font-weight:600;
+  box-shadow:0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(244,208,63,.08);
+  text-shadow:0 0 4px rgba(212,175,55,.2);
 }
-.side-btn:hover{background:rgba(212,175,55,.15);border-color:rgba(212,175,55,.4)}
-.side-btn.active{background:linear-gradient(180deg,#D4AF37,#8B6914);color:#000;font-weight:700;border-color:#D4AF37}
+.side-btn:hover{
+  background:linear-gradient(180deg,rgba(80,55,20,.9),rgba(50,35,12,.95));
+  border-color:rgba(244,208,63,.5);color:#F4D03F;
+  box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 8px rgba(212,175,55,.12),inset 0 1px 0 rgba(244,208,63,.15);
+}
+.side-btn:active{transform:scale(.94);box-shadow:inset 0 2px 4px rgba(0,0,0,.4)}
+.side-btn.active{
+  background:linear-gradient(180deg,#F4D03F 0%,#D4AF37 40%,#B8860B 100%);
+  color:#1a0e05;font-weight:700;
+  border:1px solid #F4D03F;
+  box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 12px rgba(212,175,55,.3),inset 0 1px 0 rgba(255,255,255,.3);
+  text-shadow:0 1px 0 rgba(255,255,255,.2);
+}
 
 /* ========== FREE SPINS OVERLAY ========== */
 .fs-overlay{
