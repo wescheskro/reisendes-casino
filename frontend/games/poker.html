@@ -1090,18 +1090,17 @@ function updateMyHand(state) {
   const labelEl = document.querySelector('.my-hand-label');
   const me = state.seats.find(s => s && s.isYou);
 
-  // Kein Spieler am Tisch → komplett ausblenden
-  if (!me) {
+  // Keine echten Karten → komplett ausblenden
+  const hasRealCards = me && me.cards && me.cards.length > 0 && !me.folded && state.phase !== 'waiting';
+  if (!hasRealCards) {
     handEl.classList.remove('visible');
     if (labelEl) labelEl.classList.remove('visible');
+    lastHandCards = [null, null];
     return;
   }
 
-  // Immer sichtbar wenn am Tisch
   handEl.classList.add('visible');
-
-  const hasRealCards = me.cards && me.cards.length > 0 && !me.folded && state.phase !== 'waiting';
-  const cards = hasRealCards ? me.cards : ['??', '??'];
+  const cards = me.cards;
 
   // Karten rendern
   let html = '';
@@ -1140,18 +1139,16 @@ function updateMyHand(state) {
     // Label mit Handname wenn vorhanden
     if (labelEl) {
       const cardH = handEl.offsetHeight || 130;
-      if (hasRealCards && me.handName) {
+      if (me.handName) {
         labelEl.textContent = me.handName;
         labelEl.classList.add('visible');
         labelEl.style.bottom = (controlsH + cardH + 14) + 'px';
-      } else if (hasRealCards && state.phase !== 'showdown') {
+      } else if (state.phase !== 'showdown') {
         labelEl.textContent = 'Deine Hand';
         labelEl.classList.add('visible');
         labelEl.style.bottom = (controlsH + cardH + 14) + 'px';
       } else {
-        labelEl.textContent = 'Warte auf nächste Runde...';
-        labelEl.classList.add('visible');
-        labelEl.style.bottom = (controlsH + cardH + 14) + 'px';
+        labelEl.classList.remove('visible');
       }
     }
   });
