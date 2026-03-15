@@ -158,12 +158,42 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 }
 .seat.folded .seat-inner{opacity:.3;filter:grayscale(.5)}
 
-.seat-cards{display:flex;gap:2px;justify-content:center;min-height:36px;align-items:center}
+.seat-cards{display:flex;gap:0;justify-content:center;min-height:36px;align-items:center;position:relative}
 .seat-cards .card{
   width:28px !important;height:40px !important;
   flex:0 0 28px !important;aspect-ratio:auto !important;max-width:none !important;
   border-radius:4px;font-size:9px;
   box-shadow:0 2px 6px rgba(0,0,0,.4) !important;
+  transition:transform .4s ease, box-shadow .4s ease;
+}
+/* Karten liegen wie echt auf dem Tisch – leicht versetzt und angewinkelt */
+.seat-cards .card:nth-child(1){
+  transform:rotate(-8deg) translateX(3px);
+  z-index:1;
+}
+.seat-cards .card:nth-child(2){
+  transform:rotate(8deg) translateX(-3px);
+  z-index:2;
+}
+/* Peek-Animation: Karte hebt sich leicht an */
+.seat.peeking .seat-cards .card:nth-child(1){
+  transform:rotate(-12deg) translateX(3px) translateY(-6px);
+  box-shadow:0 6px 16px rgba(0,0,0,.6) !important;
+}
+.seat.peeking .seat-cards .card:nth-child(2){
+  transform:rotate(12deg) translateX(-3px) translateY(-6px);
+  box-shadow:0 6px 16px rgba(0,0,0,.6) !important;
+}
+.seat.peeking .seat-inner::after{
+  content:'👀';
+  position:absolute;top:-16px;right:-6px;
+  font-size:14px;z-index:10;
+  animation:peekBounce .6s ease-in-out;
+}
+@keyframes peekBounce{
+  0%{transform:scale(0);opacity:0}
+  50%{transform:scale(1.3);opacity:1}
+  100%{transform:scale(1);opacity:1}
 }
 .seat-cards .card .corner-tl{top:2px;left:2px}
 .seat-cards .card .corner-tl .c-rank{font-size:8px}
@@ -984,6 +1014,7 @@ function renderState(state) {
       if (s.isYou) { div.className += ' you'; mySeat = i; }
       if (state.currentSeat === i) div.className += ' active';
       if (s.folded) div.className += ' folded';
+      if (s.peeking) div.className += ' peeking';
 
       const dealerChip = s.isDealer ? '<div class="dealer-chip">D</div>' : '';
       const betBubble = s.bet > 0 ? `<div class="seat-bet-bubble">${s.bet.toLocaleString('de-DE')}</div>` : '';
@@ -1042,9 +1073,8 @@ function renderHandCard(c, index) {
       <span class="h-center-suit">${suit}</span>
       <div class="h-corner-br"><span class="hc-rank">${rank}</span><span class="hc-suit">${suit}</span></div>`;
   }
-  // Wenn keine Karte: leere Vorderseite (wird eh nicht gezeigt da flipped)
-  const startFlipped = !hasCard ? ' flipped' : '';
-  return `<div class="hand-card-wrap${startFlipped}" data-card-idx="${index}" onclick="toggleCardFlip(this)">
+  // Karten starten immer verdeckt (flipped) – Antippen dreht um
+  return `<div class="hand-card-wrap flipped" data-card-idx="${index}" ontouchstart="toggleCardFlip(this, true)" ontouchend="toggleCardFlip(this, false)" onmousedown="toggleCardFlip(this, true)" onmouseup="toggleCardFlip(this, false)" onmouseleave="toggleCardFlip(this, false)">
     <div class="hand-card-inner">
       <div class="${faceClass}">${faceHtml}</div>
       <div class="hand-card-back"></div>
@@ -1052,8 +1082,20 @@ function renderHandCard(c, index) {
   </div>`;
 }
 
-function toggleCardFlip(el) {
-  el.classList.toggle('flipped');
+let isPeeking = false;
+function toggleCardFlip(el, show) {
+  if (show) {
+    el.classList.remove('flipped');
+  } else {
+    el.classList.add('flipped');
+  }
+  // Prüfen ob mindestens eine Karte aufgedeckt ist
+  const wraps = document.querySelectorAll('.hand-card-wrap');
+  const anyOpen = [...wraps].some(w => !w.classList.contains('flipped'));
+  if (anyOpen !== isPeeking) {
+    isPeeking = anyOpen;
+    socket.emit('poker:peek', { peeking: isPeeking });
+  }
 }
 
 function updateMyHand(state) {

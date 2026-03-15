@@ -1341,6 +1341,7 @@ function pokerTableState(table, forSocket) {
       cards: isYou ? p.cards.map(cardStr) : (table.phase === 'showdown' && !p.folded ? p.cards.map(cardStr) : ['??','??']),
       isYou, isDealer: i === table.dealerSeat, isBot: !!p.isBot,
       botStyle: p.isBot ? p.botStyle : null,
+      peeking: !!p.peeking,
       handName: table.phase === 'showdown' && !p.folded ? bestPokerHand(p.cards, table.community).name : null
     };
   });
@@ -1769,6 +1770,16 @@ io.on('connection', (socket) => {
     if (p.roundBet < table.currentBet) return; // Can't check, must call
     p.hasActed = true;
     pokerNextPlayer(table, table.currentSeat);
+  });
+
+  // --- PEEK (Karten anschauen) ---
+  socket.on('poker:peek', ({ peeking }) => {
+    const table = tables.poker.get(socket._pkTable);
+    if (!table) return;
+    const p = table.players.get(socket.user.id);
+    if (!p) return;
+    p.peeking = !!peeking;
+    pokerBroadcast(table);
   });
 
   // --- POKER BOTS ---
