@@ -910,18 +910,21 @@ function pokerNextPlayer(table, afterSeat) {
     const pid = table.seats[s];
     if (!pid) continue;
     const p = table.players.get(pid);
-    if (p && !p.folded && !p.spectator && !p.allIn) {
-      table.currentSeat = s;
-      emitPokerState(table);
-      if (table.timer) clearTimeout(table.timer);
-      table.timer = setTimeout(() => {
-        // Auto-fold bei Timeout
-        p.folded = true;
-        if (pokerActivePlayers(table) <= 1) pokerShowdown(table);
-        else pokerNextPlayer(table, s);
-      }, 30000);
-      return;
-    }
+    if (!p || p.folded || p.spectator || p.allIn) continue;
+
+    // Check if this player already matched the current bet (and has acted)
+    if (p.hasActed && p.roundBet >= table.currentBet) continue;
+
+    table.currentSeat = s;
+    emitPokerState(table);
+    if (table.timer) clearTimeout(table.timer);
+    table.timer = setTimeout(() => {
+      // Auto-fold bei Timeout
+      p.folded = true;
+      if (pokerActivePlayers(table) <= 1) pokerShowdown(table);
+      else pokerNextPlayer(table, s);
+    }, 30000);
+    return;
   }
   // Alle haben gehandelt → nächste Phase
   pokerNextPhase(table);
@@ -929,8 +932,8 @@ function pokerNextPlayer(table, afterSeat) {
 
 function pokerNextPhase(table) {
   if (table.timer) clearTimeout(table.timer);
-  // Reset round bets
-  for (const [, p] of table.players) { p.roundBet = 0; }
+  // Reset round bets and hasActed
+  for (const [, p] of table.players) { p.roundBet = 0; p.hasActed = false; }
   table.currentBet = 0;
 
   if (pokerActivePlayers(table) <= 1) { pokerShowdown(table); return; }
@@ -1016,7 +1019,7 @@ function pokerStartRound(table) {
 
   // Reset players, deal cards
   for (const [, p] of table.players) {
-    p.cards = []; p.folded = false; p.roundBet = 0; p.allIn = false;
+    p.cards = []; p.folded = false; p.roundBet = 0; p.allIn = false; p.hasActed = false;
     if (!p.spectator) {
       p.cards = [table.deck.pop(), table.deck.pop()];
     }
@@ -1217,6 +1220,7 @@ io.on('connection', (socket) => {
     } else {
       p.chips -= toCall; p.roundBet = table.currentBet; table.pot += toCall;
     }
+    p.hasActed = true;
     pokerNextPlayer(table, table.currentSeat);
   });
 
@@ -1231,6 +1235,11 @@ io.on('connection', (socket) => {
     p.chips -= cost; p.roundBet = raise; table.pot += cost;
     table.currentBet = raise;
     if (p.chips <= 0) p.allIn = true;
+    // Reset hasActed for all other players (they need to respond to the raise)
+    for (const [otherId, op] of table.players) {
+      if (otherId !== pid) op.hasActed = false;
+    }
+    p.hasActed = true;
     pokerNextPlayer(table, table.currentSeat);
   });
 
@@ -1239,7 +1248,9 @@ io.on('connection', (socket) => {
     if (!table || table.currentSeat < 0) return;
     const pid = table.seats[table.currentSeat];
     if (pid !== socket.user.id) return;
-    table.players.get(pid).folded = true;
+    const p = table.players.get(pid);
+    p.folded = true;
+    p.hasActed = true;
     if (pokerActivePlayers(table) <= 1) pokerShowdown(table);
     else pokerNextPlayer(table, table.currentSeat);
   });
@@ -1251,6 +1262,7 @@ io.on('connection', (socket) => {
     if (pid !== socket.user.id) return;
     const p = table.players.get(pid);
     if (p.roundBet < table.currentBet) return; // Can't check, must call
+    p.hasActed = true;
     pokerNextPlayer(table, table.currentSeat);
   });
 
