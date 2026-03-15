@@ -2996,7 +2996,9 @@ function enterFullscreen() {
   dismissSplash();
 }
 
+let splashDismissed = false;
 function dismissSplash() {
+  splashDismissed = true;
   document.getElementById('fsSplash').style.display = 'none';
   setTimeout(() => { window.scrollTo(0, 1); }, 100);
 }
@@ -3011,6 +3013,7 @@ function toggleFullscreen() {
 
 // Show fullscreen splash on mobile
 function checkFullscreenSplash() {
+  if (splashDismissed) return;
   if (!isMobile() || isStandalone()) return;
   if (document.fullscreenElement || document.webkitFullscreenElement) return;
 
@@ -3073,7 +3076,13 @@ function fixMobileHeight() {
   }
 }
 window.addEventListener('resize', fixMobileHeight);
-window.addEventListener('orientationchange', () => setTimeout(fixMobileHeight, 200));
+window.addEventListener('orientationchange', () => {
+  setTimeout(fixMobileHeight, 200);
+  setTimeout(checkFullscreenSplash, 300);
+});
+window.addEventListener('resize', () => {
+  setTimeout(checkFullscreenSplash, 200);
+});
 
 // ===== START =====
 window.addEventListener('DOMContentLoaded', () => {
