@@ -286,7 +286,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 }
 /* Flip Container */
 .my-hand .hand-card-wrap{
-  width:95px;height:135px;
+  width:190px;height:270px;
   pointer-events:auto;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
@@ -302,7 +302,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .my-hand .hand-card-face,
 .my-hand .hand-card-back{
   position:absolute;top:0;left:0;width:100%;height:100%;
-  border-radius:10px;
+  border-radius:14px;
   overflow:hidden;
   transition:opacity .3s ease, transform .3s ease;
 }
@@ -311,13 +311,13 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   background:linear-gradient(165deg,#ffffff 0%,#f9f7f2 30%,#f0ece3 70%,#e8e2d6 100%);
   color:#1a1a2e;
   font-weight:900;
-  box-shadow:0 10px 35px rgba(0,0,0,.7),0 0 0 2px rgba(255,255,255,.2),0 0 25px rgba(244,208,63,.2);
-  border:2px solid rgba(212,175,55,.45);
+  box-shadow:0 14px 50px rgba(0,0,0,.7),0 0 0 3px rgba(255,255,255,.2),0 0 35px rgba(244,208,63,.2);
+  border:3px solid rgba(212,175,55,.45);
   opacity:1;z-index:2;
 }
 /* Inner border like real playing cards */
 .my-hand .hand-card-face::before{
-  content:'';position:absolute;inset:5px;border-radius:6px;
+  content:'';position:absolute;inset:8px;border-radius:8px;
   border:1px solid rgba(150,140,120,.15);
   pointer-events:none;z-index:1;
 }
@@ -325,8 +325,9 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 /* BACK (face-down) */
 .my-hand .hand-card-back{
   background:url('img/card-back.jpg') center/cover no-repeat;
-  border:2px solid rgba(212,175,55,.5);
-  box-shadow:0 10px 35px rgba(0,0,0,.7),0 0 0 2px rgba(255,255,255,.2);
+  border:3px solid rgba(212,175,55,.5);
+  border-radius:14px;
+  box-shadow:0 14px 50px rgba(0,0,0,.7),0 0 0 3px rgba(255,255,255,.2);
   z-index:1;
 }
 /* Verdeckt: Back oben, Face versteckt */
@@ -338,32 +339,32 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 }
 /* Corner top-left */
 .my-hand .hand-card-face .h-corner-tl{
-  position:absolute;top:6px;left:8px;
+  position:absolute;top:12px;left:14px;
   display:flex;flex-direction:column;align-items:center;
   line-height:1;z-index:2;
 }
 .my-hand .hand-card-face .h-corner-tl .hc-rank{
-  font-size:22px;font-weight:900;line-height:1;
+  font-size:40px;font-weight:900;line-height:1;
   font-family:'Playfair Display',serif;
 }
-.my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:16px;line-height:1;margin-top:-1px}
+.my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:30px;line-height:1;margin-top:-2px}
 /* Corner bottom-right (upside down) */
 .my-hand .hand-card-face .h-corner-br{
-  position:absolute;bottom:6px;right:8px;
+  position:absolute;bottom:12px;right:14px;
   display:flex;flex-direction:column;align-items:center;
   line-height:1;z-index:2;
   transform:rotate(180deg);
 }
 .my-hand .hand-card-face .h-corner-br .hc-rank{
-  font-size:22px;font-weight:900;line-height:1;
+  font-size:40px;font-weight:900;line-height:1;
   font-family:'Playfair Display',serif;
 }
-.my-hand .hand-card-face .h-corner-br .hc-suit{font-size:16px;line-height:1;margin-top:-1px}
+.my-hand .hand-card-face .h-corner-br .hc-suit{font-size:30px;line-height:1;margin-top:-2px}
 /* Center suit – hero */
 .my-hand .hand-card-face .h-center-suit{
   position:absolute;top:50%;left:50%;
   transform:translate(-50%,-50%);
-  font-size:46px;z-index:2;
+  font-size:85px;z-index:2;
   filter:drop-shadow(0 2px 4px rgba(0,0,0,.1));
 }
 
@@ -372,8 +373,8 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   align-self:center;
   pointer-events:auto;
   cursor:pointer;
-  font-size:22px;
-  width:36px;height:36px;
+  font-size:28px;
+  width:48px;height:48px;
   display:flex;align-items:center;justify-content:center;
   background:rgba(20,10,5,.7);
   border:2px solid rgba(212,175,55,.4);
@@ -381,7 +382,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   transition:transform .2s, background .2s;
   -webkit-tap-highlight-color:transparent;
   user-select:none;
-  margin:0 -6px;
+  margin:0 -8px;
   z-index:5;
 }
 .hand-flip-both:active{
@@ -398,14 +399,14 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   pointer-events:none;
 }
 .my-hand .hand-chips{
-  font-size:14px;font-weight:700;color:#F4D03F;
-  background:rgba(0,0,0,.6);padding:4px 12px;border-radius:10px;
+  font-size:18px;font-weight:700;color:#F4D03F;
+  background:rgba(0,0,0,.6);padding:6px 16px;border-radius:12px;
   border:1px solid rgba(212,175,55,.2);
   white-space:nowrap;
   text-shadow:0 1px 4px rgba(0,0,0,.8);
 }
 .my-hand .hand-bet{
-  font-size:11px;color:rgba(244,208,63,.7);
+  font-size:14px;color:rgba(244,208,63,.7);
   white-space:nowrap;
 }
 
@@ -426,31 +427,31 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 }
 .my-hand-label.visible{opacity:1}
 
-/* Mobile: Hand sitzt direkt über Controls */
+/* Mobile: Hand angepasst */
 @media(max-width:600px){
-  .my-hand .hand-card-wrap{width:76px;height:110px}
-  .my-hand .hand-card-face .h-corner-tl .hc-rank{font-size:18px}
-  .my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:13px}
-  .my-hand .hand-card-face .h-corner-br .hc-rank{font-size:18px}
-  .my-hand .hand-card-face .h-corner-br .hc-suit{font-size:13px}
-  .my-hand .hand-card-face .h-center-suit{font-size:38px}
-  .my-hand{gap:8px}
+  .my-hand .hand-card-wrap{width:150px;height:215px}
+  .my-hand .hand-card-face .h-corner-tl .hc-rank{font-size:34px}
+  .my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:24px}
+  .my-hand .hand-card-face .h-corner-br .hc-rank{font-size:34px}
+  .my-hand .hand-card-face .h-corner-br .hc-suit{font-size:24px}
+  .my-hand .hand-card-face .h-center-suit{font-size:68px}
+  .my-hand{gap:10px}
 }
 @media(max-width:375px){
-  .my-hand .hand-card-wrap{width:64px;height:92px}
-  .my-hand .hand-card-face .h-corner-tl .hc-rank{font-size:15px}
-  .my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:11px}
-  .my-hand .hand-card-face .h-corner-br .hc-rank{font-size:15px}
-  .my-hand .hand-card-face .h-corner-br .hc-suit{font-size:11px}
-  .my-hand .hand-card-face .h-center-suit{font-size:30px}
-  .my-hand{gap:6px}
+  .my-hand .hand-card-wrap{width:125px;height:180px}
+  .my-hand .hand-card-face .h-corner-tl .hc-rank{font-size:28px}
+  .my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:20px}
+  .my-hand .hand-card-face .h-corner-br .hc-rank{font-size:28px}
+  .my-hand .hand-card-face .h-corner-br .hc-suit{font-size:20px}
+  .my-hand .hand-card-face .h-center-suit{font-size:55px}
+  .my-hand{gap:8px}
 }
 @media(max-height:450px) and (orientation:landscape){
-  .my-hand .hand-card-wrap{width:58px;height:84px}
-  .my-hand .hand-card-face .h-corner-tl .hc-rank{font-size:14px}
-  .my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:10px}
+  .my-hand .hand-card-wrap{width:110px;height:158px}
+  .my-hand .hand-card-face .h-corner-tl .hc-rank{font-size:24px}
+  .my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:18px}
   .my-hand .hand-card-face .h-corner-br{display:none}
-  .my-hand .hand-card-face .h-center-suit{font-size:26px}
+  .my-hand .hand-card-face .h-center-suit{font-size:48px}
   .my-hand{gap:6px}
 }
 
