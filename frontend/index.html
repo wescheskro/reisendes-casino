@@ -90,6 +90,47 @@
       margin: 10px auto 30px;
     }
 
+    /* ============ ONLINE BAR ============ */
+    .online-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 10px 20px;
+      margin: 0 auto 20px;
+      max-width: 500px;
+      background: linear-gradient(135deg, rgba(20,10,5,.8), rgba(30,15,8,.9));
+      border: 1px solid rgba(212,175,55,.25);
+      border-radius: 14px;
+      font-size: 13px;
+      color: rgba(255,255,255,.7);
+    }
+    .online-dot {
+      width: 10px; height: 10px;
+      background: #2ecc71;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #2ecc71, 0 0 16px rgba(46,204,113,.3);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { box-shadow: 0 0 8px #2ecc71; }
+      50% { box-shadow: 0 0 16px #2ecc71, 0 0 24px rgba(46,204,113,.4); }
+    }
+    .online-total {
+      font-weight: 700;
+      color: #F4D03F;
+      font-size: 14px;
+    }
+    .online-total span { font-size: 18px; }
+    .online-games {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+    }
+    .online-game { white-space: nowrap; }
+    .online-game b { color: #F4D03F; }
+
     /* ============ POKER TABLE HERO ============ */
     .poker-table-hero {
       position: relative;
@@ -904,6 +945,17 @@
       <p class="game-tagline">Put Baxt! &mdash; Latscho Diwes!</p>
     </section>
 
+    <!-- LIVE ONLINE ANZEIGE -->
+    <div class="online-bar" id="onlineBar">
+      <div class="online-dot"></div>
+      <span class="online-total"><span id="onlineTotal">0</span> Spieler online</span>
+      <div class="online-games">
+        <span class="online-game">🃏 Poker: <b id="onlinePoker">0</b></span>
+        <span class="online-game">🎴 Blackjack: <b id="onlineBJ">0</b></span>
+        <span class="online-game">🎰 Slots: <b id="onlineSlots">0</b></span>
+      </div>
+    </div>
+
     <!-- ═══════════════════════════════════════════ -->
     <!-- 1. POKER TABLE HERO                        -->
     <!-- ═══════════════════════════════════════════ -->
@@ -1410,9 +1462,26 @@
         .catch(() => {});
     }
 
+    // =========================================================================
+    // LIVE ONLINE ANZEIGE
+    // =========================================================================
+    function updateOnlineCount() {
+      fetch('/api/online')
+        .then(r => r.json())
+        .then(d => {
+          document.getElementById('onlineTotal').textContent = d.total || 0;
+          document.getElementById('onlinePoker').textContent = d.poker || 0;
+          document.getElementById('onlineBJ').textContent = d.blackjack || 0;
+          document.getElementById('onlineSlots').textContent = d.slots || 0;
+        })
+        .catch(() => {});
+    }
+
     // Alle 5 Sekunden aktualisieren
     updateLivePokerTable();
+    updateOnlineCount();
     setInterval(updateLivePokerTable, 5000);
+    setInterval(updateOnlineCount, 5000);
 
     // =========================================================================
     // INIT

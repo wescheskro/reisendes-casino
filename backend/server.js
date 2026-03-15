@@ -479,6 +479,22 @@ app.get('/api/leaderboard/winners', (req, res) => {
   res.json({ winners: db.weeklyWinners.slice(-10).reverse() });
 });
 
+// Live Online-Status
+app.get('/api/online', (req, res) => {
+  const total = io.sockets.sockets.size;
+  // Spieler in Poker-Tischen
+  let pokerPlayers = 0;
+  for (const [, table] of tables.poker) {
+    pokerPlayers += [...table.players.values()].filter(p => !p.spectator).length;
+  }
+  // Spieler in Blackjack-Tischen
+  let bjPlayers = 0;
+  for (const [, table] of tables.blackjack) {
+    bjPlayers += [...table.players.values()].filter(p => !p.spectator).length;
+  }
+  res.json({ total, poker: pokerPlayers, blackjack: bjPlayers, slots: Math.max(0, total - pokerPlayers - bjPlayers) });
+});
+
 // Live Poker-Tische: aktuelle Spieler für Landing Page
 app.get('/api/poker/tables', (req, res) => {
   const result = [];
