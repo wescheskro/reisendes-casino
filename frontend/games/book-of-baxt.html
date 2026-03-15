@@ -567,6 +567,47 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 .fs-splash .fs-splash-sub{
   font-size:11px;color:rgba(212,175,55,.4);margin-top:12px;
 }
+/* iOS Home-Bildschirm Anleitung */
+.ios-guide{display:none;margin-top:18px;text-align:center}
+.ios-guide .ios-steps{
+  display:flex;gap:24px;justify-content:center;align-items:flex-start;
+  margin-top:14px;flex-wrap:wrap;
+}
+.ios-guide .ios-step{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  max-width:120px;
+}
+.ios-guide .ios-step-icon{
+  font-size:32px;width:52px;height:52px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);
+  border-radius:12px;
+}
+.ios-guide .ios-step-text{
+  font-size:11px;color:rgba(255,255,255,.8);line-height:1.3;
+}
+.ios-guide .ios-step-num{
+  font-size:10px;font-weight:900;color:#D4AF37;
+  width:20px;height:20px;border-radius:50%;
+  background:rgba(212,175,55,.2);border:1px solid #D4AF37;
+  display:flex;align-items:center;justify-content:center;
+}
+.ios-guide .ios-hint{
+  font-size:10px;color:rgba(212,175,55,.5);margin-top:14px;
+}
+.ios-guide .ios-dismiss{
+  margin-top:16px;background:none;border:1px solid rgba(212,175,55,.4);
+  color:#D4AF37;font-family:'Cinzel',serif;font-size:12px;
+  padding:8px 24px;border-radius:20px;cursor:pointer;
+}
+.ios-guide .ios-dismiss:hover{background:rgba(212,175,55,.15)}
+@media(max-height:400px){
+  .ios-guide .ios-steps{gap:16px}
+  .ios-guide .ios-step-icon{font-size:24px;width:40px;height:40px;border-radius:8px}
+  .ios-guide .ios-step-text{font-size:9px}
+  .ios-guide .ios-hint{font-size:9px;margin-top:8px}
+  .ios-guide .ios-dismiss{padding:6px 18px;font-size:11px;margin-top:10px}
+}
 
 /* Fullscreen toggle button in top bar */
 .fullscreen-btn{
@@ -584,11 +625,35 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 <body>
 
 <!-- ========== FULLSCREEN SPLASH (mobile) ========== -->
-<div class="fs-splash" id="fsSplash" onclick="enterFullscreen()">
+<div class="fs-splash" id="fsSplash">
   <div class="fs-splash-icon">🦔</div>
   <div class="fs-splash-title">Stachelingo Rodern</div>
-  <button class="fs-splash-btn" onclick="enterFullscreen()">Vollbild starten</button>
-  <div class="fs-splash-sub">Tippe zum Spielen im Vollbild</div>
+  <!-- Normal fullscreen button (Android/Desktop) -->
+  <button class="fs-splash-btn" id="fsSplashBtn" onclick="enterFullscreen()">Vollbild starten</button>
+  <div class="fs-splash-sub" id="fsSplashSub">Tippe zum Spielen im Vollbild</div>
+  <!-- iOS Anleitung -->
+  <div class="ios-guide" id="iosGuide">
+    <div style="font-size:14px;color:#D4AF37;font-weight:700;margin-bottom:4px">Für Vollbild auf iPhone:</div>
+    <div class="ios-steps">
+      <div class="ios-step">
+        <div class="ios-step-num">1</div>
+        <div class="ios-step-icon">⬆️</div>
+        <div class="ios-step-text">Tippe auf den <b>Teilen-Button</b> unten in Safari</div>
+      </div>
+      <div class="ios-step">
+        <div class="ios-step-num">2</div>
+        <div class="ios-step-icon">➕</div>
+        <div class="ios-step-text">Wähle <b>„Zum Home-Bildschirm"</b></div>
+      </div>
+      <div class="ios-step">
+        <div class="ios-step-num">3</div>
+        <div class="ios-step-icon">🦔</div>
+        <div class="ios-step-text">Öffne die App vom <b>Home-Bildschirm</b> — läuft ohne Browser-Leiste!</div>
+      </div>
+    </div>
+    <div class="ios-hint">Das Spiel startet dann immer im Vollbild wie eine echte App</div>
+    <button class="ios-dismiss" onclick="dismissSplash()">Erstmal ohne Vollbild spielen</button>
+  </div>
 </div>
 
 <!-- ========== ROTATE PHONE OVERLAY ========== -->
@@ -2910,6 +2975,15 @@ function isMobile() {
   return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerHeight <= 500;
 }
 
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function isStandalone() {
+  return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+}
+
 function enterFullscreen() {
   const el = document.documentElement;
   const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
@@ -2922,9 +2996,11 @@ function enterFullscreen() {
       }).catch(() => {});
     } catch(e) {}
   }
-  // Hide splash regardless (iOS has no fullscreen API)
+  dismissSplash();
+}
+
+function dismissSplash() {
   document.getElementById('fsSplash').style.display = 'none';
-  // Scroll to hide address bar on iOS
   setTimeout(() => { window.scrollTo(0, 1); }, 100);
 }
 
@@ -2938,10 +3014,20 @@ function toggleFullscreen() {
 
 // Show fullscreen splash on mobile (landscape only, portrait shows rotate overlay)
 function checkFullscreenSplash() {
-  if (isMobile() && !document.fullscreenElement && !document.webkitFullscreenElement) {
+  if (isMobile() && !document.fullscreenElement && !document.webkitFullscreenElement && !isStandalone()) {
     // Only show in landscape — portrait shows rotate overlay instead
     if (window.innerWidth > window.innerHeight) {
       document.getElementById('fsSplash').style.display = 'flex';
+      // iOS: show homescreen guide instead of fullscreen button
+      if (isIOS()) {
+        document.getElementById('fsSplashBtn').style.display = 'none';
+        document.getElementById('fsSplashSub').style.display = 'none';
+        document.getElementById('iosGuide').style.display = 'block';
+      } else {
+        document.getElementById('fsSplashBtn').style.display = '';
+        document.getElementById('fsSplashSub').style.display = '';
+        document.getElementById('iosGuide').style.display = 'none';
+      }
     }
   }
 }
