@@ -471,11 +471,11 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 
 /* ========== RESPONSIVE - Landscape Mobile ========== */
 @media(max-height:500px){
-  html,body{height:100dvh;height:100vh}
+  html,body{height:var(--real-vh,100vh);overflow:hidden}
   .game-wrap{
     border-radius:0;width:100vw;
-    height:100vh;height:100dvh;
-    max-height:100vh;max-height:100dvh;
+    height:var(--real-vh,100vh);
+    max-height:var(--real-vh,100vh);
     aspect-ratio:auto;
   }
   .gold-frame-l,.gold-frame-r{width:20px}
@@ -2937,12 +2937,28 @@ document.addEventListener('fullscreenchange', () => {
   if (btn) btn.textContent = document.fullscreenElement ? '⛶' : '⛶';
 });
 
+// ===== MOBILE HEIGHT FIX =====
+// CSS vh/dvh is unreliable on mobile browsers (iOS Safari, Chrome Android)
+// This sets the actual visible height via JavaScript
+function fixMobileHeight() {
+  const vh = window.innerHeight;
+  document.documentElement.style.setProperty('--real-vh', vh + 'px');
+  const gw = document.querySelector('.game-wrap');
+  if (gw && vh <= 500) {
+    gw.style.height = vh + 'px';
+    gw.style.maxHeight = vh + 'px';
+  }
+}
+window.addEventListener('resize', fixMobileHeight);
+window.addEventListener('orientationchange', () => setTimeout(fixMobileHeight, 200));
+
 // ===== START =====
 window.addEventListener('DOMContentLoaded', () => {
+  fixMobileHeight();
   init();
   checkFullscreenSplash();
 });
-window.addEventListener('load', () => setTimeout(onResize, 100));
+window.addEventListener('load', () => { setTimeout(onResize, 100); fixMobileHeight(); });
 </script>
 </body>
 </html>
