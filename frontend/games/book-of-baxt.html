@@ -1737,7 +1737,7 @@ const PAYLINES = [
 ];
 
 // ===== GAME STATE =====
-let balance = 10000;
+let balance = parseInt(localStorage.getItem('slotBalance')) || 10000;
 let betPerLine = 20;
 let lines = 10;
 let lastWin = 0;
@@ -3145,6 +3145,8 @@ function updateUI() {
   document.getElementById('winVal').textContent = fmtEuro(lastWin);
   const winCg = document.getElementById('winCg');
   winCg.classList.toggle('has-win', lastWin > 0);
+  // Guthaben speichern
+  localStorage.setItem('slotBalance', balance);
 }
 
 // ===== RESIZE HANDLER =====
