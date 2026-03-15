@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
+const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -296,6 +297,80 @@ const DEMO_GAMES = [
   { id: 'golden-wagen', name: 'Golden Wagen', provider: 'Reisendes Casino', rtp: 97.00, category: 'slots', badge: 'exclusive', img: '🚃' },
   { id: 'romani-fortune', name: 'Romani Fortune', provider: 'Reisendes Casino', rtp: 96.80, category: 'slots', badge: 'exclusive', img: '🔮' }
 ];
+
+// ---------------------------------------------------------------------------
+// Game Settings API (admin tuning — applies to all players)
+// ---------------------------------------------------------------------------
+const SETTINGS_FILE = path.join(__dirname, 'game-settings.json');
+
+// Default settings
+const DEFAULT_SETTINGS = {
+  REEL_ACCEL_MS: 200,
+  REEL_SHARED_MS: 1500,
+  REEL_DECEL_MS: 1800,
+  REEL_STAGGER_MS: 500,
+  REEL_SPEED: 2.5,
+  REEL_BOUNCE_MS: 550,
+  REEL_BOUNCE_CELLS: 0.85,
+  REEL_BOUNCE2: 0
+};
+
+// Valid setting keys and their ranges
+const SETTING_RANGES = {
+  REEL_ACCEL_MS:     { min: 50,  max: 800 },
+  REEL_SHARED_MS:    { min: 500, max: 5000 },
+  REEL_DECEL_MS:     { min: 300, max: 4000 },
+  REEL_STAGGER_MS:   { min: 100, max: 1500 },
+  REEL_SPEED:        { min: 0.5, max: 5.0 },
+  REEL_BOUNCE_MS:    { min: 100, max: 800 },
+  REEL_BOUNCE_CELLS: { min: 0,   max: 1.2 },
+  REEL_BOUNCE2:      { min: 0,   max: 0.3 }
+};
+
+function loadSettings() {
+  try {
+    if (fs.existsSync(SETTINGS_FILE)) {
+      return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+    }
+  } catch(e) {
+    console.error('Error loading settings:', e.message);
+  }
+  return DEFAULT_SETTINGS;
+}
+
+// GET: load settings (all players)
+app.get('/api/settings/reel-tuning', (req, res) => {
+  res.json(loadSettings());
+});
+
+// POST: save settings (admin only, PIN protected)
+app.post('/api/settings/reel-tuning', (req, res) => {
+  const { pin, settings } = req.body;
+  if (pin !== '1986') {
+    return res.status(403).json({ error: 'Falscher PIN' });
+  }
+  if (!settings || typeof settings !== 'object') {
+    return res.status(400).json({ error: 'Ungültige Einstellungen' });
+  }
+
+  // Validate and sanitize settings
+  const sanitized = {};
+  for (const [key, range] of Object.entries(SETTING_RANGES)) {
+    const val = settings[key];
+    if (val !== undefined && typeof val === 'number' && !isNaN(val)) {
+      sanitized[key] = Math.min(range.max, Math.max(range.min, val));
+    } else {
+      sanitized[key] = DEFAULT_SETTINGS[key];
+    }
+  }
+
+  try {
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(sanitized, null, 2));
+    res.json({ success: true, settings: sanitized });
+  } catch(e) {
+    res.status(500).json({ error: 'Speichern fehlgeschlagen' });
+  }
+});
 
 // ---------------------------------------------------------------------------
 // Catch-all: serve frontend

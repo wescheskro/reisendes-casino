@@ -2090,6 +2090,15 @@ var REEL_BOUNCE_MS  = 550;   // ms for final bounce/overshoot settle (longer = m
 var REEL_BOUNCE_CELLS = 0.85; // overshoot in cell-heights (0.85 = fast ein ganzes Symbol)
 var REEL_BOUNCE2    = 0;     // secondary wobble OFF – reels snap into place
 
+// Load server-side tuning settings (applies to all players)
+fetch('/api/settings/reel-tuning')
+  .then(r => r.json())
+  .then(vals => {
+    const keys = ['REEL_ACCEL_MS','REEL_SHARED_MS','REEL_DECEL_MS','REEL_STAGGER_MS','REEL_SPEED','REEL_BOUNCE_MS','REEL_BOUNCE_CELLS','REEL_BOUNCE2'];
+    keys.forEach(k => { if (vals[k] !== undefined) window[k] = vals[k]; });
+  })
+  .catch(() => {});
+
 // Quick-stop: set to true when player taps during spin
 var quickStopRequested = false;
 
@@ -2927,11 +2936,10 @@ document.head.appendChild(style);
       if (inp && sliders[i]) inp.setAttribute('data-key', sliders[i].key);
     });
 
-    // Load saved settings from localStorage
-    const saved = localStorage.getItem('reelTuning');
-    if (saved) {
-      try {
-        const vals = JSON.parse(saved);
+    // Load saved settings from server (applies to ALL players)
+    fetch('/api/settings/reel-tuning')
+      .then(r => r.json())
+      .then(vals => {
         sliders.forEach(s => {
           if (vals[s.key] !== undefined) {
             window[s.key] = vals[s.key];
@@ -2943,29 +2951,44 @@ document.head.appendChild(style);
             }
           }
         });
-      } catch(e) {}
-    }
+      })
+      .catch(() => {});
 
-    // Save button
+    // Save button — saves to server for ALL players
     const btnRow = document.createElement('div');
     btnRow.style.cssText = 'display:flex;gap:4px;margin-top:10px;';
 
     const saveBtn = document.createElement('button');
-    saveBtn.textContent = '\u{1F4BE} Speichern';
+    saveBtn.textContent = '\u{1F4BE} Für alle speichern';
     saveBtn.style.cssText = 'flex:1;padding:6px;background:linear-gradient(180deg,#1a6b1a,#228b22);color:#ffd700;border:1px solid #ffd700;border-radius:6px;cursor:pointer;font:bold 12px monospace;';
     saveBtn.addEventListener('click', () => {
       const vals = {};
       sliders.forEach(s => { vals[s.key] = window[s.key]; });
-      localStorage.setItem('reelTuning', JSON.stringify(vals));
-      saveBtn.textContent = '\u2705 Gespeichert!';
-      setTimeout(() => { saveBtn.textContent = '\u{1F4BE} Speichern'; }, 1500);
+      saveBtn.textContent = '\u23F3 Speichern...';
+      fetch('/api/settings/reel-tuning', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: '1986', settings: vals })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            saveBtn.textContent = '\u2705 Für alle gespeichert!';
+          } else {
+            saveBtn.textContent = '\u274C ' + (data.error || 'Fehler');
+          }
+          setTimeout(() => { saveBtn.textContent = '\u{1F4BE} Für alle speichern'; }, 2000);
+        })
+        .catch(() => {
+          saveBtn.textContent = '\u274C Server-Fehler';
+          setTimeout(() => { saveBtn.textContent = '\u{1F4BE} Für alle speichern'; }, 2000);
+        });
     });
 
     const resetBtn = document.createElement('button');
     resetBtn.textContent = '\u{1F504} Reset';
     resetBtn.style.cssText = 'flex:1;padding:6px;background:linear-gradient(180deg,#6b4400,#8b5a00);color:#ffd700;border:1px solid #ffd700;border-radius:6px;cursor:pointer;font:bold 12px monospace;';
     resetBtn.addEventListener('click', () => {
-      localStorage.removeItem('reelTuning');
       const defaults = { REEL_ACCEL_MS:200, REEL_SHARED_MS:1500, REEL_DECEL_MS:1800, REEL_STAGGER_MS:500, REEL_SPEED:2.5, REEL_BOUNCE_MS:550, REEL_BOUNCE_CELLS:0.85, REEL_BOUNCE2:0 };
       sliders.forEach(s => {
         const def = defaults[s.key];
@@ -2978,6 +3001,12 @@ document.head.appendChild(style);
           }
         }
       });
+      // Save defaults to server
+      fetch('/api/settings/reel-tuning', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: '1986', settings: defaults })
+      }).catch(() => {});
       resetBtn.textContent = '\u2705 Zurückgesetzt!';
       setTimeout(() => { resetBtn.textContent = '\u{1F504} Reset'; }, 1500);
     });
