@@ -725,6 +725,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .vc-btn.active{background:rgba(46,204,113,.2);border-color:#2ecc71;color:#2ecc71}
 .vc-btn.muted{background:rgba(231,76,60,.2);border-color:#e74c3c;color:#e74c3c}
 
+/* Video-Grid für nicht-zugeordnete Videos */
 .video-grid{
   position:fixed;top:calc(env(safe-area-inset-top, 0px) + 50px);right:54px;z-index:25;
   display:flex;flex-direction:row-reverse;gap:4px;
@@ -756,6 +757,39 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 }
 .video-tile.no-video video{display:none}
 
+/* Video direkt am Seat */
+.seat-video{
+  position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);
+  width:clamp(60px,14vw,90px);height:clamp(45px,10vw,68px);
+  border-radius:8px;overflow:hidden;
+  background:rgba(20,10,5,.9);border:2px solid rgba(212,175,55,.25);
+  z-index:5;
+}
+.seat-video video{
+  width:100%;height:100%;object-fit:cover;transform:scaleX(-1);
+}
+.seat-video.speaking{
+  border-color:#2ecc71;
+  box-shadow:0 0 10px rgba(46,204,113,.5);
+}
+.seat-video .vt-muted-icon{
+  position:absolute;top:2px;right:2px;font-size:8px;
+  background:rgba(0,0,0,.6);border-radius:50%;width:14px;height:14px;
+  display:flex;align-items:center;justify-content:center;
+}
+/* Eigenes Video – klein unten rechts */
+.my-video{
+  position:fixed;bottom:calc(env(safe-area-inset-bottom, 0px) + 200px);right:8px;
+  width:80px;height:60px;border-radius:10px;overflow:hidden;
+  background:rgba(20,10,5,.9);border:2px solid rgba(212,175,55,.3);
+  z-index:100;
+}
+.my-video video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.my-video .mv-label{
+  position:absolute;bottom:0;left:0;right:0;text-align:center;
+  font-size:7px;color:#D4AF37;background:linear-gradient(transparent,rgba(0,0,0,.8));padding:1px;
+}
+
 .vc-status{
   position:fixed;top:calc(env(safe-area-inset-top, 0px) + 50px);right:54px;z-index:150;
   font-size:9px;color:rgba(240,230,211,.6);text-align:right;
@@ -770,6 +804,8 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   .video-tile{width:72px;height:54px;border-radius:8px}
   .video-tile .vt-name{font-size:7px;padding:1px 4px}
   .vc-status{top:calc(env(safe-area-inset-top, 0px) + 48px);right:48px}
+  .seat-video{width:55px;height:42px;border-radius:6px}
+  .my-video{width:65px;height:50px;bottom:calc(env(safe-area-inset-bottom, 0px) + 180px)}
 }
 
 /* ============ TIMER BAR ============ */
@@ -1690,6 +1726,11 @@ function renderState(state) {
 
   renderControls(state);
   updateMyHand(state);
+
+  // Video-Tiles an Seats re-attachen (weil seat innerHTML aktualisiert wurde)
+  if (vcActive) {
+    try { reattachSeatVideos(); } catch(e) { console.warn('Video reattach error:', e); }
+  }
 }
 
 // ===================== GROSSE HAND-ANZEIGE =====================
@@ -2056,6 +2097,45 @@ function setupSocketEvents() {
   });
 
   socket.on('error', msg => { showPhase(msg); });
+
+  // ---- RTC SOCKET EVENTS (für Video/Sprach-Chat) ----
+  socket.on('rtc:peers', async (peerList) => {
+    for (const { peerId, username } of peerList) {
+      await createPeerConnection(peerId, username, true);
+    }
+  });
+
+  socket.on('rtc:peerJoined', async ({ peerId, username }) => {
+    if (!vcActive) return;
+    setVcStatus(`🟢 ${username} ist beigetreten`);
+  });
+
+  socket.on('rtc:offer', async ({ from, username, offer }) => {
+    if (!vcActive) return;
+    const pc = await createPeerConnection(from, username, false);
+    await pc.setRemoteDescription(offer);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit('rtc:answer', { to: from, answer });
+  });
+
+  socket.on('rtc:answer', async ({ from, answer }) => {
+    if (peers[from]) {
+      await peers[from].pc.setRemoteDescription(answer);
+    }
+  });
+
+  socket.on('rtc:ice', async ({ from, candidate }) => {
+    if (peers[from]) {
+      try { await peers[from].pc.addIceCandidate(candidate); } catch(e) {}
+    }
+  });
+
+  socket.on('rtc:peerLeft', ({ peerId }) => {
+    const username = peers[peerId]?.username || 'Jemand';
+    removePeer(peerId);
+    setVcStatus(`🔴 ${username} hat verlassen`);
+  });
 }
 
 // Preload background
@@ -2158,8 +2238,13 @@ function leaveVoiceChat() {
     localStream = null;
   }
 
-  // Video-Grid leeren
+  // Video-Grid + Seat-Videos + eigenes Video leeren
   document.getElementById('videoGrid').innerHTML = '';
+  document.querySelectorAll('.seat-video').forEach(v => v.remove());
+  const myVid = document.getElementById('myVideoTile');
+  if (myVid) myVid.remove();
+  // Peer-Seat-Map leeren
+  for (const key of Object.keys(peerSeatMap)) delete peerSeatMap[key];
 
   // Buttons zurücksetzen
   document.getElementById('vcFab').classList.remove('connected');
@@ -2197,56 +2282,114 @@ function toggleCam() {
   btn.textContent = camEnabled ? '📷' : '🚫';
 
   // Eigenes Video-Tile aktualisieren
-  const tile = document.getElementById('vt-local');
-  if (tile) tile.classList.toggle('no-video', !camEnabled);
+  const myVid = document.getElementById('myVideoTile');
+  if (myVid) myVid.style.display = camEnabled ? '' : 'none';
+}
+
+// Peer-Username → Seat-Index Mapping
+const peerSeatMap = {}; // peerId -> seatIdx
+
+function findSeatForUsername(username) {
+  if (!myState) return -1;
+  return myState.seats.findIndex(s => s && s.username === username);
 }
 
 function addVideoTile(id, username, stream, isLocal) {
-  let tile = document.getElementById('vt-' + id);
-  if (!tile) {
-    tile = document.createElement('div');
-    tile.id = 'vt-' + id;
-    tile.className = 'video-tile';
-    tile.innerHTML = `
-      <video autoplay ${isLocal ? 'muted' : ''} playsinline></video>
-      <div class="vt-name">${username}${isLocal ? ' (Du)' : ''}</div>
-    `;
-    document.getElementById('videoGrid').appendChild(tile);
-  }
-  const video = tile.querySelector('video');
-  video.srcObject = stream;
-
-  // Prüfen ob Video-Track vorhanden
-  if (!stream.getVideoTracks().length || !stream.getVideoTracks()[0].enabled) {
-    tile.classList.add('no-video');
-    tile.insertAdjacentHTML('afterbegin',
-      `<span style="font-size:28px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">👤</span>`);
+  // Eigenes Video: kleines Overlay unten rechts
+  if (isLocal) {
+    let myVid = document.getElementById('myVideoTile');
+    if (!myVid) {
+      myVid = document.createElement('div');
+      myVid.id = 'myVideoTile';
+      myVid.className = 'my-video';
+      myVid.innerHTML = `<video autoplay muted playsinline></video><div class="mv-label">Du</div>`;
+      document.body.appendChild(myVid);
+    }
+    myVid.querySelector('video').srcObject = stream;
+    if (!stream.getVideoTracks().length) myVid.style.display = 'none';
+    return;
   }
 
-  // Spracherkennung (Speaking Indicator)
-  if (!isLocal) {
-    try {
-      const audioCtx = new AudioContext();
-      const analyser = audioCtx.createAnalyser();
-      const source = audioCtx.createMediaStreamSource(stream);
-      source.connect(analyser);
-      analyser.fftSize = 256;
-      const data = new Uint8Array(analyser.frequencyBinCount);
-      const checkSpeaking = () => {
-        if (!peers[id] && id !== 'local') return;
-        analyser.getByteFrequencyData(data);
-        const avg = data.reduce((a, b) => a + b) / data.length;
-        tile.classList.toggle('speaking', avg > 20);
-        requestAnimationFrame(checkSpeaking);
-      };
-      checkSpeaking();
-    } catch(e) {}
+  // Gegner-Video: Am Seat des Spielers anzeigen
+  const seatIdx = findSeatForUsername(username);
+  peerSeatMap[id] = { username, stream, seatIdx };
+
+  if (seatIdx >= 0) {
+    attachVideoToSeat(id, seatIdx, stream);
+  } else {
+    // Fallback: ins Grid (falls Seat nicht gefunden)
+    let tile = document.getElementById('vt-' + id);
+    if (!tile) {
+      tile = document.createElement('div');
+      tile.id = 'vt-' + id;
+      tile.className = 'video-tile';
+      tile.innerHTML = `<video autoplay playsinline></video><div class="vt-name">${username}</div>`;
+      document.getElementById('videoGrid').appendChild(tile);
+    }
+    tile.querySelector('video').srcObject = stream;
+  }
+
+  // Speaking-Erkennung
+  try {
+    const audioCtx = new AudioContext();
+    const analyser = audioCtx.createAnalyser();
+    const source = audioCtx.createMediaStreamSource(stream);
+    source.connect(analyser);
+    analyser.fftSize = 256;
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    const checkSpeaking = () => {
+      if (!peers[id]) return;
+      analyser.getByteFrequencyData(data);
+      const avg = data.reduce((a, b) => a + b) / data.length;
+      const isSpeaking = avg > 20;
+      // Speaking-Status auf Seat-Video + Grid-Tile setzen
+      const seatVid = document.getElementById('sv-' + id);
+      const gridTile = document.getElementById('vt-' + id);
+      if (seatVid) seatVid.classList.toggle('speaking', isSpeaking);
+      if (gridTile) gridTile.classList.toggle('speaking', isSpeaking);
+      requestAnimationFrame(checkSpeaking);
+    };
+    checkSpeaking();
+  } catch(e) {}
+}
+
+function attachVideoToSeat(peerId, seatIdx, stream) {
+  const seat = document.querySelector(`.seat[data-pos="${seatIdx}"]`);
+  if (!seat) return;
+
+  // Altes Seat-Video entfernen falls vorhanden
+  const old = document.getElementById('sv-' + peerId);
+  if (old) old.remove();
+
+  const seatVid = document.createElement('div');
+  seatVid.id = 'sv-' + peerId;
+  seatVid.className = 'seat-video';
+  seatVid.innerHTML = `<video autoplay playsinline></video>`;
+  seatVid.querySelector('video').srcObject = stream;
+  seat.appendChild(seatVid);
+}
+
+// Nach jedem renderState: Video-Elemente an Seats re-attachen (weil innerHTML sich ändert)
+function reattachSeatVideos() {
+  for (const [peerId, info] of Object.entries(peerSeatMap)) {
+    if (!peers[peerId]) continue;
+    const newSeatIdx = findSeatForUsername(info.username);
+    if (newSeatIdx >= 0) {
+      info.seatIdx = newSeatIdx;
+      // Nur re-attachen wenn nicht mehr vorhanden
+      if (!document.getElementById('sv-' + peerId)) {
+        attachVideoToSeat(peerId, newSeatIdx, info.stream);
+      }
+    }
   }
 }
 
 function removeVideoTile(id) {
   const tile = document.getElementById('vt-' + id);
   if (tile) tile.remove();
+  const sv = document.getElementById('sv-' + id);
+  if (sv) sv.remove();
+  delete peerSeatMap[id];
 }
 
 // ===================== WEBRTC PEER MANAGEMENT =====================
@@ -2297,48 +2440,7 @@ function removePeer(peerId) {
   removeVideoTile(peerId);
 }
 
-// ===================== RTC SOCKET EVENTS =====================
-socket.on('rtc:peers', async (peerList) => {
-  // Verbindung zu allen bestehenden Peers aufbauen (wir sind Initiator)
-  for (const { peerId, username } of peerList) {
-    await createPeerConnection(peerId, username, true);
-  }
-});
-
-socket.on('rtc:peerJoined', async ({ peerId, username }) => {
-  if (!vcActive) return;
-  setVcStatus(`🟢 ${username} ist beigetreten`);
-  // Neuer Peer → warten auf deren Offer
-});
-
-socket.on('rtc:offer', async ({ from, username, offer }) => {
-  if (!vcActive) return;
-  const pc = await createPeerConnection(from, username, false);
-  await pc.setRemoteDescription(offer);
-  const answer = await pc.createAnswer();
-  await pc.setLocalDescription(answer);
-  socket.emit('rtc:answer', { to: from, answer });
-});
-
-socket.on('rtc:answer', async ({ from, answer }) => {
-  if (peers[from]) {
-    await peers[from].pc.setRemoteDescription(answer);
-  }
-});
-
-socket.on('rtc:ice', async ({ from, candidate }) => {
-  if (peers[from]) {
-    try {
-      await peers[from].pc.addIceCandidate(candidate);
-    } catch(e) {}
-  }
-});
-
-socket.on('rtc:peerLeft', ({ peerId }) => {
-  const username = peers[peerId]?.username || 'Jemand';
-  removePeer(peerId);
-  setVcStatus(`🔴 ${username} hat verlassen`);
-});
+// (RTC Socket Events sind jetzt in setupSocketEvents() registriert)
 // ===================== DRAG-MODUS FÜR SEATS =====================
 (function() {
   const STORAGE_KEY = 'pokerSeatPositions';
