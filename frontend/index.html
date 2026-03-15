@@ -1369,6 +1369,52 @@
     }
 
     // =========================================================================
+    // LIVE POKER-TISCH auf Landing Page
+    // =========================================================================
+    function updateLivePokerTable() {
+      fetch('/api/poker/tables')
+        .then(r => r.json())
+        .then(data => {
+          const table = data.tables && data.tables[0];
+          if (!table) return;
+
+          // Pot aktualisieren
+          const potEl = document.querySelector('.pt-pot');
+          if (potEl && table.pot > 0) potEl.textContent = 'Pot: ' + table.pot.toLocaleString('de-DE');
+
+          // Seats aktualisieren
+          const seatEls = document.querySelectorAll('.pt-seat');
+          for (let i = 0; i < seatEls.length; i++) {
+            const el = seatEls[i];
+            const s = table.seats[i];
+            if (s && s.username) {
+              el.classList.add('pt-occupied');
+              const nameEl = el.querySelector('.pt-seat-name');
+              if (nameEl) nameEl.textContent = s.username;
+              let chipsEl = el.querySelector('.pt-chips');
+              if (!chipsEl) {
+                chipsEl = document.createElement('div');
+                chipsEl.className = 'pt-chips';
+                el.appendChild(chipsEl);
+              }
+              chipsEl.textContent = '\u{1F4B0} ' + (s.chips || 0).toLocaleString('de-DE');
+            } else {
+              el.classList.remove('pt-occupied');
+              const nameEl = el.querySelector('.pt-seat-name');
+              if (nameEl) nameEl.textContent = 'Platz frei';
+              const chipsEl = el.querySelector('.pt-chips');
+              if (chipsEl) chipsEl.textContent = '';
+            }
+          }
+        })
+        .catch(() => {});
+    }
+
+    // Alle 5 Sekunden aktualisieren
+    updateLivePokerTable();
+    setInterval(updateLivePokerTable, 5000);
+
+    // =========================================================================
     // INIT
     // =========================================================================
     updateAuthUI();

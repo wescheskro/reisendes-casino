@@ -479,6 +479,26 @@ app.get('/api/leaderboard/winners', (req, res) => {
   res.json({ winners: db.weeklyWinners.slice(-10).reverse() });
 });
 
+// Live Poker-Tische: aktuelle Spieler für Landing Page
+app.get('/api/poker/tables', (req, res) => {
+  const result = [];
+  for (const [id, table] of tables.poker) {
+    const seats = table.seats.map((pid, i) => {
+      if (!pid) return null;
+      const p = table.players.get(pid);
+      if (!p) return null;
+      return { seat: i, username: p.username, chips: p.chips, isBot: !!p.isBot };
+    });
+    result.push({
+      id, phase: table.phase,
+      pot: table.pot,
+      playerCount: [...table.players.values()].filter(p => !p.spectator).length,
+      seats
+    });
+  }
+  res.json({ tables: result });
+});
+
 // Profil abrufen
 app.get('/api/auth/profile', authMiddleware, (req, res) => {
   const weekKey = getWeekKey();
