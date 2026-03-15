@@ -1586,6 +1586,7 @@ function stopTurnTimer() {
 
 // ===================== STATE RENDERING =====================
 function renderState(state) {
+  const oldState = myState; // Alten State merken BEVOR überschrieben
   myState = state;
   const prevPhase = currentPhase;
   currentPhase = state.phase;
@@ -1610,8 +1611,8 @@ function renderState(state) {
       else if (state.phase === 'showdown') PokerSFX.showdown();
     } catch(e) { console.warn('CardAnim error:', e); }
   }
-  // Du bist dran
-  const wasMyTurn = prevPhase && myState && myState.currentSeat >= 0 && myState.seats[myState.currentSeat] && myState.seats[myState.currentSeat].isYou;
+  // Du bist dran (oldState für vorherigen Zustand nutzen)
+  const wasMyTurn = oldState && oldState.currentSeat >= 0 && oldState.seats[oldState.currentSeat] && oldState.seats[oldState.currentSeat].isYou;
   const isNowMyTurn = state.currentSeat >= 0 && state.seats[state.currentSeat] && state.seats[state.currentSeat].isYou;
   if (!wasMyTurn && isNowMyTurn && state.phase !== 'waiting') PokerSFX.yourTurn();
 
@@ -1791,7 +1792,7 @@ function updatePeekState() {
   const anyOpen = [...wraps].some(w => !w.classList.contains('flipped'));
   if (anyOpen !== isPeeking) {
     isPeeking = anyOpen;
-    socket.emit('poker:peek', { peeking: isPeeking });
+    if (socket) socket.emit('poker:peek', { peeking: isPeeking });
   }
 }
 
@@ -2441,203 +2442,7 @@ function removePeer(peerId) {
   removeVideoTile(peerId);
 }
 
-// (RTC Socket Events sind jetzt in setupSocketEvents() registriert)
-// ===================== DRAG-MODUS FÜR SEATS =====================
-(function() {
-  const STORAGE_KEY = 'pokerSeatPositions';
-  let dragMode = false;
-  let dragging = null;
-  let offsetX = 0, offsetY = 0;
-
-  // Gespeicherte Positionen laden und anwenden
-  function applySaved() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if (!saved) return;
-      for (const pos in saved) {
-        const seats = document.querySelectorAll(`.seat[data-pos="${pos}"]`);
-        seats.forEach(s => {
-          s.style.top = saved[pos].top;
-          s.style.left = saved[pos].left;
-        });
-      }
-    } catch(e) {}
-  }
-
-  // Nach jedem renderTable die Positionen neu anwenden
-  const origRender = window.renderTable;
-  if (origRender) {
-    window.renderTable = function(state) {
-      origRender(state);
-      applySaved();
-    };
-  }
-
-  // MutationObserver als Fallback
-  const obs = new MutationObserver(() => applySaved());
-  setTimeout(() => {
-    const sc = document.getElementById('seatsContainer');
-    if (sc) obs.observe(sc, { childList: true });
-    applySaved();
-  }, 500);
-
-  // Toggle-Button erstellen (draggable)
-  const BTN_POS_KEY = 'pokerDragBtnPos';
-  const toggleBtn = document.createElement('button');
-  toggleBtn.textContent = '⚙ Sitze anpassen';
-  toggleBtn.id = 'dragToggle';
-  toggleBtn.style.cssText = 'display:none;position:fixed;bottom:140px;right:8px;z-index:9999;padding:6px 12px;background:rgba(212,175,55,.9);color:#000;border:none;border-radius:8px;font:bold 11px sans-serif;cursor:grab;touch-action:none;user-select:none;';
-  document.body.appendChild(toggleBtn);
-
-  // Gespeicherte Button-Position laden
-  try {
-    const bp = JSON.parse(localStorage.getItem(BTN_POS_KEY));
-    if (bp) { toggleBtn.style.bottom = bp.bottom; toggleBtn.style.right = bp.right; }
-  } catch(e) {}
-
-  // Button selbst draggable machen
-  let btnDragging = false, btnStartX = 0, btnStartY = 0, btnMoved = false;
-  function btnDragStart(cx, cy) {
-    btnDragging = true; btnMoved = false;
-    btnStartX = cx; btnStartY = cy;
-  }
-  function btnDragMove(cx, cy) {
-    if (!btnDragging) return;
-    if (Math.abs(cx - btnStartX) > 5 || Math.abs(cy - btnStartY) > 5) btnMoved = true;
-    if (!btnMoved) return;
-    const r = window.innerWidth - cx - toggleBtn.offsetWidth / 2;
-    const b = window.innerHeight - cy - toggleBtn.offsetHeight / 2;
-    toggleBtn.style.right = Math.max(0, Math.min(window.innerWidth - 60, r)) + 'px';
-    toggleBtn.style.bottom = Math.max(0, Math.min(window.innerHeight - 30, b)) + 'px';
-  }
-  function btnDragEnd() {
-    if (btnDragging && btnMoved) {
-      localStorage.setItem(BTN_POS_KEY, JSON.stringify({ bottom: toggleBtn.style.bottom, right: toggleBtn.style.right }));
-    }
-    btnDragging = false;
-  }
-  toggleBtn.addEventListener('mousedown', e => { btnDragStart(e.clientX, e.clientY); });
-  document.addEventListener('mousemove', e => { if (btnDragging) { e.preventDefault(); btnDragMove(e.clientX, e.clientY); } });
-  document.addEventListener('mouseup', () => { btnDragEnd(); });
-  toggleBtn.addEventListener('touchstart', e => { const t = e.touches[0]; btnDragStart(t.clientX, t.clientY); }, { passive: true });
-  document.addEventListener('touchmove', e => { if (btnDragging) { const t = e.touches[0]; btnDragMove(t.clientX, t.clientY); } }, { passive: true });
-  document.addEventListener('touchend', () => { btnDragEnd(); });
-
-  // Info-Label
-  const infoLabel = document.createElement('div');
-  infoLabel.id = 'dragInfo';
-  infoLabel.style.cssText = 'display:none;position:fixed;top:50px;left:50%;transform:translateX(-50%);z-index:9999;padding:8px 20px;background:rgba(244,208,63,.95);color:#000;border-radius:10px;font:bold 13px sans-serif;text-align:center;pointer-events:none;';
-  infoLabel.textContent = '🔧 Ziehe die Gegner an die gewünschte Position – klicke nochmal zum Speichern';
-  document.body.appendChild(infoLabel);
-
-  toggleBtn.addEventListener('click', () => {
-    if (btnMoved) return; // Nicht klicken wenn gerade gezogen
-    dragMode = !dragMode;
-    infoLabel.style.display = dragMode ? 'block' : 'none';
-    toggleBtn.textContent = dragMode ? '✅ Positionen speichern' : '⚙ Sitze anpassen';
-    toggleBtn.style.background = dragMode ? '#2ecc71' : 'rgba(212,175,55,.9)';
-
-    document.querySelectorAll('.seat:not(.you)').forEach(s => {
-      s.style.cursor = dragMode ? 'grab' : 'pointer';
-      if (dragMode) s.style.outline = '2px dashed rgba(244,208,63,.6)';
-      else s.style.outline = '';
-    });
-
-    if (!dragMode) {
-      // Positionen speichern
-      const positions = {};
-      document.querySelectorAll('.seat[data-pos]').forEach(s => {
-        const pos = s.getAttribute('data-pos');
-        positions[pos] = { top: s.style.top, left: s.style.left };
-      });
-      // Nur nicht-leere speichern
-      const toSave = {};
-      for (const p in positions) {
-        if (positions[p].top && positions[p].left) toSave[p] = positions[p];
-      }
-      if (Object.keys(toSave).length > 0) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-      }
-    }
-  });
-
-  // Admin-Menü: Button zeigen wenn Debug-Panel sichtbar wird
-  const showDragBtn = () => {
-    const panel = document.getElementById('reelDebugPanel');
-    // Immer zeigen – egal ob Admin oder nicht
-    toggleBtn.style.display = 'block';
-  };
-  // Zeige den Button nach kurzer Verzögerung
-  setTimeout(showDragBtn, 1000);
-
-  // Drag-Handler (Mouse)
-  document.addEventListener('mousedown', e => {
-    if (!dragMode) return;
-    const seat = e.target.closest('.seat:not(.you)');
-    if (!seat) return;
-    e.preventDefault();
-    dragging = seat;
-    seat.style.cursor = 'grabbing';
-    seat.style.zIndex = '999';
-    const rect = seat.getBoundingClientRect();
-    offsetX = e.clientX - rect.left - rect.width / 2;
-    offsetY = e.clientY - rect.top - rect.height / 2;
-  });
-
-  document.addEventListener('mousemove', e => {
-    if (!dragging) return;
-    e.preventDefault();
-    const x = ((e.clientX - offsetX) / window.innerWidth * 100);
-    const y = ((e.clientY - offsetY) / window.innerHeight * 100);
-    dragging.style.left = Math.max(2, Math.min(98, x)).toFixed(1) + '%';
-    dragging.style.top = Math.max(5, Math.min(75, y)).toFixed(1) + '%';
-  });
-
-  document.addEventListener('mouseup', () => {
-    if (dragging) {
-      dragging.style.cursor = 'grab';
-      dragging.style.zIndex = '';
-      dragging = null;
-    }
-  });
-
-  // Drag-Handler (Touch)
-  document.addEventListener('touchstart', e => {
-    if (!dragMode) return;
-    const seat = e.target.closest('.seat:not(.you)');
-    if (!seat) return;
-    e.preventDefault();
-    dragging = seat;
-    seat.style.zIndex = '999';
-    const touch = e.touches[0];
-    const rect = seat.getBoundingClientRect();
-    offsetX = touch.clientX - rect.left - rect.width / 2;
-    offsetY = touch.clientY - rect.top - rect.height / 2;
-  }, { passive: false });
-
-  document.addEventListener('touchmove', e => {
-    if (!dragging) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    const x = ((touch.clientX - offsetX) / window.innerWidth * 100);
-    const y = ((touch.clientY - offsetY) / window.innerHeight * 100);
-    dragging.style.left = Math.max(2, Math.min(98, x)).toFixed(1) + '%';
-    dragging.style.top = Math.max(5, Math.min(75, y)).toFixed(1) + '%';
-  }, { passive: false });
-
-  document.addEventListener('touchend', () => {
-    if (dragging) {
-      dragging.style.zIndex = '';
-      dragging = null;
-    }
-  });
-
-  // Reset-Button (Doppelklick auf den Toggle)
-  toggleBtn.addEventListener('dblclick', () => {
-    localStorage.removeItem(STORAGE_KEY);
-    location.reload();
-  });
-})();
+// (RTC Socket Events + Drag-System sind jetzt in setupSocketEvents() bzw. initSeatDrag() integriert)
 </script>
 </body>
 </html>
