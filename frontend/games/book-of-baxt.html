@@ -11,47 +11,39 @@
 html,body{height:100%;overflow:hidden;background:#000}
 body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justify-content:center;user-select:none}
 
-/* ========== EPIC BACKGROUND - Egyptian sunset with pyramids ========== */
+/* ========== BACKGROUND IMAGE ========== */
 .bg{position:fixed;inset:0;z-index:0;overflow:hidden}
 .bg-sky{
   position:absolute;inset:0;
-  background:linear-gradient(180deg,
-    #0a0520 0%,#1a0a35 15%,#3d1155 28%,#7a2040 42%,
-    #c4522a 55%,#e8913a 65%,#f4c84a 75%,#eedd77 85%,
-    #c4a03a 92%,#8a6020 100%
-  );
+  background:url('img/bg.jpg') center center / cover no-repeat;
+}
+/* Slight dark overlay for contrast */
+.bg-sky::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,rgba(0,0,0,.2),rgba(0,0,0,.6));
 }
 /* Stars */
 .bg-stars{position:absolute;inset:0;z-index:1}
 .bg-stars::before,.bg-stars::after{
   content:'';position:absolute;border-radius:50%;background:#fff;
 }
-/* Pyramids silhouette */
-.bg-pyramids{
-  position:absolute;bottom:5%;left:0;right:0;height:35%;z-index:2;
-}
-.pyramid{position:absolute;bottom:0}
-.pyramid.p1{left:5%;width:0;height:0;border-left:120px solid transparent;border-right:120px solid transparent;border-bottom:150px solid #1a1020;filter:brightness(.7)}
-.pyramid.p2{left:18%;width:0;height:0;border-left:200px solid transparent;border-right:200px solid transparent;border-bottom:250px solid #15081a;filter:brightness(.5)}
-.pyramid.p3{right:15%;width:0;height:0;border-left:150px solid transparent;border-right:150px solid transparent;border-bottom:180px solid #18091e;filter:brightness(.6)}
-/* Sand dunes */
-.bg-sand{
-  position:absolute;bottom:0;left:0;right:0;height:12%;z-index:3;
-  background:linear-gradient(180deg,#5a3a15,#3d2810,#2a1a08);
-  border-radius:100% 100% 0 0 / 60% 60% 0 0;
-}
+/* Pyramids silhouette - hidden, using photo bg */
+.bg-pyramids{display:none}
+.pyramid{display:none}
+/* Sand dunes - hidden, using photo bg */
+.bg-sand{display:none}
 /* Animated floating particles */
-.bg-particles{position:absolute;inset:0;z-index:4;opacity:.6}
+.bg-particles{position:absolute;inset:0;z-index:4;opacity:.4}
 @keyframes float{0%{transform:translateY(100vh) rotate(0deg);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) rotate(720deg);opacity:0}}
 
 /* ========== GAME WRAPPER ========== */
 .game-wrap{
   position:relative;z-index:10;
-  width:min(98vw,900px);
-  aspect-ratio:16/10;
+  width:min(98vw,960px);
+  aspect-ratio:14/10;
   max-height:96vh;
   display:flex;flex-direction:column;
-  border-radius:12px;overflow:hidden;
+  border-radius:0;overflow:hidden;
   box-shadow:0 0 60px rgba(0,0,0,.8),0 0 120px rgba(139,69,0,.2);
 }
 
@@ -100,28 +92,28 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 
 /* ========== GOLDEN FRAME - 3D beveled ========== */
 .gold-frame-l,.gold-frame-r{
-  width:40px;z-index:5;position:relative;flex-shrink:0;
+  width:44px;z-index:5;position:relative;flex-shrink:0;
   display:flex;flex-direction:column;align-items:center;justify-content:space-around;
   padding:4px 0;
 }
 .gold-frame-l{
-  background:linear-gradient(90deg,#4a3010,#8B6914,#B8960B,#D4AF37,#B8960B,#8B6914 85%,#5a3a10);
-  border-right:2px solid #3a2505;
-  box-shadow:inset -3px 0 8px rgba(0,0,0,.4);
+  background:linear-gradient(90deg,#1a0505,#8b1515,#cc2020,#ff3030,#cc2020,#8b1515,#1a0505);
+  border-right:3px solid #D4AF37;
+  box-shadow:inset -3px 0 12px rgba(0,0,0,.5),4px 0 20px rgba(255,30,30,.15);
 }
 .gold-frame-r{
-  background:linear-gradient(270deg,#4a3010,#8B6914,#B8960B,#D4AF37,#B8960B,#8B6914 85%,#5a3a10);
-  border-left:2px solid #3a2505;
-  box-shadow:inset 3px 0 8px rgba(0,0,0,.4);
+  background:linear-gradient(270deg,#1a0505,#8b1515,#cc2020,#ff3030,#cc2020,#8b1515,#1a0505);
+  border-left:3px solid #D4AF37;
+  box-shadow:inset 3px 0 12px rgba(0,0,0,.5),-4px 0 20px rgba(255,30,30,.15);
 }
-/* Hieroglyph pattern on frame */
+/* Decorative pattern on frame */
 .gold-frame-l::before,.gold-frame-r::before{
-  content:'𓂀 𓃭 𓁹 𓋴 𓊝 𓂋 𓃀 𓇳 𓁿 𓃠';
-  position:absolute;top:5px;bottom:5px;width:100%;
-  font-size:10px;line-height:20px;text-align:center;color:rgba(60,30,5,.35);
-  writing-mode:vertical-lr;overflow:hidden;pointer-events:none;z-index:0;
+  content:'';
+  position:absolute;top:0;bottom:0;width:100%;
+  background:linear-gradient(180deg,rgba(255,200,50,.1) 0%,transparent 15%,transparent 85%,rgba(255,200,50,.1) 100%);
+  pointer-events:none;z-index:0;
 }
-/* Payline number buttons */
+/* Payline number buttons - hidden by default, shown on events */
 .pln{
   width:28px;height:22px;border-radius:4px;z-index:1;
   display:flex;align-items:center;justify-content:center;
@@ -129,8 +121,10 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   color:#000;text-shadow:0 1px 0 rgba(255,255,255,.3);
   border:1px solid rgba(0,0,0,.4);
   box-shadow:0 2px 4px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.2);
-  transition:.15s;position:relative;
+  transition:opacity .3s, transform .15s;position:relative;
+  opacity:0;
 }
+.pln.visible{opacity:1}
 .pln:hover{transform:scale(1.15);filter:brightness(1.3)}
 
 /* ========== REELS AREA ========== */
@@ -139,34 +133,29 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 }
 /* Top/bottom frame bars */
 .frame-bar{
-  height:6px;flex-shrink:0;
-  background:linear-gradient(180deg,#D4AF37,#8B6914);
-  box-shadow:0 2px 6px rgba(0,0,0,.5);position:relative;z-index:3;
+  height:8px;flex-shrink:0;
+  background:linear-gradient(180deg,#F4D03F,#D4AF37,#8B6914);
+  box-shadow:0 2px 8px rgba(0,0,0,.6),0 0 6px rgba(212,175,55,.3);position:relative;z-index:3;
 }
 .frame-bar.bottom{background:linear-gradient(180deg,#8B6914,#D4AF37)}
 
 /* Reels viewport - extra height for peek symbols top/bottom */
 .reels-vp{
-  flex:1;display:flex;gap:2px;position:relative;overflow:hidden;
-  background:#080412;
-  padding-top:8%;padding-bottom:8%;
+  flex:1;display:flex;gap:3px;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#0a0605,#120905,#0a0605);
+  padding-top:0;padding-bottom:0;
 }
 
 .reel-col{
   flex:1;position:relative;overflow:hidden;
-  background:linear-gradient(180deg,rgba(20,10,35,.8),rgba(10,5,20,.9));
-  border-left:1px solid rgba(212,175,55,.08);
-  border-right:1px solid rgba(212,175,55,.08);
+  background:linear-gradient(180deg,#100808,#1a0e08,#100808);
+  border-left:2px solid rgba(212,175,55,.2);
+  border-right:2px solid rgba(212,175,55,.2);
 }
-/* Reel gradient overlay - darkens peek symbols at edges */
+/* Reel gradient overlay */
 .reel-col::before{
   content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
-  background:linear-gradient(180deg,
-    rgba(0,0,0,.85) 0%,rgba(0,0,0,.4) 10%,
-    rgba(0,0,0,.05) 18%,transparent 24%,
-    transparent 76%,rgba(0,0,0,.05) 82%,
-    rgba(0,0,0,.4) 90%,rgba(0,0,0,.85) 100%
-  );
+  background:none;
 }
 .reel-col::after{
   content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
@@ -179,29 +168,26 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   display:flex;flex-direction:column;
   transition:none;
 }
-.reel-strip.landing{
-  transition:transform .15s cubic-bezier(.17,.67,.35,1.3);
-}
 
 /* Individual symbol cell */
 .sym-cell{
-  width:100%;aspect-ratio:1/0.85;
+  width:100%;aspect-ratio:1/1.1;
   display:flex;align-items:center;justify-content:center;
   position:relative;flex-shrink:0;
 }
 .sym-cell .sym-wrap{
-  width:88%;height:88%;position:relative;
+  width:100%;height:100%;position:relative;
   display:flex;align-items:center;justify-content:center;
-  border-radius:6px;
-  background:radial-gradient(ellipse at 50% 40%,rgba(40,20,60,.3),rgba(10,5,20,.5));
-  border:1px solid rgba(212,175,55,.06);
+  border-radius:2px;
+  background:none;
+  border:none;
   overflow:hidden;
 }
 /* Symbol image */
 .sym-cell .sym-img{
-  width:82%;height:82%;
+  width:100%;height:100%;
   display:flex;align-items:center;justify-content:center;
-  filter:drop-shadow(0 3px 8px rgba(0,0,0,.6));
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));
 }
 .sym-cell .sym-img svg{width:100%;height:100%}
 
@@ -233,7 +219,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 /* ========== INFO BAR ========== */
 .info-bar{
   height:32px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(180deg,#0a0510,#12081e);
+  background:linear-gradient(180deg,#0a0605,#120a05);
   border-top:1px solid rgba(212,175,55,.1);
   font-size:clamp(11px,1.5vw,15px);letter-spacing:1px;color:rgba(255,255,255,.7);
   position:relative;z-index:5;
@@ -243,7 +229,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 
 /* ========== CONTROL PANEL ========== */
 .ctrl-panel{
-  height:52px;display:flex;align-items:center;justify-content:center;gap:4px;
+  height:64px;display:flex;align-items:center;justify-content:center;gap:4px;
   padding:0 8px;
   background:linear-gradient(180deg,#1a0e05 0%,#120a02 50%,#0a0500 100%);
   border-top:3px solid;
@@ -324,8 +310,9 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 /* ========== FREE SPINS OVERLAY ========== */
 .fs-overlay{
   display:none;position:absolute;inset:0;z-index:50;
-  background:rgba(0,0,0,.9);
+  background:rgba(0,0,0,.7);
   flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;
 }
 .fs-overlay.show{display:flex}
 .fs-overlay h2{
@@ -417,16 +404,14 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 .gamble-info{color:rgba(255,255,255,.5);font-size:13px;margin-top:16px;letter-spacing:1px}
 .gamble-stake{color:#F4D03F;font-size:20px;font-weight:700;margin-bottom:8px}
 
-/* ========== REEL LANDING BOUNCE ========== */
+/* ========== REEL LANDING SNAP ========== */
+/* Clean snap into place — no wobble, just a quick settle */
 .reel-col.reel-landing .sym-cell .sym-wrap{
-  animation:landBounce .4s ease-out;
+  animation:landSnap .15s ease-out;
 }
-@keyframes landBounce{
-  0%{transform:translateY(-18px) scaleY(1.08);opacity:.85}
-  35%{transform:translateY(8px) scaleY(0.95)}
-  55%{transform:translateY(-4px) scaleY(1.02)}
-  75%{transform:translateY(2px) scaleY(0.99)}
-  100%{transform:translateY(0) scaleY(1);opacity:1}
+@keyframes landSnap{
+  0%{opacity:.9}
+  100%{opacity:1}
 }
 /* Reel column during spin - slight blur */
 .reel-col.spinning{filter:blur(0.5px)}
@@ -555,11 +540,17 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
     </div>
   </div>
 
-  <!-- Free spins overlay -->
+  <!-- Free spins overlay with video -->
   <div class="fs-overlay" id="fsOverlay">
-    <h2>FREISPIELE!</h2>
-    <p id="fsText">10 Freispiele gewonnen!</p>
-    <div class="fs-sym" id="fsSym"></div>
+    <video id="fsVideo" playsinline preload="auto"
+      style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0">
+      <source src="img/freespin.mp4" type="video/mp4">
+    </video>
+    <div style="position:relative;z-index:1;text-align:center">
+      <h2>FREISPIELE!</h2>
+      <p id="fsText">10 Freispiele gewonnen!</p>
+      <div class="fs-sym" id="fsSym"></div>
+    </div>
   </div>
 
   <!-- Big win overlay -->
@@ -670,6 +661,16 @@ const SFX = {
     a.volume = opts.volume || this.sounds[key].volume;
     if (opts.playbackRate) a.playbackRate = opts.playbackRate;
     a.currentTime = 0; a.play().catch(()=>{});
+    // Auto-stop after max duration to prevent sounds playing too long
+    if (opts.maxDuration) {
+      const fadeStart = Math.max(0, opts.maxDuration - 200);
+      setTimeout(() => {
+        const fadeOut = setInterval(() => {
+          if (a.volume > 0.05) { a.volume = Math.max(0, a.volume - 0.08); }
+          else { a.pause(); a.currentTime = 0; clearInterval(fadeOut); }
+        }, 20);
+      }, fadeStart);
+    }
     return a;
   },
 
@@ -679,99 +680,123 @@ const SFX = {
 
   spinStart() {
     if (!this.ctx || this.muted) return;
+    // Clear any previous wheel sound loop (important for free spins / rapid play)
+    if (this._wheelInterval) { clearTimeout(this._wheelInterval); this._wheelInterval = null; }
+
     // Rhythmic clicking that accelerates - like a wooden wagon wheel
-    this._wheelSpeed = 180; // start very slow (ms between clicks)
+    // Matches 4-phase animation: 200ms accel, 1.5s cruise, 1.8s decel, 300ms bounce
+    this._wheelSpeed = 160; // start interval (ms between clicks)
+    this._wheelStopping = false;
+    this._reelsLanding = false; // true once first reel stops → no more acceleration
     let clickCount = 0;
+    const self = this;
+
     const doClick = () => {
-      if (this.muted) return;
+      if (self.muted || self._wheelStopping) return;
       clickCount++;
+
+      // Volume decreases slightly as speed increases (natural mechanical feel)
+      const speedFactor = Math.min(1, self._wheelSpeed / 160); // 1.0 at start, ~0.22 at max
+      const vol = 0.06 + 0.08 * speedFactor;
+
       // Wooden clack: low thud + high click
       const baseFreq = 55 + Math.random() * 25;
-      this._tick(baseFreq, 0.05, 0.12, 'sine');          // deep wood thud
-      this._tick(280 + Math.random()*120, 0.025, 0.07, 'square'); // click
-      this._noise(0.02, 0.04, 1800);                      // gritty texture
-      // Occasional creak (wood groaning)
-      if (clickCount % 5 === 0) {
-        this._tick(350 + Math.random()*250, 0.1, 0.04, 'sawtooth');
+      self._tick(baseFreq, 0.04, vol, 'sine');                    // deep wood thud
+      self._tick(280 + Math.random()*120, 0.02, vol * 0.5, 'square'); // click
+      self._noise(0.015, vol * 0.3, 1800);                        // gritty texture
+
+      // Occasional creak (wood groaning) - less frequent at high speed
+      if (clickCount % (self._wheelSpeed < 60 ? 8 : 4) === 0) {
+        self._tick(350 + Math.random()*250, 0.08, 0.03, 'sawtooth');
       }
       // Occasional rattle
       if (clickCount % 7 === 0) {
-        this._noise(0.04, 0.03, 3500);
+        self._noise(0.03, 0.025, 3500);
       }
-      // Accelerate: clicks get faster, but slowly
-      if (this._wheelSpeed > 40) {
-        this._wheelSpeed = Math.max(40, this._wheelSpeed - 1.5);
+
+      // Accelerate wheel if still in cruise, decelerate if landing
+      if (!self._reelsLanding && self._wheelSpeed > 35) {
+        // Fast exponential acceleration to match 1.5s cruise
+        self._wheelSpeed = Math.max(35, self._wheelSpeed * 0.90);
+      } else if (self._reelsLanding && !self._wheelStopping) {
+        // Wheel slows to match visual deceleration (~1800ms per reel)
+        self._wheelSpeed = Math.min(300, self._wheelSpeed * 1.045 + 0.5);
       }
-      this._wheelInterval = setTimeout(doClick, this._wheelSpeed);
+      self._wheelInterval = setTimeout(doClick, self._wheelSpeed);
     };
+
     // Initial push sound - heavy shove to get the wheel going
-    this._tick(50, 0.15, 0.18, 'sine');
-    this._tick(90, 0.08, 0.1, 'square');
-    this._noise(0.1, 0.08, 1200);
-    this._wheelInterval = setTimeout(doClick, 120);
+    this._tick(50, 0.15, 0.15, 'sine');
+    this._tick(90, 0.08, 0.08, 'square');
+    this._noise(0.08, 0.06, 1200);
+    this._wheelInterval = setTimeout(doClick, 100);
   },
 
   reelSpin() {
     // No-op: wagon wheel ticking handles this
   },
 
+  // Called when a reel starts decelerating (visual Phase 3)
+  reelSlowing(idx) {
+    if (!this.ctx || this.muted) return;
+    // First reel to decel: stop acceleration, start gradual wheel slow-down
+    this._reelsLanding = true;
+  },
+
   reelStop(idx) {
     if (!this.ctx || this.muted) return;
-    // Heavy wooden thud + metal clank
-    this._tick(40 + idx * 5, 0.2, 0.2, 'sine');         // deep impact
-    this._tick(55, 0.12, 0.15, 'sine');                   // sub thud
-    this._noise(0.08, 0.1, 2500);                         // impact noise
-    this._tick(800 + idx*120, 0.05, 0.06, 'triangle');    // metallic ring
-    // Wood creak on stop
-    this._tick(200 + idx*30, 0.15, 0.05, 'sawtooth');
 
-    // Slow down the wheel clicking very gradually
-    this._wheelSpeed = Math.min(250, this._wheelSpeed + 20 + idx * 15);
+    // Once first reel lands, wheel only decelerates (no re-acceleration)
+    this._reelsLanding = true;
 
-    // Last reel: slow final clicks then silence
+    // Hard mechanical stop — short punchy thud, builds with each reel
+    const impactVol = 0.15 + idx * 0.04;
+    this._tick(35 + idx * 5, 0.08, impactVol, 'sine');          // deep thud (short)
+    this._tick(55, 0.05, impactVol * 0.7, 'sine');              // sub punch
+    this._noise(0.03, impactVol * 0.5, 2200);                   // impact crack
+    this._tick(700 + idx*100, 0.02, 0.04, 'triangle');          // short metallic ping
+
+    // Stronger bump on each reel impact — wheel jerks slower
+    this._wheelSpeed = Math.min(300, this._wheelSpeed + 20 + idx * 12);
+
+    // Last reel: one final click then immediate silence
     if (idx === 4) {
+      this._wheelStopping = true;
       setTimeout(() => {
-        this._tick(70, 0.06, 0.08, 'sine');
-        this._noise(0.025, 0.03, 1800);
-      }, 120);
-      setTimeout(() => {
-        this._tick(65, 0.05, 0.06, 'sine');
-        this._noise(0.02, 0.02, 1500);
-      }, 300);
-      setTimeout(() => {
-        this._tick(58, 0.04, 0.04, 'sine');
-      }, 520);
-      setTimeout(() => {
-        this._tick(52, 0.03, 0.02, 'sine');
+        if (this.muted) return;
+        this._tick(55, 0.04, 0.03, 'sine');
         clearTimeout(this._wheelInterval);
         this._wheelInterval = null;
-      }, 780);
+        this._wheelStopping = false;
+        this._reelsLanding = false;
+      }, 200);
     }
   },
 
   // ========== MP3-BASED SOUNDS (events, not synced to animation) ==========
   win() {
-    this._playMP3('win');
-    setTimeout(() => this._playMP3('coins', { volume: 0.4 }), 300);
+    this._playMP3('win', { maxDuration: 2000 });
+    setTimeout(() => this._playMP3('coins', { volume: 0.4, maxDuration: 1500 }), 300);
   },
   bigWin() {
-    this._playMP3('bigWin');
-    setTimeout(() => this._playMP3('coins', { volume: 0.5 }), 500);
-    setTimeout(() => this._playMP3('coins', { volume: 0.4 }), 1200);
+    this._playMP3('bigWin', { maxDuration: 3000 });
+    setTimeout(() => this._playMP3('coins', { volume: 0.5, maxDuration: 2000 }), 500);
+    setTimeout(() => this._playMP3('coins', { volume: 0.4, maxDuration: 1500 }), 1200);
   },
-  scatter() { this._playMP3('scatter'); },
+  scatter() { this._playMP3('scatter', { maxDuration: 2500 }); },
   freeSpins() {
-    this._playMP3('freeSpinsSound');
-    setTimeout(() => this._playMP3('scatter', { volume: 0.4 }), 500);
+    this._playMP3('freeSpinsSound', { maxDuration: 2500 });
+    setTimeout(() => this._playMP3('scatter', { volume: 0.4, maxDuration: 1500 }), 500);
   },
-  btnClick() { this._playMP3('btnClickSound'); },
-  gambleReveal() { this._playMP3('cardFlip'); },
-  gambleWin() { this._playMP3('win', { volume: 0.7 }); },
-  gambleLose() { this._playMP3('gambleLoseSound'); },
-  coinTick() { this._playMP3('coins', { volume: 0.2, playbackRate: 1.2 + Math.random()*0.6 }); },
+  btnClick() { this._playMP3('btnClickSound', { maxDuration: 300 }); },
+  gambleReveal() { this._playMP3('cardFlip', { maxDuration: 800 }); },
+  gambleWin() { this._playMP3('win', { volume: 0.7, maxDuration: 2000 }); },
+  gambleLose() { this._playMP3('gambleLoseSound', { maxDuration: 2000 }); },
+  coinTick() { this._playMP3('coins', { volume: 0.2, playbackRate: 1.2 + Math.random()*0.6, maxDuration: 400 }); },
 
   startReelAmbience() { this.spinStart(); },
   stopReelAmbience() {
+    this._wheelStopping = true;
     clearTimeout(this._wheelInterval);
     this._wheelInterval = null;
   }
@@ -939,17 +964,17 @@ function animateCounter(elementId, from, to, duration = 500) {
 // ===== SYMBOL DEFINITIONS =====
 // HD SVG symbols with rich gradients and detail
 const SYMBOLS = [
-  {id:'book',   name:'Buch des Baxt', cls:'premium book-sym', mult:[0,0,2,20,200], scatter:true, wild:true},
-  {id:'mann',   name:'Reisender',     cls:'premium', mult:[0,0,1,10,100]},
-  {id:'wagen',  name:'Wagen',         cls:'premium', mult:[0,0,1,10,75]},
-  {id:'pferd',  name:'Grast',         cls:'premium', mult:[0,0,1,8,50]},
-  {id:'geige',  name:'Geige',         cls:'premium', mult:[0,0,1,5,40]},
-  {id:'eye',    name:'Auge',          cls:'premium', mult:[0,0,1,5,30]},
-  {id:'A',      name:'A',             cls:'letter',  mult:[0,0,0,5,15]},
-  {id:'K',      name:'K',             cls:'letter',  mult:[0,0,0,5,12]},
-  {id:'Q',      name:'Q',             cls:'letter',  mult:[0,0,0,3,10]},
-  {id:'J',      name:'J',             cls:'letter',  mult:[0,0,0,3,8]},
-  {id:'10',     name:'10',            cls:'letter',  mult:[0,0,0,3,5]},
+  {id:'book',   name:'Buch des Baxt', cls:'premium book-sym', mult:[0,0,2,20,200],  scatter:true, wild:true},
+  {id:'mann',   name:'Reisender',     cls:'premium', mult:[0,0,50,100,5000]},
+  {id:'wagen',  name:'Wagen',         cls:'premium', mult:[0,0,30,40,400]},
+  {id:'pferd',  name:'Grast',         cls:'premium', mult:[0,0,20,30,200]},
+  {id:'geige',  name:'Geige',         cls:'premium', mult:[0,0,20,30,150]},
+  {id:'eye',    name:'Auge',          cls:'premium', mult:[0,0,15,15,100]},
+  {id:'A',      name:'A',             cls:'letter',  mult:[0,0,5,10,75]},
+  {id:'K',      name:'K',             cls:'letter',  mult:[0,0,5,10,50]},
+  {id:'Q',      name:'Q',             cls:'letter',  mult:[0,0,5,10,50]},
+  {id:'J',      name:'J',             cls:'letter',  mult:[0,0,5,10,40]},
+  {id:'10',     name:'10',            cls:'letter',  mult:[0,0,5,10,40]},
 ];
 
 // HD Images from AI generation + SVG letters
@@ -1315,30 +1340,12 @@ const _UNUSED_eye = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/sv
   </circle>
 </svg>`;
 
-// Letter SVGs - ornate golden playing card style
-function makeLetterSVG(letter, color1, color2) {
-  return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="lg${letter}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${color1}"/><stop offset="50%" stop-color="${color2}"/>
-        <stop offset="100%" stop-color="${color1}"/>
-      </linearGradient>
-      <filter id="ls${letter}"><feGaussianBlur stdDeviation="2" result="g"/>
-        <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
-    <rect x="15" y="10" width="90" height="100" rx="8" fill="rgba(20,10,40,.5)" stroke="url(#lg${letter})" stroke-width="2"/>
-    <rect x="20" y="15" width="80" height="90" rx="5" fill="none" stroke="url(#lg${letter})" stroke-width="1" opacity=".3"/>
-    <text x="60" y="78" text-anchor="middle" font-family="Cinzel,serif" font-size="58" font-weight="900" fill="url(#lg${letter})" filter="url(#ls${letter})">${letter}</text>
-    <text x="26" y="30" font-family="Cinzel,serif" font-size="16" font-weight="700" fill="url(#lg${letter})" opacity=".5">${letter}</text>
-    <text x="94" y="100" text-anchor="end" font-family="Cinzel,serif" font-size="16" font-weight="700" fill="url(#lg${letter})" opacity=".5" transform="rotate(180,94,93)">${letter}</text>
-  </svg>`;
-}
-SVG['A']  = makeLetterSVG('A',  '#00ccff', '#0088aa');
-SVG['K']  = makeLetterSVG('K',  '#ff5555', '#aa2222');
-SVG['Q']  = makeLetterSVG('Q',  '#44ff44', '#22aa22');
-SVG['J']  = makeLetterSVG('J',  '#ffaa00', '#aa7700');
-SVG['10'] = makeLetterSVG('10', '#cc88ff', '#8844aa');
+// Letter symbols - use generated card images
+SVG['A']  = `<img src="img/card_A.png" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`;
+SVG['K']  = `<img src="img/card_K.png" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`;
+SVG['Q']  = `<img src="img/card_Q.png" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`;
+SVG['J']  = `<img src="img/card_J.png" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`;
+SVG['10'] = `<img src="img/card_10.png" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`;
 
 // ===== PAYLINES (10 lines, classic Book of Ra pattern) =====
 const PAYLINE_COLORS = ['#ff0000','#00ff00','#0000ff','#ffff00','#ff00ff','#00ffff','#ff8800','#88ff00','#ff0088','#8800ff'];
@@ -1373,7 +1380,7 @@ const grid = Array.from({length:5}, () => Array(3).fill(null));
 const reelStrips = [];
 // Reel symbol counts for animation (visible + buffer)
 const VISIBLE_ROWS = 3;
-const BUFFER = 40; // symbols above visible area for longer spin animation
+const BUFFER = 80; // symbols above visible area – enough for long deceleration
 
 // ===== INITIALIZATION =====
 function init() {
@@ -1483,8 +1490,8 @@ function fillInitialGrid() {
 function renderReel(r) {
   const strip = reelStrips[r];
   const colH = strip.parentElement.clientHeight;
-  const cellH = colH / (VISIBLE_ROWS + 0.7);
-  const peekOffset = cellH * 0.35;
+  const cellH = colH / VISIBLE_ROWS;
+  const peekOffset = 0;
 
   // Fill all cells with random symbols + proper height
   const totalCells = BUFFER + VISIBLE_ROWS + 2;
@@ -1512,7 +1519,7 @@ function renderReel(r) {
   strip.children[BUFFER + 1 + VISIBLE_ROWS].querySelector('.sym-img').innerHTML = SVG[peekBot.id] || '';
 
   // Position: show peek-top partially + 3 visible rows + peek-bottom partially
-  strip.style.transform = `translateY(-${(BUFFER) * cellH + peekOffset}px)`;
+  strip.style.transform = `translateY(-${(BUFFER + 1) * cellH - peekOffset}px)`;
 }
 
 function randomSymbol() {
@@ -1525,6 +1532,68 @@ function randomSymbol() {
     if (rand <= 0) return SYMBOLS[i];
   }
   return SYMBOLS[SYMBOLS.length - 1];
+}
+
+// ===== "GRADE NOCH SO" WIN EXTENSION =====
+// Makes it happen more often that a partial match extends by one more symbol
+// Gives the feeling of "it just barely landed on another match!"
+function tweakNearWins(results) {
+  // Track which cells have already been modified (don't overwrite)
+  const locked = Array.from({length: 5}, () => [false, false, false]);
+
+  for (let l = 0; l < lines; l++) {
+    const line = PAYLINES[l];
+
+    // Analyze this payline: count consecutive matching symbols from left
+    let matchSym = null;
+    let matchCount = 0;
+
+    for (let r = 0; r < 5; r++) {
+      const sym = results[r][line[r]];
+      const isWild = sym.id === 'book';
+
+      if (matchSym === null) {
+        if (!isWild) matchSym = sym;
+        matchCount++;
+      } else if (sym.id === matchSym.id || isWild) {
+        matchCount++;
+      } else {
+        break;
+      }
+    }
+
+    if (!matchSym) continue; // all wilds, skip
+
+    // Extension chances - "grade noch so" feeling
+    // 2 matching → 30% chance to extend to 3 (minimum win = most exciting near-miss)
+    // 3 matching → 18% chance to extend to 4
+    // 4 matching → 10% chance to extend to 5 (jackpot extension, rare)
+    let extendChance = 0;
+    if (matchCount === 2) extendChance = 0.30;
+    else if (matchCount === 3) extendChance = 0.18;
+    else if (matchCount === 4) extendChance = 0.10;
+
+    if (extendChance > 0 && Math.random() < extendChance) {
+      const targetReel = matchCount; // next reel after the match
+      const targetRow = line[targetReel];
+
+      // Only extend if this cell hasn't been modified by another payline
+      if (!locked[targetReel][targetRow]) {
+        results[targetReel][targetRow] = matchSym;
+        locked[targetReel][targetRow] = true;
+      }
+    }
+  }
+
+  // Scatter boost: ~8% chance to upgrade a random symbol to book (scatter)
+  // Makes free spins trigger slightly more often
+  if (Math.random() < 0.08) {
+    const r = Math.floor(Math.random() * 5);
+    const row = Math.floor(Math.random() * 3);
+    if (!locked[r][row]) {
+      results[r][row] = SYMBOLS[0]; // book
+    }
+  }
 }
 
 // ===== SPIN LOGIC =====
@@ -1564,6 +1633,9 @@ async function doSpin() {
     }
     results.push(col);
   }
+
+  // "Grade noch so" - extend partial matches so wins barely land more often
+  tweakNearWins(results);
 
   // Animate reels
   await animateReels(results);
@@ -1652,109 +1724,162 @@ async function doSpin() {
   }
 }
 
+// ===== REEL ANIMATION ENGINE (requestAnimationFrame) =====
+
+// Shared timing constants — 4-phase animation
+var REEL_ACCEL_MS   = 200;   // ms to reach full speed
+var REEL_SHARED_MS  = 1500;  // ms ALL reels cruise together at full speed
+var REEL_DECEL_MS   = 1800;  // ms deceleration – MUCH slower, natural slow-down
+var REEL_STAGGER_MS = 500;   // ms between each reel starting to stop
+var REEL_SPEED      = 2.5;   // px per ms cruise speed
+var REEL_BOUNCE_MS  = 550;   // ms for final bounce/overshoot settle (longer = more visible)
+var REEL_BOUNCE_CELLS = 0.85; // overshoot in cell-heights (0.85 = fast ein ganzes Symbol)
+var REEL_BOUNCE2    = 0;     // secondary wobble OFF – reels snap into place
+
 async function animateReels(results) {
+  const t0 = performance.now();
   const promises = [];
-
   for (let r = 0; r < 5; r++) {
-    // Quick start stagger: all reels kick off fast, 50-120ms apart
-    const baseDelay = r * 80;
-    const randomDelay = baseDelay + Math.floor(Math.random() * 40);
-    promises.push(animateReel(r, results[r], randomDelay));
+    const stopDelay = r * REEL_STAGGER_MS + Math.random() * 80;
+    promises.push(animateReel(r, results[r], t0, stopDelay));
   }
-
   await Promise.all(promises);
 }
 
-function animateReel(reelIdx, finalSymbols, delay) {
+function animateReel(reelIdx, finalSymbols, t0, stopDelay) {
   return new Promise(resolve => {
     const strip = reelStrips[reelIdx];
     const col = strip.parentElement;
-    // Cell height based on visible area (col height = ~3.6 rows with padding)
-    // We calculate based on the actual visible 3-row area
     const colH = col.clientHeight;
-    const cellH = colH / (VISIBLE_ROWS + 0.7); // account for peek areas
-    const peekOffset = cellH * 0.35; // how much of peek symbol shows
+    const cellH = colH / VISIBLE_ROWS;
+    const peekOffset = 0;
 
-    // STEP 1: Peek symbol above current (cell 0) + current symbols (cells 1,2,3)
-    // Cell 0 = peek above (random symbol)
-    const peekTopSym = randomSymbol();
-    strip.children[0].querySelector('.sym-img').innerHTML = SVG[peekTopSym.id] || '';
+    // --- Populate strip cells ---
+    strip.children[0].querySelector('.sym-img').innerHTML = SVG[randomSymbol().id] || '';
     strip.children[0].style.height = cellH + 'px';
 
     for (let row = 0; row < VISIBLE_ROWS; row++) {
-      const currentSym = grid[reelIdx][row];
-      strip.children[1 + row].querySelector('.sym-img').innerHTML = SVG[currentSym.id] || '';
+      strip.children[1 + row].querySelector('.sym-img').innerHTML = SVG[grid[reelIdx][row].id] || '';
       strip.children[1 + row].style.height = cellH + 'px';
     }
 
-    // STEP 2: Fill the scrolling buffer (cells 4..BUFFER) with random symbols
-    for (let i = 1 + VISIBLE_ROWS; i < BUFFER + 1; i++) {
-      const sym = randomSymbol();
-      strip.children[i].querySelector('.sym-img').innerHTML = SVG[sym.id] || '';
+    for (let i = 1 + VISIBLE_ROWS; i <= BUFFER; i++) {
+      strip.children[i].querySelector('.sym-img').innerHTML = SVG[randomSymbol().id] || '';
       strip.children[i].style.height = cellH + 'px';
     }
 
-    // STEP 3: Final result symbols (cells BUFFER+1..BUFFER+3) + peek bottom (BUFFER+4)
     for (let row = 0; row < VISIBLE_ROWS; row++) {
       strip.children[BUFFER + 1 + row].querySelector('.sym-img').innerHTML = SVG[finalSymbols[row].id] || '';
       strip.children[BUFFER + 1 + row].style.height = cellH + 'px';
     }
-    // Peek bottom symbol (the one that "would have come next")
-    const peekBotSym = randomSymbol();
-    strip.children[BUFFER + 1 + VISIBLE_ROWS].querySelector('.sym-img').innerHTML = SVG[peekBotSym.id] || '';
+
+    strip.children[BUFFER + 1 + VISIBLE_ROWS].querySelector('.sym-img').innerHTML = SVG[randomSymbol().id] || '';
     strip.children[BUFFER + 1 + VISIBLE_ROWS].style.height = cellH + 'px';
 
-    // STEP 4: Position so peek-top + 3 current symbols are visible
-    // Start offset: show from cell 0 (peek) partially, cells 1-3 fully
-    const startY = cellH - peekOffset; // show bottom part of peek-top cell
+    // --- Positions ---
+    const startY = cellH - peekOffset;
+    const targetY = (BUFFER + 1) * cellH - peekOffset;
+
     strip.style.transition = 'none';
     strip.style.transform = `translateY(-${startY}px)`;
     strip.offsetHeight; // force reflow
 
-    // STEP 5: 3-phase animation with randomized timings per reel
-    setTimeout(() => {
-      // Target: cells BUFFER+1..BUFFER+3 centered, with peeks visible
-      const targetY = (BUFFER + 1) * cellH - peekOffset;
+    // --- Snapshot timing constants (so debug slider changes apply on NEXT spin) ---
+    const _ACCEL   = REEL_ACCEL_MS;
+    const _SHARED  = REEL_SHARED_MS;
+    const _DECEL   = REEL_DECEL_MS;
+    const _SPEED   = REEL_SPEED;
+    const _BOUNCE_T = REEL_BOUNCE_MS;
+    const _BOUNCE_C = REEL_BOUNCE_CELLS;
+    const _BOUNCE2  = REEL_BOUNCE2;
 
-      // Randomize per reel for organic feel
-      const rng = () => Math.random();
-      const fastRatio = 0.58 + rng() * 0.10;           // 58-68% distance at full speed
-      const fastDist = targetY * fastRatio;
-      const overshootCells = 0.15 + rng() * 0.3;       // 0.15 - 0.45 cells overshoot
-      const slowDist = targetY * (1 - fastRatio) + cellH * overshootCells;
+    // --- 4-phase timing with shared t0 ---
+    const myCruiseEnd  = _ACCEL + _SHARED + stopDelay;
+    const myDecelEnd   = myCruiseEnd + _DECEL;
+    const myBounceEnd  = myDecelEnd + _BOUNCE_T;
+    const accelDist    = _SPEED * _ACCEL * 0.5;
 
-      const fastDuration = 350 + reelIdx * 50 + Math.floor(rng() * 100);
-      const slowDuration = 1400 + reelIdx * 350 + Math.floor(rng() * 400);
-      const settleDuration = 200 + Math.floor(rng() * 200);
+    // Deceleration covers exactly this many px (cubic ease-out with v0=cruise speed):
+    // Distance = v0 * T / 3  (integral of (1-t)^2 over [0,1] scaled by v0*T)
+    const rawDecelDist = _SPEED * _DECEL / 3;
+    // Safety clamp: decel can't start before cell 6 (need room for cruise)
+    const decelStartY  = Math.max(startY + cellH * 6, targetY - rawDecelDist);
+    const decelDist    = targetY - decelStartY;
 
-      // Randomize deceleration curve slightly per reel
-      const decelBend = (0.1 + rng() * 0.1).toFixed(2);
+    // Modulo wrap range for cruise phase (safe zone before decel area)
+    const cruiseLoopRange = Math.max(cellH * 8, decelStartY - startY - cellH * 2);
 
-      // Phase 1: Fast spin - instant full speed
-      strip.style.transition = `transform ${fastDuration}ms cubic-bezier(0,.0,1,1)`;
-      strip.style.transform = `translateY(-${fastDist}px)`;
+    // Per-reel bounce randomness — each reel feels different
+    const bounceStr  = 0.75 + Math.random() * 0.5;  // 0.75–1.25x overshoot
 
-      // Phase 2: Long gradual deceleration
-      setTimeout(() => {
-        strip.style.transition = `transform ${slowDuration}ms cubic-bezier(${decelBend},.0,.0,1)`;
-        strip.style.transform = `translateY(-${fastDist + slowDist}px)`;
+    let prevPos = startY;
+    let decelSignaled = false;
+    let stopSounded = false;
 
-        // Phase 3: Settle back (random strength)
-        setTimeout(() => {
-          strip.style.transition = `transform ${settleDuration}ms cubic-bezier(.2,.0,.5,1)`;
-          strip.style.transform = `translateY(-${targetY}px)`;
+    (function tick(now) {
+      const elapsed = now - t0;
+      let pos;
 
-          SFX.reelStop(reelIdx);
-          col.classList.add('reel-landing');
-          setTimeout(() => col.classList.remove('reel-landing'), 400);
+      if (elapsed < _ACCEL) {
+        // ── Phase 1: Acceleration (all reels identical) ──
+        const t = elapsed / _ACCEL;
+        const rawDist = accelDist * (t * t);
+        pos = startY + (rawDist % cruiseLoopRange);
 
-          setTimeout(() => {
-            strip.style.transition = 'none';
-            resolve();
-          }, settleDuration + 20);
-        }, slowDuration);
-      }, fastDuration);
-    }, delay);
+      } else if (elapsed < myCruiseEnd) {
+        // ── Phase 2: Cruise at constant speed, modulo-wrapped ──
+        const rawDist = accelDist + _SPEED * (elapsed - _ACCEL);
+        pos = startY + (rawDist % cruiseLoopRange);
+
+      } else if (elapsed < myDecelEnd) {
+        // ── Phase 3: Deceleration – cubic ease-out (v starts at cruise speed, ends at 0) ──
+        if (!decelSignaled) { decelSignaled = true; SFX.reelSlowing(reelIdx); }
+        const t = (elapsed - myCruiseEnd) / _DECEL;
+        const eased = 1 - Math.pow(1 - t, 3);
+        pos = decelStartY + decelDist * eased;
+
+      } else if (elapsed < myBounceEnd) {
+        // ── Phase 4: Double bounce – main overshoot + small secondary bounce ──
+        const t = (elapsed - myDecelEnd) / _BOUNCE_T;
+        const overshoot = cellH * _BOUNCE_C * bounceStr;
+        let bounce;
+
+        if (t < 0.55) {
+          // Main bounce: fast up, hold briefly near peak, then back
+          const t1 = t / 0.55;
+          bounce = overshoot * Math.sin(t1 * Math.PI);
+        } else {
+          // Secondary wobble: configurable via REEL_BOUNCE2 slider
+          const t2 = (t - 0.55) / 0.45;
+          bounce = overshoot * _BOUNCE2 * Math.sin(t2 * Math.PI);
+        }
+        pos = targetY + bounce;
+
+        // Impact sound at main bounce peak (~27% into bounce)
+        if (!stopSounded && t > 0.25) { stopSounded = true; SFX.reelStop(reelIdx); }
+
+      } else {
+        // ── Done ──
+        strip.style.transform = `translateY(-${targetY}px)`;
+        col.style.filter = '';
+        col.classList.add('reel-landing');
+        setTimeout(() => col.classList.remove('reel-landing'), 400);
+        resolve();
+        return;
+      }
+
+      strip.style.transform = `translateY(-${pos}px)`;
+
+      // Motion blur proportional to scroll velocity
+      const rawVelocity = Math.abs(pos - prevPos);
+      // Cap velocity spikes from modulo wraps (hidden by blur anyway)
+      const velocity = rawVelocity > cellH * 2 ? _SPEED * 16 : rawVelocity;
+      const blurPx = Math.min(velocity * 0.12, 3.5);
+      col.style.filter = blurPx > 0.3 ? `blur(${blurPx.toFixed(1)}px)` : '';
+      prevPos = pos;
+
+      requestAnimationFrame(tick);
+    })(t0);
   });
 }
 
@@ -1844,7 +1969,7 @@ function highlightWins(wins) {
 
   allPos.forEach(key => {
     const [r, row] = key.split('-').map(Number);
-    const cell = reelStrips[r].children[BUFFER + row];
+    const cell = reelStrips[r].children[BUFFER + 1 + row];
     cell.classList.add('win-hl');
   });
 }
@@ -1854,6 +1979,12 @@ function clearWinHighlights() {
 }
 
 function drawWinLines(wins) {
+  // Show payline buttons on win
+  if (wins.lines.length > 0) {
+    showPaylineButtons(false);
+    clearTimeout(drawWinLines._hideTimer);
+    drawWinLines._hideTimer = setTimeout(hidePaylineButtons, 3000);
+  }
   const svgCont = document.getElementById('winlineSvg');
   const vp = document.getElementById('reelsVP');
   const vpW = vp.clientWidth;
@@ -1909,14 +2040,26 @@ async function startFreeSpins() {
   SFX.freeSpins();
   FX.coinShower(2500);
   const overlay = document.getElementById('fsOverlay');
+  const video = document.getElementById('fsVideo');
   document.getElementById('fsText').textContent = '10 Freispiele gewonnen!';
   document.getElementById('fsSym').innerHTML = SVG[freeSpinSymbol.id] || freeSpinSymbol.name;
   document.getElementById('fsSym').style.width = '80px';
   document.getElementById('fsSym').style.height = '80px';
   overlay.classList.add('show');
 
-  await new Promise(r => setTimeout(r, 3000));
+  // Play video animation
+  video.currentTime = 0;
+  video.play().catch(() => {});
+
+  // Wait for video to end or max 6 seconds
+  await new Promise(resolve => {
+    const onEnd = () => { video.removeEventListener('ended', onEnd); resolve(); };
+    video.addEventListener('ended', onEnd);
+    setTimeout(() => { video.removeEventListener('ended', onEnd); resolve(); }, 6000);
+  });
+
   overlay.classList.remove('show');
+  video.pause();
 }
 
 // ===== BIG WIN =====
@@ -2038,12 +2181,79 @@ function adjBet(d) {
   idx = Math.max(0, Math.min(bets.length - 1, idx + d));
   betPerLine = bets[idx];
   updateUI();
+  showActiveLines();
 }
 
 function adjLines(d) {
   SFX.resume(); SFX.btnClick();
   lines = Math.max(1, Math.min(10, lines + d));
   updateUI();
+  showActiveLines();
+}
+
+function showActiveLines() {
+  // Dim/brighten payline buttons based on active lines
+  showPaylineButtons(true);
+
+  const frameL = document.getElementById('frameL');
+  const frameR = document.getElementById('frameR');
+  [frameL, frameR].forEach(frame => {
+    Array.from(frame.children).forEach(btn => {
+      const n = parseInt(btn.textContent);
+      const active = n <= lines;
+      btn.classList.toggle('visible', true);
+      btn.style.filter = active ? '' : 'grayscale(1) opacity(0.3)';
+    });
+  });
+
+  // Flash all active paylines on reels
+  clearWinLines();
+  const vp = document.getElementById('reelsVP');
+  const vpW = vp.clientWidth;
+  const vpH = vp.clientHeight;
+  const colW = vpW / 5;
+  const rowH = vpH / 3;
+
+  let svgContent = '';
+  for (let i = 0; i < lines; i++) {
+    const line = PAYLINES[i];
+    const color = PAYLINE_COLORS[i];
+    const points = line.map((row, r) => `${r * colW + colW/2},${row * rowH + rowH/2}`).join(' ');
+    svgContent += `<polyline points="${points}" class="wl-path" stroke="${color}" stroke-width="3" stroke-opacity=".7" fill="none"/>`;
+  }
+  document.getElementById('winlineSvg').innerHTML =
+    `<svg viewBox="0 0 ${vpW} ${vpH}" preserveAspectRatio="none">${svgContent}</svg>`;
+
+  clearTimeout(showActiveLines._timer);
+  showActiveLines._timer = setTimeout(() => {
+    clearWinLines();
+    hidePaylineButtons();
+  }, 2500);
+}
+
+function showPaylineButtons(activeOnly) {
+  const frameL = document.getElementById('frameL');
+  const frameR = document.getElementById('frameR');
+  [frameL, frameR].forEach(frame => {
+    Array.from(frame.children).forEach(btn => {
+      const n = parseInt(btn.textContent);
+      if (!activeOnly || n <= lines) {
+        btn.classList.add('visible');
+        btn.style.filter = '';
+      }
+    });
+  });
+}
+
+function hidePaylineButtons() {
+  const frameL = document.getElementById('frameL');
+  const frameR = document.getElementById('frameR');
+  [frameL, frameR].forEach(frame => {
+    Array.from(frame.children).forEach(btn => {
+      btn.classList.remove('visible');
+      btn.style.filter = '';
+    });
+  });
 }
 
 function toggleAuto() {
@@ -2079,12 +2289,14 @@ function onResize() {
   for (let r = 0; r < 5; r++) {
     const strip = reelStrips[r];
     if (!strip || !strip.parentElement) continue;
-    const cellH = strip.parentElement.clientHeight / VISIBLE_ROWS;
+    const colH = strip.parentElement.clientHeight;
+    const cellH = colH / VISIBLE_ROWS;
+    const peekOffset = 0;
     for (let i = 0; i < strip.children.length; i++) {
       strip.children[i].style.height = cellH + 'px';
     }
     strip.style.transition = 'none';
-    strip.style.transform = `translateY(-${BUFFER * cellH}px)`;
+    strip.style.transform = `translateY(-${(BUFFER + 1) * cellH - peekOffset}px)`;
   }
 }
 window.addEventListener('resize', onResize);
@@ -2093,6 +2305,98 @@ window.addEventListener('resize', onResize);
 const style = document.createElement('style');
 style.textContent = `@keyframes twinkle{from{opacity:.3}to{opacity:1}}`;
 document.head.appendChild(style);
+
+// ===== DEBUG REEL TUNING PANEL =====
+(function setupDebugPanel() {
+  // Inject CSS once
+  const css = document.createElement('style');
+  css.textContent = `
+    #reelDebugPanel{position:fixed;top:10px;right:10px;z-index:99999;background:rgba(0,0,0,.92);color:#ffd700;font:12px monospace;padding:12px 16px;border-radius:10px;border:1px solid #ffd700;max-width:280px;user-select:none;box-shadow:0 4px 20px rgba(0,0,0,.6)}
+    #reelDebugPanel h4{margin:0 0 8px;font-size:13px;text-align:center}
+    .dbg-row{display:flex;align-items:center;margin:4px 0;gap:6px}
+    .dbg-row label{flex:1;font-size:11px;white-space:nowrap;color:#ffd700}
+    .dbg-row input[type=range]{flex:2;accent-color:#ffd700;height:14px}
+    .dbg-row .dbg-val{width:52px;text-align:right;font-size:11px;color:#fff}
+    #reelDebugToggle{position:fixed;top:10px;right:10px;z-index:99998;background:rgba(0,0,0,.7);color:#ffd700;border:1px solid #ffd700;border-radius:6px;padding:4px 10px;font:11px monospace;cursor:pointer;display:none}
+  `;
+  document.head.appendChild(css);
+
+  function build() {
+    const panel = document.createElement('div');
+    panel.id = 'reelDebugPanel';
+
+    const title = document.createElement('h4');
+    title.textContent = '\u{1F3B0} Walzen-Tuning';
+    panel.appendChild(title);
+
+    const toggle = document.createElement('button');
+    toggle.id = 'reelDebugToggle';
+    toggle.textContent = '\u2699 Tuning';
+    toggle.addEventListener('click', () => { panel.style.display = ''; toggle.style.display = 'none'; });
+
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '\u00D7';
+    closeBtn.style.cssText = 'position:absolute;top:4px;right:8px;cursor:pointer;font-size:16px;color:#ffd700;background:none;border:none;';
+    closeBtn.addEventListener('click', () => { panel.style.display = 'none'; toggle.style.display = ''; });
+    panel.appendChild(closeBtn);
+
+    const sliders = [
+      { key: 'REEL_ACCEL_MS',     label: 'Beschleunigung',   min: 50,  max: 800,  step: 10   },
+      { key: 'REEL_SHARED_MS',    label: 'Gemeinsam drehen', min: 500, max: 5000, step: 100  },
+      { key: 'REEL_DECEL_MS',     label: 'Auslaufen',        min: 300, max: 4000, step: 100  },
+      { key: 'REEL_STAGGER_MS',   label: 'Versatz (Walzen)', min: 100, max: 1500, step: 50   },
+      { key: 'REEL_SPEED',        label: 'Geschwindigkeit',  min: 0.5, max: 5.0,  step: 0.1  },
+      { key: 'REEL_BOUNCE_MS',    label: 'Bounce Dauer',     min: 100, max: 800,  step: 25   },
+      { key: 'REEL_BOUNCE_CELLS', label: 'Bounce St\u00E4rke', min: 0, max: 1.2,  step: 0.05 },
+      { key: 'REEL_BOUNCE2',     label: 'Nachwackeln',       min: 0, max: 0.3,  step: 0.01 },
+    ];
+
+    sliders.forEach(s => {
+      const row = document.createElement('div');
+      row.className = 'dbg-row';
+
+      const lbl = document.createElement('label');
+      lbl.textContent = s.label;
+
+      const inp = document.createElement('input');
+      inp.type = 'range';
+      inp.min = s.min;
+      inp.max = s.max;
+      inp.step = s.step;
+      inp.value = window[s.key];
+
+      const valSpan = document.createElement('span');
+      valSpan.className = 'dbg-val';
+      const fmt = v => s.step < 1 ? parseFloat(v).toFixed(s.step < 0.1 ? 2 : 1) : v;
+      valSpan.textContent = fmt(window[s.key]);
+
+      inp.addEventListener('input', () => {
+        const v = parseFloat(inp.value);
+        window[s.key] = v;
+        valSpan.textContent = fmt(v);
+      });
+
+      row.appendChild(lbl);
+      row.appendChild(inp);
+      row.appendChild(valSpan);
+      panel.appendChild(row);
+    });
+
+    // Free spins test button
+    const fsBtn = document.createElement('button');
+    fsBtn.textContent = '\u{1F3B2} Freispiele testen';
+    fsBtn.style.cssText = 'width:100%;margin-top:10px;padding:6px;background:linear-gradient(180deg,#8b1515,#cc2020);color:#ffd700;border:1px solid #ffd700;border-radius:6px;cursor:pointer;font:bold 12px monospace;';
+    fsBtn.addEventListener('click', () => { SFX.resume(); startFreeSpins(); });
+    panel.appendChild(fsBtn);
+
+    document.body.appendChild(panel);
+    document.body.appendChild(toggle);
+  }
+
+  if (document.body) build();
+  else document.addEventListener('DOMContentLoaded', build);
+})();
 
 // ===== START =====
 window.addEventListener('DOMContentLoaded', init);
