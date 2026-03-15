@@ -1257,6 +1257,8 @@ function submitName() {
 function connectSocket(playerName) {
   socket = io({ auth: { token, username: playerName || undefined } });
   setupSocketEvents();
+}
+
 let myState = null;
 let mySeat = -1;
 let currentPhase = 'waiting';
