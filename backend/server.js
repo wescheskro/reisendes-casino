@@ -48,9 +48,142 @@ function getWeekEnd() {
 }
 
 // ---------------------------------------------------------------------------
-// Blocked Countries (GlüStV compliance)
+// Blocked Countries (GlüStV compliance) – DE entfernt, App ist Fun-Casino
 // ---------------------------------------------------------------------------
-const BLOCKED_COUNTRIES = ['DE', 'AT', 'US', 'GB', 'FR', 'NL', 'ES', 'AU', 'IT'];
+const BLOCKED_COUNTRIES = [];
+
+// ---------------------------------------------------------------------------
+// TRUHEN & ITEMS SYSTEM (Schausteller-Edition)
+// ---------------------------------------------------------------------------
+const RÄNGE = [
+  { name: 'reisender',        minLevel: 1,  label: 'Reisender' },
+  { name: 'schausteller',     minLevel: 5,  label: 'Schausteller' },
+  { name: 'kirmes-könig',     minLevel: 10, label: 'Kirmes-König' },
+  { name: 'glücksrad-meister',minLevel: 20, label: 'Glücksrad-Meister' },
+  { name: 'wohnwagen-legende',minLevel: 35, label: 'Wohnwagen-Legende' },
+  { name: 'baro',             minLevel: 50, label: 'Baro' }
+];
+
+const XP_PER_LEVEL = 500; // XP pro Level
+
+function getLevelFromXP(xp) { return Math.floor(xp / XP_PER_LEVEL) + 1; }
+function getRangFromLevel(level) {
+  let rang = RÄNGE[0];
+  for (const r of RÄNGE) { if (level >= r.minLevel) rang = r; }
+  return rang;
+}
+
+const CHEST_TYPES = {
+  holz:    { label: '🪵 Holztruhe',    itemCount: 1, rarities: ['common'] },
+  bronze:  { label: '🥉 Bronze-Truhe', itemCount: 2, rarities: ['common', 'uncommon'] },
+  silber:  { label: '🥈 Silber-Truhe', itemCount: 2, rarities: ['common', 'uncommon', 'rare'] },
+  gold:    { label: '🥇 Gold-Truhe',   itemCount: 3, rarities: ['uncommon', 'rare', 'epic'] },
+  diamant: { label: '💎 Diamant-Truhe',itemCount: 3, rarities: ['rare', 'epic', 'legendary'] }
+};
+
+// Alle Items – Schausteller Edition
+const ALL_ITEMS = [
+  // === KARTENRÜCKEN ===
+  { id: 'cb-wohnwagen',    type: 'cardBack', name: 'Wohnwagen-Muster',     rarity: 'common',    icon: '🚐' },
+  { id: 'cb-holz',         type: 'cardBack', name: 'Echtholz',             rarity: 'common',    icon: '🪵' },
+  { id: 'cb-pferde-gold',  type: 'cardBack', name: 'Pferde-Gold',          rarity: 'uncommon',  icon: '🐴' },
+  { id: 'cb-geige',        type: 'cardBack', name: 'Geigen-Ornament',      rarity: 'rare',      icon: '🎻' },
+  { id: 'cb-glücksrad',    type: 'cardBack', name: 'Glücksrad',            rarity: 'rare',      icon: '🎡' },
+  { id: 'cb-kristall',     type: 'cardBack', name: 'Kristallkugel',        rarity: 'epic',      icon: '🔮' },
+  { id: 'cb-baro-gold',    type: 'cardBack', name: 'Baro Gold Edition',    rarity: 'legendary', icon: '👑' },
+
+  // === AVATARE ===
+  { id: 'av-schausteller',  type: 'avatar', name: 'Schausteller',          rarity: 'common',    icon: '🎪' },
+  { id: 'av-wahrsagerin',   type: 'avatar', name: 'Wahrsagerin',           rarity: 'uncommon',  icon: '🔮' },
+  { id: 'av-geigenspieler', type: 'avatar', name: 'Geigenspieler',         rarity: 'uncommon',  icon: '🎻' },
+  { id: 'av-pferdehändler', type: 'avatar', name: 'Pferdehändler',         rarity: 'rare',      icon: '🐎' },
+  { id: 'av-boxenbauer',    type: 'avatar', name: 'Boxenbauer',            rarity: 'rare',      icon: '🥊' },
+  { id: 'av-rosenkönig',    type: 'avatar', name: 'Rosen-König',           rarity: 'epic',      icon: '🌹' },
+  { id: 'av-baro',          type: 'avatar', name: 'Der Baro',              rarity: 'legendary', icon: '👑' },
+
+  // === TISCH-DESIGNS ===
+  { id: 'td-kirmes',        type: 'tableDesign', name: 'Kirmes-Lichter',   rarity: 'common',    icon: '🎠' },
+  { id: 'td-holzwagen',     type: 'tableDesign', name: 'Wohnwagen-Holz',   rarity: 'uncommon',  icon: '🚐' },
+  { id: 'td-lagerfeuer',    type: 'tableDesign', name: 'Lagerfeuer-Nacht', rarity: 'rare',      icon: '🔥' },
+  { id: 'td-sternenacht',   type: 'tableDesign', name: 'Sternen-Nacht',    rarity: 'epic',      icon: '🌙' },
+  { id: 'td-goldpalast',    type: 'tableDesign', name: 'Gold-Palast',      rarity: 'legendary', icon: '🏰' },
+
+  // === RAHMEN ===
+  { id: 'fr-holz',          type: 'frame', name: 'Holzrahmen',             rarity: 'common',    icon: '🪵' },
+  { id: 'fr-hufeisen',      type: 'frame', name: 'Hufeisen',               rarity: 'uncommon',  icon: '🧲' },
+  { id: 'fr-rosen',         type: 'frame', name: 'Rosenranken',            rarity: 'rare',      icon: '🌹' },
+  { id: 'fr-gold-ornament', type: 'frame', name: 'Gold-Ornament',          rarity: 'epic',      icon: '✨' },
+  { id: 'fr-flammen',       type: 'frame', name: 'Flammen',                rarity: 'legendary', icon: '🔥' },
+
+  // === TITEL ===
+  { id: 'ti-neuling',       type: 'title', name: 'Neuling',                rarity: 'common',    icon: '🌱' },
+  { id: 'ti-kartenhai',     type: 'title', name: 'Kartenhai',              rarity: 'uncommon',  icon: '🦈' },
+  { id: 'ti-glückspilz',    type: 'title', name: 'Glückspilz',             rarity: 'rare',      icon: '🍀' },
+  { id: 'ti-tischlegende',  type: 'title', name: 'Tisch-Legende',         rarity: 'epic',      icon: '⭐' },
+  { id: 'ti-poker-legende', type: 'title', name: 'Poker-Legende',         rarity: 'epic',      icon: '♠' },
+  { id: 'ti-baro',          type: 'title', name: 'Baro',                   rarity: 'legendary', icon: '👑' },
+
+  // === EMOTES ===
+  { id: 'em-pferd',         type: 'emote', name: 'Pferd',                  rarity: 'common',    icon: '🐴' },
+  { id: 'em-geige',         type: 'emote', name: 'Geige',                  rarity: 'common',    icon: '🎻' },
+  { id: 'em-kristallkugel', type: 'emote', name: 'Kristallkugel',          rarity: 'uncommon',  icon: '🔮' },
+  { id: 'em-feuer',         type: 'emote', name: 'Lagerfeuer',             rarity: 'uncommon',  icon: '🔥' },
+  { id: 'em-krone',         type: 'emote', name: 'Krone',                  rarity: 'rare',      icon: '👑' },
+  { id: 'em-rose',          type: 'emote', name: 'Rose',                   rarity: 'rare',      icon: '🌹' },
+  { id: 'em-sterne',        type: 'emote', name: 'Sternregen',             rarity: 'epic',      icon: '🌟' },
+  { id: 'em-diamant',       type: 'emote', name: 'Diamant',                rarity: 'legendary', icon: '💎' }
+];
+
+// Truhe öffnen – zufällige Items basierend auf Truhen-Typ
+function openChest(chestType) {
+  const chest = CHEST_TYPES[chestType];
+  if (!chest) return [];
+  const items = [];
+  for (let i = 0; i < chest.itemCount; i++) {
+    // Zufällige Rarität aus erlaubten
+    const rarity = chest.rarities[Math.floor(Math.random() * chest.rarities.length)];
+    const pool = ALL_ITEMS.filter(it => it.rarity === rarity);
+    if (pool.length > 0) {
+      items.push(pool[Math.floor(Math.random() * pool.length)]);
+    }
+  }
+  return items;
+}
+
+// XP vergeben & Level-Up prüfen
+function awardXP(user, amount) {
+  const oldLevel = getLevelFromXP(user.xp);
+  user.xp += amount;
+  const newLevel = getLevelFromXP(user.xp);
+  user.level = newLevel;
+  user.rang = getRangFromLevel(newLevel).name;
+
+  const results = { xpGained: amount, newXP: user.xp, newLevel, leveledUp: false, newChests: [] };
+
+  // Level-Up Truhen vergeben
+  if (newLevel > oldLevel) {
+    results.leveledUp = true;
+    for (let lvl = oldLevel + 1; lvl <= newLevel; lvl++) {
+      let chestType = 'holz';
+      if (lvl % 50 === 0) chestType = 'diamant';
+      else if (lvl % 20 === 0) chestType = 'gold';
+      else if (lvl % 10 === 0) chestType = 'silber';
+      else if (lvl % 5 === 0) chestType = 'bronze';
+      user.chestsReady.push(chestType);
+      results.newChests.push({ type: chestType, label: CHEST_TYPES[chestType].label });
+    }
+  }
+  return results;
+}
+
+// XP-Belohnungen
+const XP_REWARDS = {
+  roundPlayed: 10,      // Runde gespielt
+  handWon: 25,          // Hand gewonnen
+  dailyLogin: 50,       // Täglicher Login
+  highscoreTop3: 100,   // Wochen-Top 3
+  highscoreTop1: 250    // Wochen-Platz 1
+};
 
 // ---------------------------------------------------------------------------
 // Middleware
@@ -124,7 +257,18 @@ app.post('/api/auth/register', async (req, res) => {
     balance: 0,
     currency: 'EUR',
     createdAt: new Date().toISOString(),
-    verified: false
+    verified: false,
+    // Progression System
+    xp: 0,
+    level: 1,
+    rang: 'reisender',
+    inventory: [],
+    equipped: { avatar: 'default', cardBack: 'default', frame: 'default', title: 'Reisender', tableDesign: 'default', emote: null },
+    chestsReady: [],       // Truhen die geöffnet werden können
+    chestsOpened: 0,
+    roundsPlayed: 0,
+    handsWon: 0,
+    highscoreAllTime: 0
   };
 
   db.users.set(userId, user);
@@ -345,6 +489,7 @@ app.get('/api/auth/profile', authMiddleware, (req, res) => {
     totalWin = weekBoard.get(req.user.id).totalWin;
   }
 
+  const rangInfo = getRangFromLevel(req.user.level || 1);
   res.json({
     id: req.user.id,
     username: req.user.username,
@@ -352,7 +497,18 @@ app.get('/api/auth/profile', authMiddleware, (req, res) => {
     balance: req.user.balance,
     createdAt: req.user.createdAt,
     rank,
-    weeklyWin: totalWin
+    weeklyWin: totalWin,
+    // Progression
+    xp: req.user.xp || 0,
+    level: req.user.level || 1,
+    rang: rangInfo.name,
+    rangLabel: rangInfo.label,
+    xpToNext: XP_PER_LEVEL - ((req.user.xp || 0) % XP_PER_LEVEL),
+    equipped: req.user.equipped || {},
+    chestsReady: req.user.chestsReady || [],
+    inventoryCount: (req.user.inventory || []).length,
+    roundsPlayed: req.user.roundsPlayed || 0,
+    handsWon: req.user.handsWon || 0
   });
 });
 
@@ -364,6 +520,90 @@ app.put('/api/auth/profile', authMiddleware, (req, res) => {
   }
   req.user.username = username;
   res.json({ success: true, username });
+});
+
+// ---------------------------------------------------------------------------
+// TRUHEN & INVENTAR SYSTEM
+// ---------------------------------------------------------------------------
+
+// Inventar abrufen
+app.get('/api/inventory', authMiddleware, (req, res) => {
+  res.json({
+    inventory: req.user.inventory || [],
+    equipped: req.user.equipped || {},
+    chestsReady: req.user.chestsReady || [],
+    level: req.user.level || 1,
+    xp: req.user.xp || 0,
+    rang: getRangFromLevel(req.user.level || 1)
+  });
+});
+
+// Truhe öffnen
+app.post('/api/chest/open', authMiddleware, (req, res) => {
+  if (!req.user.chestsReady || req.user.chestsReady.length === 0) {
+    return res.status(400).json({ error: 'Keine Truhen verfügbar' });
+  }
+
+  const chestType = req.user.chestsReady.shift(); // Erste Truhe nehmen
+  const items = openChest(chestType);
+
+  // Items zum Inventar hinzufügen (keine Duplikate)
+  const newItems = [];
+  for (const item of items) {
+    const alreadyHas = (req.user.inventory || []).some(i => i.id === item.id);
+    if (!alreadyHas) {
+      req.user.inventory.push(item);
+      newItems.push({ ...item, isNew: true });
+    } else {
+      // Duplikat → Bonus-XP
+      newItems.push({ ...item, isNew: false, bonusXP: 25 });
+      req.user.xp += 25;
+    }
+  }
+
+  req.user.chestsOpened = (req.user.chestsOpened || 0) + 1;
+
+  res.json({
+    chestType,
+    chestLabel: CHEST_TYPES[chestType].label,
+    items: newItems,
+    chestsRemaining: req.user.chestsReady.length,
+    inventory: req.user.inventory
+  });
+});
+
+// Item ausrüsten
+app.post('/api/inventory/equip', authMiddleware, (req, res) => {
+  const { itemId } = req.body;
+  const item = (req.user.inventory || []).find(i => i.id === itemId);
+  if (!item) return res.status(400).json({ error: 'Item nicht im Inventar' });
+
+  // Typ-Mapping: item.type → equipped-Slot
+  const slotMap = { cardBack: 'cardBack', avatar: 'avatar', tableDesign: 'tableDesign', frame: 'frame', title: 'title', emote: 'emote' };
+  const slot = slotMap[item.type];
+  if (!slot) return res.status(400).json({ error: 'Unbekannter Item-Typ' });
+
+  if (!req.user.equipped) req.user.equipped = {};
+  req.user.equipped[slot] = item.id;
+
+  // Titel speziell: den Namen als Wert
+  if (item.type === 'title') req.user.equipped.titleName = item.name;
+
+  res.json({ success: true, equipped: req.user.equipped });
+});
+
+// Item ablegen (zurück zu default)
+app.post('/api/inventory/unequip', authMiddleware, (req, res) => {
+  const { slot } = req.body;
+  if (!req.user.equipped) req.user.equipped = {};
+  req.user.equipped[slot] = 'default';
+  if (slot === 'title') req.user.equipped.titleName = 'Reisender';
+  res.json({ success: true, equipped: req.user.equipped });
+});
+
+// Alle Items-Katalog (für Frontend-Shop-Anzeige)
+app.get('/api/items', (req, res) => {
+  res.json({ items: ALL_ITEMS, chestTypes: CHEST_TYPES, ränge: RÄNGE });
 });
 
 // ---------------------------------------------------------------------------
@@ -788,6 +1028,23 @@ function bjDealerPlay(table) {
     else { p.payout = 0; p.status = 'lose'; }
   }
 
+  // XP vergeben für Blackjack
+  for (const [pid, p] of table.players) {
+    if (p.status === 'spectating' || p.status === 'betting') continue;
+    const user = db.users.get(pid);
+    if (user) {
+      user.roundsPlayed = (user.roundsPlayed || 0) + 1;
+      let xpAmount = XP_REWARDS.roundPlayed;
+      if (p.status === 'win' || p.status === 'blackjack') {
+        xpAmount = XP_REWARDS.handWon;
+        user.handsWon = (user.handsWon || 0) + 1;
+      }
+      const xpResult = awardXP(user, xpAmount);
+      const pSocket = [...io.sockets.sockets.values()].find(s => s.user?.id === pid);
+      if (pSocket) pSocket.emit('xp:gained', xpResult);
+    }
+  }
+
   emitBJState(table);
   io.to('bj-' + table.id).emit('bj:results', {
     dealer: { cards: table.dealer.cards.map(cardStr), value: dv },
@@ -801,6 +1058,14 @@ function bjDealerPlay(table) {
 }
 
 // ===================== POKER (Texas Hold'em) =====================
+const BOT_NAMES = [
+  'Django 🤖','Paco 🤖','Luca 🤖','Baro 🤖','Kalo 🤖',
+  'Nuri 🤖','Sinto 🤖','Manusch 🤖','Pepe 🤖','Rico 🤖',
+  'Valentino 🤖','Franco 🤖','Nando 🤖','Silvio 🤖','Drago 🤖'
+];
+const BOT_STYLES = ['vorsichtig','normal','aggressiv','verrückt'];
+let botIdCounter = 0;
+
 function createPokerTable(id) {
   return {
     id, players: new Map(), seats: [null,null,null,null,null,null],
@@ -810,6 +1075,197 @@ function createPokerTable(id) {
     minBet: 100, currentBet: 0,
     timer: null, round: 0
   };
+}
+
+// ===================== BOT AI =====================
+function addBotToTable(table) {
+  // Find empty seat
+  let freeSeat = -1;
+  for (let i = 0; i < 6; i++) {
+    if (!table.seats[i]) { freeSeat = i; break; }
+  }
+  if (freeSeat < 0) return null; // Table full
+
+  const botId = 'bot-' + (++botIdCounter);
+  const name = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
+  const style = BOT_STYLES[Math.floor(Math.random() * BOT_STYLES.length)];
+
+  table.players.set(botId, {
+    id: botId, username: name, socketId: null,
+    cards: [], chips: 10000, folded: false, roundBet: 0,
+    spectator: false, allIn: false, hasActed: false,
+    isBot: true, botStyle: style
+  });
+  table.seats[freeSeat] = botId;
+
+  io.to('pk-' + table.id).emit('poker:playerJoined', { username: name, seat: freeSeat });
+
+  // Start game if enough players
+  if (table.phase === 'waiting' && [...table.players.values()].filter(p => !p.spectator).length >= 2) {
+    pokerStartRound(table);
+  } else {
+    emitPokerState(table);
+  }
+  return { name, seat: freeSeat, style };
+}
+
+function removeBotFromTable(table, botId) {
+  const p = table.players.get(botId);
+  if (!p || !p.isBot) return false;
+  const seatIdx = table.seats.indexOf(botId);
+  if (seatIdx >= 0) table.seats[seatIdx] = null;
+  if (p) p.folded = true;
+  table.players.delete(botId);
+  io.to('pk-' + table.id).emit('poker:playerLeft', { username: p.username });
+  if (table.phase !== 'waiting' && pokerActivePlayers(table) <= 1) pokerShowdown(table);
+  else emitPokerState(table);
+  return true;
+}
+
+function botHandStrength(cards, community) {
+  // Simple heuristic: 0.0 (trash) to 1.0 (amazing)
+  if (!cards || cards.length < 2) return 0.2;
+
+  const holeVals = cards.map(c => {
+    if (c.rank === 'A') return 14; if (c.rank === 'K') return 13;
+    if (c.rank === 'Q') return 12; if (c.rank === 'J') return 11;
+    return parseInt(c.rank);
+  });
+
+  let strength = 0;
+
+  // Pocket pair?
+  if (holeVals[0] === holeVals[1]) {
+    strength = 0.5 + (holeVals[0] / 14) * 0.4; // pair of 2s = 0.57, pair of As = 0.9
+  } else {
+    // High cards
+    const high = Math.max(...holeVals);
+    const low = Math.min(...holeVals);
+    strength = (high + low) / 28 * 0.5; // normalize
+
+    // Suited bonus
+    if (cards[0].suit === cards[1].suit) strength += 0.08;
+
+    // Connected bonus
+    if (Math.abs(holeVals[0] - holeVals[1]) === 1) strength += 0.05;
+    if (Math.abs(holeVals[0] - holeVals[1]) === 2) strength += 0.02;
+  }
+
+  // If community cards exist, evaluate actual hand
+  if (community && community.length >= 3) {
+    const hand = bestPokerHand(cards, community);
+    // Boost based on hand rank
+    const handBoost = [0.1, 0.3, 0.45, 0.55, 0.65, 0.75, 0.85, 0.92, 0.98];
+    strength = Math.max(strength, handBoost[hand.rank] || 0.1);
+  }
+
+  return Math.min(1.0, Math.max(0.0, strength));
+}
+
+function botDecide(table, botPlayer) {
+  const strength = botHandStrength(botPlayer.cards, table.community);
+  const style = botPlayer.botStyle;
+  const toCall = table.currentBet - botPlayer.roundBet;
+  const potOdds = toCall > 0 ? toCall / (table.pot + toCall) : 0;
+  const rng = Math.random();
+
+  // Style modifiers
+  let aggression = 0.5;  // base
+  let foldThreshold = 0.3;
+  let raiseThreshold = 0.6;
+  let bluffChance = 0.08;
+
+  switch (style) {
+    case 'vorsichtig':
+      foldThreshold = 0.4; raiseThreshold = 0.7; bluffChance = 0.03; aggression = 0.3; break;
+    case 'normal':
+      foldThreshold = 0.3; raiseThreshold = 0.6; bluffChance = 0.08; aggression = 0.5; break;
+    case 'aggressiv':
+      foldThreshold = 0.2; raiseThreshold = 0.45; bluffChance = 0.15; aggression = 0.7; break;
+    case 'verrückt':
+      foldThreshold = 0.1; raiseThreshold = 0.3; bluffChance = 0.25; aggression = 0.85; break;
+  }
+
+  // Decision
+  if (toCall === 0) {
+    // Can check for free
+    if (strength > raiseThreshold || rng < bluffChance) {
+      // Raise
+      const raiseAmt = Math.floor(table.currentBet * 2 + (botPlayer.chips * strength * aggression * 0.3));
+      return { action: 'raise', amount: Math.min(raiseAmt, botPlayer.chips) };
+    }
+    return { action: 'check' };
+  }
+
+  // Must pay to continue
+  if (strength < foldThreshold && rng > bluffChance) {
+    // Fold (but sometimes bluff)
+    return { action: 'fold' };
+  }
+
+  if (strength > raiseThreshold || (rng < bluffChance && botPlayer.chips > toCall * 3)) {
+    // Raise
+    const raiseAmt = Math.max(table.currentBet * 2, Math.floor(table.currentBet + botPlayer.chips * strength * aggression * 0.25));
+    if (strength > 0.85 && rng < aggression) {
+      return { action: 'raise', amount: botPlayer.chips }; // All-in with strong hand
+    }
+    return { action: 'raise', amount: Math.min(raiseAmt, botPlayer.chips) };
+  }
+
+  // Call
+  return { action: 'call' };
+}
+
+function executeBotAction(table, seat) {
+  const pid = table.seats[seat];
+  if (!pid) return;
+  const p = table.players.get(pid);
+  if (!p || !p.isBot || p.folded || p.spectator || p.allIn) return;
+
+  const decision = botDecide(table, p);
+
+  // Clear timer (bot acts, so no timeout needed)
+  if (table.timer) clearTimeout(table.timer);
+
+  switch (decision.action) {
+    case 'fold':
+      p.folded = true;
+      p.hasActed = true;
+      if (pokerActivePlayers(table) <= 1) pokerShowdown(table);
+      else pokerNextPlayer(table, seat);
+      break;
+
+    case 'check':
+      p.hasActed = true;
+      pokerNextPlayer(table, seat);
+      break;
+
+    case 'call': {
+      const toCall = table.currentBet - p.roundBet;
+      if (toCall >= p.chips) {
+        table.pot += p.chips; p.roundBet += p.chips; p.chips = 0; p.allIn = true;
+      } else {
+        p.chips -= toCall; p.roundBet = table.currentBet; table.pot += toCall;
+      }
+      p.hasActed = true;
+      pokerNextPlayer(table, seat);
+      break;
+    }
+
+    case 'raise': {
+      const raise = Math.max(table.currentBet * 2, Math.min(decision.amount, p.chips + p.roundBet));
+      const cost = raise - p.roundBet;
+      p.chips -= cost; p.roundBet = raise; table.pot += cost;
+      table.currentBet = raise;
+      if (p.chips <= 0) p.allIn = true;
+      for (const [otherId, op] of table.players) {
+        if (otherId !== pid) op.hasActed = false;
+      }
+      p.hasActed = true;
+      pokerNextPlayer(table, seat);
+      break;
+    }
+  }
 }
 
 function pokerHandRank(cards) {
@@ -883,7 +1339,8 @@ function pokerTableState(table, forSocket) {
       seat: i, username: p.username, chips: p.chips,
       bet: p.roundBet || 0, folded: p.folded,
       cards: isYou ? p.cards.map(cardStr) : (table.phase === 'showdown' && !p.folded ? p.cards.map(cardStr) : ['??','??']),
-      isYou, isDealer: i === table.dealerSeat,
+      isYou, isDealer: i === table.dealerSeat, isBot: !!p.isBot,
+      botStyle: p.isBot ? p.botStyle : null,
       handName: table.phase === 'showdown' && !p.folded ? bestPokerHand(p.cards, table.community).name : null
     };
   });
@@ -917,6 +1374,15 @@ function pokerNextPlayer(table, afterSeat) {
 
     table.currentSeat = s;
     emitPokerState(table);
+
+    // Bot plays automatically with delay
+    if (p.isBot) {
+      const delay = 1500 + Math.floor(Math.random() * 2500); // 1.5-4s "thinking" time
+      if (table.timer) clearTimeout(table.timer);
+      table.timer = setTimeout(() => executeBotAction(table, s), delay);
+      return;
+    }
+
     if (table.timer) clearTimeout(table.timer);
     table.timer = setTimeout(() => {
       // Auto-fold bei Timeout
@@ -978,6 +1444,33 @@ function pokerShowdown(table) {
       username: winner.username, pot: table.pot,
       hand: winner.handResult?.name || 'Gewinner'
     });
+
+    // XP für Gewinner vergeben
+    if (!winner.isBot) {
+      const user = db.users.get(winnerId);
+      if (user) {
+        user.handsWon = (user.handsWon || 0) + 1;
+        const xpResult = awardXP(user, XP_REWARDS.handWon);
+        const winnerSocket = [...io.sockets.sockets.values()].find(s => s.user?.id === winnerId);
+        if (winnerSocket) {
+          winnerSocket.emit('xp:gained', xpResult);
+        }
+      }
+    }
+  }
+
+  // XP für alle menschlichen Spieler (Runde gespielt)
+  for (const [pid, p] of table.players) {
+    if (p.isBot || p.spectator) continue;
+    const user = db.users.get(pid);
+    if (user) {
+      user.roundsPlayed = (user.roundsPlayed || 0) + 1;
+      if (pid !== winnerId) { // Gewinner hat schon XP bekommen
+        const xpResult = awardXP(user, XP_REWARDS.roundPlayed);
+        const pSocket = [...io.sockets.sockets.values()].find(s => s.user?.id === pid);
+        if (pSocket) pSocket.emit('xp:gained', xpResult);
+      }
+    }
   }
 
   emitPokerState(table);
@@ -1106,6 +1599,12 @@ io.on('connection', (socket) => {
 
     if (table.seats[seat] && table.seats[seat] !== socket.user.id) return socket.emit('error', 'Platz belegt');
 
+    // Remove from old seat if switching
+    const oldSeat = table.seats.indexOf(socket.user.id);
+    if (oldSeat >= 0 && oldSeat !== seat) {
+      table.seats[oldSeat] = null;
+    }
+
     if (!table.players.has(socket.user.id)) {
       table.players.set(socket.user.id, {
         id: socket.user.id, username: socket.user.username, socketId: socket.id,
@@ -1191,6 +1690,12 @@ io.on('connection', (socket) => {
 
     if (table.seats[seat] && table.seats[seat] !== socket.user.id) return socket.emit('error', 'Platz belegt');
 
+    // Remove from old seat if switching
+    const oldSeat = table.seats.indexOf(socket.user.id);
+    if (oldSeat >= 0 && oldSeat !== seat) {
+      table.seats[oldSeat] = null;
+    }
+
     if (!table.players.has(socket.user.id)) {
       table.players.set(socket.user.id, {
         id: socket.user.id, username: socket.user.username, socketId: socket.id,
@@ -1266,15 +1771,108 @@ io.on('connection', (socket) => {
     pokerNextPlayer(table, table.currentSeat);
   });
 
+  // --- POKER BOTS ---
+  socket.on('poker:addBot', ({ tableId }) => {
+    const table = tables.poker.get(tableId || socket._pkTable);
+    if (!table) return socket.emit('error', 'Tisch nicht gefunden');
+    const result = addBotToTable(table);
+    if (!result) return socket.emit('error', 'Tisch ist voll!');
+    io.to('pk-' + table.id).emit('chat:msg', {
+      username: '🎰 System', msg: `${result.name} (Stil: ${result.style}) setzt sich an den Tisch!`, time: Date.now()
+    });
+  });
+
+  socket.on('poker:removeBot', ({ tableId }) => {
+    const table = tables.poker.get(tableId || socket._pkTable);
+    if (!table) return;
+    // Remove last bot
+    for (let i = 5; i >= 0; i--) {
+      const pid = table.seats[i];
+      if (pid && table.players.get(pid)?.isBot) {
+        const bot = table.players.get(pid);
+        io.to('pk-' + table.id).emit('chat:msg', {
+          username: '🎰 System', msg: `${bot.username} verlässt den Tisch.`, time: Date.now()
+        });
+        removeBotFromTable(table, pid);
+        return;
+      }
+    }
+    socket.emit('error', 'Kein Bot am Tisch');
+  });
+
+  socket.on('poker:removeBots', ({ tableId }) => {
+    const table = tables.poker.get(tableId || socket._pkTable);
+    if (!table) return;
+    const botIds = [...table.players.entries()].filter(([,p]) => p.isBot).map(([id]) => id);
+    for (const id of botIds) removeBotFromTable(table, id);
+    if (botIds.length > 0) {
+      io.to('pk-' + table.id).emit('chat:msg', {
+        username: '🎰 System', msg: `Alle Bots entfernt.`, time: Date.now()
+      });
+    }
+  });
+
   // --- CHAT ---
   socket.on('chat:msg', ({ room, msg }) => {
     if (!msg || msg.length > 200) return;
     io.to(room).emit('chat:msg', { username: socket.user.username, msg, time: Date.now() });
   });
 
+  // --- WEBRTC SIGNALING (Video/Sprach-Chat) ---
+  socket.on('rtc:join', ({ room }) => {
+    socket.join('rtc-' + room);
+    socket._rtcRoom = room;
+    // Alle anderen im Raum benachrichtigen
+    socket.to('rtc-' + room).emit('rtc:peerJoined', {
+      peerId: socket.id, username: socket.user.username
+    });
+    // Liste aller bestehenden Peers senden
+    const rtcRoom = io.sockets.adapter.rooms.get('rtc-' + room);
+    if (rtcRoom) {
+      const peers = [];
+      for (const sid of rtcRoom) {
+        if (sid === socket.id) continue;
+        const s = io.sockets.sockets.get(sid);
+        if (s) peers.push({ peerId: sid, username: s.user.username });
+      }
+      socket.emit('rtc:peers', peers);
+    }
+  });
+
+  socket.on('rtc:offer', ({ to, offer }) => {
+    const target = io.sockets.sockets.get(to);
+    if (target) target.emit('rtc:offer', {
+      from: socket.id, username: socket.user.username, offer
+    });
+  });
+
+  socket.on('rtc:answer', ({ to, answer }) => {
+    const target = io.sockets.sockets.get(to);
+    if (target) target.emit('rtc:answer', { from: socket.id, answer });
+  });
+
+  socket.on('rtc:ice', ({ to, candidate }) => {
+    const target = io.sockets.sockets.get(to);
+    if (target) target.emit('rtc:ice', { from: socket.id, candidate });
+  });
+
+  socket.on('rtc:leave', () => {
+    if (socket._rtcRoom) {
+      socket.to('rtc-' + socket._rtcRoom).emit('rtc:peerLeft', { peerId: socket.id });
+      socket.leave('rtc-' + socket._rtcRoom);
+      socket._rtcRoom = null;
+    }
+  });
+
   // --- DISCONNECT ---
   socket.on('disconnect', () => {
     console.log(`🔌 ${socket.user.username} disconnected`);
+
+    // WebRTC cleanup
+    if (socket._rtcRoom) {
+      socket.to('rtc-' + socket._rtcRoom).emit('rtc:peerLeft', { peerId: socket.id });
+    }
+
     // Clean up BJ tables
     for (const [, table] of tables.blackjack) {
       if (table.players.has(socket.user.id)) {

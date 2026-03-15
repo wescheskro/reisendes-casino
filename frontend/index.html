@@ -2,19 +2,19 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#0a0a12">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="Reisendes Casino – Stachelingo Rodern – Put Baxt!">
+  <meta name="description" content="Reisendes Casino – Poker, Slots & Blackjack – Put Baxt!">
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦔</text></svg>">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
-  <title>Reisendes Casino – Stachelingo Rodern</title>
+  <title>Reisendes Casino – Put Baxt!</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
     /* ============================================================
-       STACHELINGO RODERN – Landing Page Overrides
+       REISENDES CASINO – Landing Page (3 Games Only)
        ============================================================ */
 
     /* Full-page background */
@@ -36,6 +36,7 @@
     .bottom-nav { display: none; }
     .main-content {
       padding-bottom: 20px;
+      padding-top: env(safe-area-inset-top, 0);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -80,103 +81,429 @@
       margin-bottom: 30px;
     }
 
-    /* Game preview card */
-    .game-preview {
+    /* Section divider */
+    .game-divider {
+      width: 80%;
+      max-width: 400px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,.3), transparent);
+      margin: 10px auto 30px;
+    }
+
+    /* ============ POKER TABLE HERO ============ */
+    .poker-table-hero {
       position: relative;
       width: 100%;
       max-width: 500px;
-      margin: 0 auto 30px;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 2px solid rgba(212,175,55,.4);
-      box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 40px rgba(212,175,55,.15);
-      aspect-ratio: 14/10;
-      background: linear-gradient(135deg, #1a0e05 0%, #0a0500 50%, #120a02 100%);
+      margin: 0 auto 20px;
       cursor: pointer;
-      transition: transform .3s, box-shadow .3s;
+      transition: transform .3s;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+    .poker-table-hero:hover { transform: translateY(-4px); }
+    .poker-table-hero:active { transform: scale(.98); }
+
+    .pt-felt {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/10;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at 50% 50%, #1a7a42 0%, #0f5c2e 50%, #0a4423 100%);
+      border: 5px solid #8B6914;
+      box-shadow: 0 0 0 3px rgba(212,175,55,.4), 0 15px 50px rgba(0,0,0,.7), inset 0 0 60px rgba(0,0,0,.3);
+      overflow: visible;
     }
 
-    /* Automaten-Vorschau mit Symbolen */
-    .preview-grid {
-      position: absolute; inset: 0;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      grid-template-rows: repeat(3, 1fr);
-      gap: 4px;
-      padding: 12px;
+    .pt-glow {
+      position: absolute; inset: -20px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at 50% 50%, rgba(212,175,55,.08) 0%, transparent 70%);
+      pointer-events: none;
+      animation: pt-pulse 3s ease-in-out infinite;
     }
-    .preview-grid img {
-      width: 100%; height: 100%;
-      object-fit: contain;
+    @keyframes pt-pulse {
+      0%,100% { opacity: .5; }
+      50% { opacity: 1; }
+    }
+
+    /* Dealer */
+    .pt-dealer {
+      position: absolute; top: 6%; left: 50%; transform: translateX(-50%);
+      z-index: 5;
+    }
+    .pt-dealer-label {
+      font-size: 10px; color: rgba(240,230,211,.4);
+      text-transform: uppercase; letter-spacing: 2px;
+    }
+
+    /* Community Cards */
+    .pt-community {
+      position: absolute; top: 28%; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 5px; z-index: 5;
+    }
+    .pt-card {
+      width: 36px; height: 50px; border-radius: 5px;
+      background: linear-gradient(160deg, #fff, #f5f0e8);
+      color: #222; font-size: 14px; font-weight: 900;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      box-shadow: 0 3px 8px rgba(0,0,0,.5);
+      font-family: 'Playfair Display', serif;
+      line-height: 1;
+    }
+    .pt-card .pt-suit { font-size: 10px; }
+    .pt-card .pt-suit.red, .pt-card .red { color: #CC0000; }
+    .pt-card.back {
+      background: linear-gradient(135deg, #8B0000, #a31515);
+      background-image: linear-gradient(135deg, #8B0000 25%, #6d0000 25%, #6d0000 50%, #8B0000 50%, #8B0000 75%, #6d0000 75%);
+      background-size: 6px 6px;
+      border: 1.5px solid rgba(212,175,55,.3);
+      color: transparent;
+    }
+
+    /* Pot */
+    .pt-pot {
+      position: absolute; top: 56%; left: 50%; transform: translateX(-50%);
+      font-size: 12px; font-weight: 700; color: #F4D03F;
+      background: rgba(0,0,0,.5); padding: 3px 14px;
+      border-radius: 12px; border: 1px solid rgba(212,175,55,.2);
+      z-index: 5; white-space: nowrap;
+    }
+
+    /* Seats */
+    .pt-seat {
+      position: absolute; text-align: center; z-index: 5;
+      transition: .3s;
+    }
+    .pt-s0 { bottom: -10%; left: 15%; }
+    .pt-s1 { bottom: -10%; right: 15%; }
+    .pt-s2 { top: 10%; right: -5%; }
+    .pt-s3 { top: 10%; left: -5%; }
+
+    .pt-seat-cards { display: flex; gap: 2px; justify-content: center; }
+    .pt-mini-card {
+      width: 22px; height: 30px; border-radius: 3px;
+      background: linear-gradient(160deg, #fff, #f0ebe0);
+      color: #222; font-size: 8px; font-weight: 900;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,.4);
+      font-family: 'Playfair Display', serif;
+      line-height: 1;
+    }
+    .pt-mini-card .red { color: #CC0000; font-size: 7px; }
+    .pt-mini-card.back {
+      background: linear-gradient(135deg, #8B0000, #a31515);
+      background-image: linear-gradient(135deg, #8B0000 25%, #6d0000 25%, #6d0000 50%, #8B0000 50%, #8B0000 75%, #6d0000 75%);
+      background-size: 4px 4px;
+      border: 1px solid rgba(212,175,55,.2);
+      color: transparent;
+    }
+
+    .pt-seat-name {
+      font-size: 9px; color: #D4AF37; margin-top: 2px;
+      white-space: nowrap;
+    }
+    .pt-seat.pt-occupied .pt-seat-name { color: #F4D03F; font-weight: 700; }
+    .pt-chips { font-size: 8px; color: rgba(240,230,211,.5); }
+
+    .pt-join-hint {
+      text-align: center; margin-top: 8px;
+      font-size: 13px; color: #D4AF37;
+      letter-spacing: 2px; font-weight: 700;
+      animation: pt-hint-pulse 2s ease-in-out infinite;
+    }
+    @keyframes pt-hint-pulse {
+      0%,100% { opacity: .6; }
+      50% { opacity: 1; }
+    }
+
+    @media (max-width: 480px) {
+      .pt-card { width: 30px; height: 42px; font-size: 12px; }
+      .pt-card .pt-suit { font-size: 8px; }
+      .pt-mini-card { width: 18px; height: 25px; font-size: 7px; }
+      .pt-pot { font-size: 10px; padding: 2px 10px; }
+      .pt-seat-name { font-size: 8px; }
+      .pt-chips { font-size: 7px; }
+      .pt-s0 { bottom: -14%; left: 10%; }
+      .pt-s1 { bottom: -14%; right: 10%; }
+      .pt-s2 { top: 8%; right: -8%; }
+      .pt-s3 { top: 8%; left: -8%; }
+    }
+
+    /* ============ SLOT MACHINE HERO ============ */
+    .slot-hero {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto 20px;
+      cursor: pointer;
+      transition: transform .3s;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+    .slot-hero:hover { transform: translateY(-4px); }
+    .slot-hero:active { transform: scale(.98); }
+
+    .slot-cabinet {
+      position: relative;
+      width: 100%;
+      background: linear-gradient(180deg, #1a0e05 0%, #120802 40%, #0a0500 100%);
+      border-radius: 16px;
+      border: 3px solid #8B6914;
+      box-shadow: 0 0 0 2px rgba(212,175,55,.3), 0 15px 50px rgba(0,0,0,.7), inset 0 1px 0 rgba(212,175,55,.2);
+      overflow: hidden;
+      padding: 14px;
+    }
+
+    .slot-top {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .slot-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px; font-weight: 900;
+      background: linear-gradient(135deg, #D4AF37, #F4D03F, #D4AF37);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .slot-subtitle {
+      font-size: 11px; color: rgba(212,175,55,.5);
+      letter-spacing: 3px; text-transform: uppercase;
+    }
+
+    .slot-reels {
+      display: flex; gap: 4px; justify-content: center;
+      background: rgba(0,0,0,.5);
+      border-radius: 10px;
+      padding: 8px 6px;
+      border: 2px solid rgba(139,105,20,.4);
+      box-shadow: inset 0 0 30px rgba(0,0,0,.6);
+    }
+    .slot-reel {
+      flex: 1;
+      aspect-ratio: 1;
+      background: rgba(255,255,255,.03);
       border-radius: 6px;
-      border: 1px solid rgba(212,175,55,.15);
-      background: rgba(0,0,0,.3);
-      filter: brightness(.7) saturate(.8);
+      border: 1px solid rgba(212,175,55,.1);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .slot-reel img {
+      width: 85%; height: 85%;
+      object-fit: contain;
+      filter: brightness(.8) saturate(.9);
       transition: filter .3s;
     }
-    .game-preview:hover .preview-grid img {
-      filter: brightness(.9) saturate(1);
+    .slot-hero:hover .slot-reel img { filter: brightness(1) saturate(1.1); }
+    .slot-reel.highlight {
+      border-color: rgba(244,208,63,.5);
+      box-shadow: 0 0 12px rgba(244,208,63,.2);
+    }
+    .slot-reel.highlight img { filter: brightness(1.1) saturate(1.2); }
+
+    .slot-winline {
+      position: absolute;
+      left: 14px; right: 14px;
+      top: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #F4D03F, transparent);
+      opacity: .4;
+      pointer-events: none;
     }
 
-    /* Gold Rahmen oben/unten */
-    .preview-frame-top, .preview-frame-bottom {
-      position: absolute; left: 0; right: 0; height: 4px; z-index: 2;
-      background: linear-gradient(90deg, #8B6914, #D4AF37, #F4D03F, #D4AF37, #8B6914);
+    .slot-bottom {
+      display: flex; justify-content: space-around;
+      margin-top: 10px;
+      padding: 8px 0 4px;
+      border-top: 1px solid rgba(212,175,55,.1);
     }
-    .preview-frame-top { top: 0; }
-    .preview-frame-bottom { bottom: 0; }
+    .slot-info-item { text-align: center; }
+    .slot-label { display: block; font-size: 9px; color: rgba(240,230,211,.35); text-transform: uppercase; letter-spacing: 1px; }
+    .slot-val { display: block; font-size: 14px; font-weight: 700; color: #D4AF37; }
+    .slot-val.win { color: #4d4; }
+    .slot-val.free { color: #F4D03F; font-size: 12px; }
 
-    /* Rote Seitenrahmen */
-    .preview-frame-left, .preview-frame-right {
-      position: absolute; top: 0; bottom: 0; width: 8px; z-index: 2;
-      background: linear-gradient(180deg, #8B0000, #CC0000, #8B0000);
-      box-shadow: inset -2px 0 4px rgba(0,0,0,.3);
-    }
-    .preview-frame-left { left: 0; }
-    .preview-frame-right { right: 0; box-shadow: inset 2px 0 4px rgba(0,0,0,.3); }
-
-    .game-preview:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 24px 70px rgba(0,0,0,.6), 0 0 50px rgba(212,175,55,.2);
+    .slot-glow {
+      position: absolute; inset: -15px;
+      border-radius: 20px;
+      background: radial-gradient(ellipse at 50% 60%, rgba(212,175,55,.06) 0%, transparent 70%);
+      pointer-events: none;
+      animation: pt-pulse 3s ease-in-out infinite;
     }
 
-    .game-preview img {
+    .slot-join-hint {
+      text-align: center; margin-top: 8px;
+      font-size: 13px; color: #D4AF37;
+      letter-spacing: 2px; font-weight: 700;
+      animation: pt-hint-pulse 2s ease-in-out infinite;
+    }
+
+    @media (max-width: 480px) {
+      .slot-title { font-size: 17px; }
+      .slot-reels { padding: 6px 4px; gap: 3px; }
+      .slot-val { font-size: 12px; }
+      .slot-label { font-size: 8px; }
+      .slot-cabinet { padding: 10px; }
+    }
+
+    /* ============ BLACKJACK TABLE HERO ============ */
+    .bj-hero {
+      position: relative;
       width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .game-preview .play-overlay-big {
-      position: absolute; inset: 0;
-      background: rgba(0,0,0,.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background .3s;
-    }
-
-    .game-preview:hover .play-overlay-big {
-      background: rgba(0,0,0,.2);
-    }
-
-    .play-circle {
-      width: 80px; height: 80px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #D4AF37, #F4D03F);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      color: #000;
-      box-shadow: 0 8px 30px rgba(212,175,55,.5);
+      max-width: 500px;
+      margin: 0 auto 20px;
+      cursor: pointer;
       transition: transform .3s;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+    .bj-hero:hover { transform: translateY(-4px); }
+    .bj-hero:active { transform: scale(.98); }
+
+    .bj-table {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: 0 0 50% 50% / 0 0 40% 40%;
+      background: radial-gradient(ellipse at 50% 30%, #1a6a38 0%, #0e5028 50%, #0a3a1e 100%);
+      border: 5px solid #8B6914;
+      box-shadow: 0 0 0 3px rgba(212,175,55,.4), 0 15px 50px rgba(0,0,0,.7), inset 0 0 60px rgba(0,0,0,.3);
+      overflow: visible;
+      padding: 12px;
     }
 
-    .game-preview:hover .play-circle {
-      transform: scale(1.1);
+    .bj-glow {
+      position: absolute; inset: -20px;
+      border-radius: 0 0 50% 50% / 0 0 40% 40%;
+      background: radial-gradient(ellipse at 50% 40%, rgba(212,175,55,.08) 0%, transparent 70%);
+      pointer-events: none;
+      animation: pt-pulse 3s ease-in-out infinite;
     }
 
-    /* CTA Button */
+    /* Blackjack logo on table */
+    .bj-logo {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .bj-logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px; font-weight: 900;
+      color: rgba(244,208,63,.6);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 2px 4px rgba(0,0,0,.5);
+    }
+    .bj-payout {
+      font-size: 10px;
+      color: rgba(240,230,211,.35);
+      letter-spacing: 1px;
+    }
+
+    /* Dealer area */
+    .bj-dealer-area {
+      display: flex; justify-content: center; gap: 6px;
+      margin-bottom: 12px;
+    }
+    .bj-card {
+      width: 40px; height: 56px; border-radius: 5px;
+      background: linear-gradient(160deg, #fff, #f5f0e8);
+      color: #222; font-size: 15px; font-weight: 900;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,.6);
+      font-family: 'Playfair Display', serif;
+      line-height: 1;
+    }
+    .bj-card .bj-suit { font-size: 11px; }
+    .bj-card .bj-suit.red { color: #CC0000; }
+    .bj-card.back {
+      background: linear-gradient(135deg, #8B0000, #a31515);
+      background-image: linear-gradient(135deg, #8B0000 25%, #6d0000 25%, #6d0000 50%, #8B0000 50%, #8B0000 75%, #6d0000 75%);
+      background-size: 6px 6px;
+      border: 1.5px solid rgba(212,175,55,.3);
+      color: transparent;
+    }
+
+    .bj-dealer-label {
+      text-align: center;
+      font-size: 9px;
+      color: rgba(240,230,211,.35);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+
+    /* Player spots */
+    .bj-spots {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 8px;
+    }
+    .bj-spot {
+      text-align: center;
+    }
+    .bj-spot-cards {
+      display: flex; gap: 3px; justify-content: center;
+    }
+    .bj-mini-card {
+      width: 24px; height: 33px; border-radius: 3px;
+      background: linear-gradient(160deg, #fff, #f0ebe0);
+      color: #222; font-size: 9px; font-weight: 900;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,.5);
+      font-family: 'Playfair Display', serif;
+      line-height: 1;
+    }
+    .bj-mini-card .red { color: #CC0000; font-size: 7px; }
+    .bj-mini-card.back {
+      background: linear-gradient(135deg, #8B0000, #a31515);
+      background-image: linear-gradient(135deg, #8B0000 25%, #6d0000 25%, #6d0000 50%, #8B0000 50%, #8B0000 75%, #6d0000 75%);
+      background-size: 4px 4px;
+      border: 1px solid rgba(212,175,55,.2);
+      color: transparent;
+    }
+    .bj-spot-name {
+      font-size: 8px;
+      color: #D4AF37;
+      margin-top: 3px;
+      white-space: nowrap;
+    }
+    .bj-spot-bet {
+      font-size: 7px;
+      color: rgba(240,230,211,.4);
+    }
+    .bj-spot.occupied .bj-spot-name {
+      color: #F4D03F;
+      font-weight: 700;
+    }
+    .bj-spot-value {
+      font-size: 10px;
+      font-weight: 700;
+      color: #F4D03F;
+      margin-top: 1px;
+    }
+
+    .bj-join-hint {
+      text-align: center; margin-top: 8px;
+      font-size: 13px; color: #D4AF37;
+      letter-spacing: 2px; font-weight: 700;
+      animation: pt-hint-pulse 2s ease-in-out infinite;
+    }
+
+    @media (max-width: 480px) {
+      .bj-card { width: 34px; height: 48px; font-size: 13px; }
+      .bj-card .bj-suit { font-size: 9px; }
+      .bj-mini-card { width: 20px; height: 28px; font-size: 8px; }
+      .bj-spots { gap: 10px; }
+      .bj-logo-text { font-size: 14px; }
+      .bj-spot-name { font-size: 7px; }
+    }
+
+    /* ============ CTA BUTTONS ============ */
     .cta-play {
       display: inline-flex;
       align-items: center;
@@ -184,9 +511,9 @@
       background: linear-gradient(135deg, #D4AF37, #F4D03F, #D4AF37);
       color: #000;
       font-family: 'Playfair Display', serif;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 900;
-      padding: 16px 48px;
+      padding: 14px 40px;
       border: none;
       border-radius: 50px;
       cursor: pointer;
@@ -194,79 +521,61 @@
       letter-spacing: 2px;
       box-shadow: 0 6px 30px rgba(212,175,55,.4);
       transition: transform .2s, box-shadow .2s;
-      margin-bottom: 30px;
+      margin-bottom: 10px;
+      min-height: 48px;
+      -webkit-tap-highlight-color: transparent;
     }
-
     .cta-play:hover {
       transform: scale(1.05);
       box-shadow: 0 8px 40px rgba(212,175,55,.6);
     }
+    .cta-play:active { transform: scale(.97); }
 
-    /* Game info badges */
-    .game-badges {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 30px;
+    .cta-slot {
+      background: linear-gradient(135deg, #8B0000, #CC0000, #8B0000);
+      color: #fff;
+      box-shadow: 0 6px 30px rgba(139,0,0,.4);
+    }
+    .cta-slot:hover {
+      box-shadow: 0 8px 40px rgba(139,0,0,.6);
     }
 
-    .g-badge {
+    .cta-bj {
+      background: linear-gradient(135deg, #1a6a38, #2a9d50, #1a6a38);
+      color: #fff;
+      box-shadow: 0 6px 30px rgba(26,106,56,.4);
+    }
+    .cta-bj:hover {
+      box-shadow: 0 8px 40px rgba(26,106,56,.6);
+    }
+
+    /* Table selector inline */
+    .table-select-inline {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .table-select-inline select {
+      background: rgba(0,0,0,.5);
+      border: 1px solid rgba(212,175,55,.3);
+      color: #D4AF37;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      min-height: 36px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .table-select-inline label {
+      font-size: 12px;
+      color: rgba(240,230,211,.4);
       display: flex;
       align-items: center;
-      gap: 6px;
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(212,175,55,.15);
-      border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 12px;
-      color: rgba(240,230,211,.7);
     }
 
-    .g-badge .val {
-      color: #D4AF37;
-      font-weight: 700;
-    }
-
-    /* Features section */
-    .features {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      max-width: 500px;
-      width: 100%;
-      padding: 0 20px;
-      margin-bottom: 30px;
-    }
-
-    .feature-card {
-      background: rgba(255,255,255,.03);
-      border: 1px solid rgba(212,175,55,.1);
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-    }
-
-    .feature-card .f-icon {
-      font-size: 28px;
-      margin-bottom: 6px;
-    }
-
-    .feature-card .f-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 13px;
-      font-weight: 700;
-      color: #D4AF37;
-      margin-bottom: 4px;
-    }
-
-    .feature-card .f-desc {
-      font-size: 11px;
-      color: rgba(240,230,211,.5);
-      line-height: 1.4;
-    }
-
-    /* App installieren Button */
+    /* ============ APP INSTALL ============ */
     .install-btn {
       display: inline-flex;
       align-items: center;
@@ -283,8 +592,10 @@
       cursor: pointer;
       transition: .2s;
       box-shadow: 0 4px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(244,208,63,.1);
-      margin-bottom: 12px;
+      margin: 20px 0 12px;
       letter-spacing: 1px;
+      min-height: 48px;
+      -webkit-tap-highlight-color: transparent;
     }
     .install-btn:hover {
       background: linear-gradient(180deg, rgba(80,55,20,.9), rgba(45,30,12,.95));
@@ -323,169 +634,7 @@
       flex-shrink: 0;
     }
 
-    /* ============ SPIELELOBBY ============ */
-    .lobby-section {
-      max-width: 560px;
-      width: 100%;
-      padding: 0 20px;
-      margin-bottom: 30px;
-    }
-    .lobby-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 22px;
-      font-weight: 900;
-      color: #D4AF37;
-      text-align: center;
-      margin-bottom: 16px;
-      letter-spacing: 1px;
-    }
-    .lobby-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px;
-    }
-    .lobby-card {
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border: 1px solid rgba(212,175,55,.2);
-      border-radius: 14px;
-      padding: 20px 14px;
-      text-align: center;
-      cursor: pointer;
-      transition: .3s;
-      position: relative;
-      overflow: hidden;
-    }
-    .lobby-card:hover {
-      border-color: rgba(212,175,55,.5);
-      transform: translateY(-3px);
-      box-shadow: 0 8px 30px rgba(0,0,0,.4), 0 0 20px rgba(212,175,55,.1);
-    }
-    .lobby-card .lc-icon {
-      font-size: 40px;
-      margin-bottom: 8px;
-      filter: drop-shadow(0 4px 8px rgba(0,0,0,.3));
-    }
-    .lobby-card .lc-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 15px;
-      font-weight: 700;
-      color: #F0E6D3;
-      margin-bottom: 4px;
-    }
-    .lobby-card .lc-desc {
-      font-size: 11px;
-      color: rgba(240,230,211,.5);
-      margin-bottom: 10px;
-    }
-    .lobby-card .lc-players {
-      font-size: 10px;
-      color: rgba(240,230,211,.4);
-    }
-    .lobby-card .lc-players .online {
-      color: #4d4;
-      font-weight: 700;
-    }
-    .lobby-card .lc-badge {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: linear-gradient(135deg, #e74c3c, #c0392b);
-      color: #fff;
-      font-size: 9px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .lobby-card .lc-badge.multi {
-      background: linear-gradient(135deg, #2ecc71, #27ae60);
-    }
-    .lobby-card .lc-play {
-      display: inline-block;
-      background: linear-gradient(135deg, #D4AF37, #F4D03F);
-      color: #000;
-      font-family: 'Playfair Display', serif;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 6px 20px;
-      border-radius: 20px;
-      margin-top: 6px;
-    }
-    .lobby-tables {
-      margin-top: 8px;
-    }
-    .lobby-tables select {
-      background: rgba(0,0,0,.4);
-      border: 1px solid rgba(212,175,55,.3);
-      color: #D4AF37;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-family: inherit;
-      cursor: pointer;
-    }
-
-    /* Guthaben aufladen */
-    .topup-section {
-      max-width: 500px;
-      width: 100%;
-      padding: 0 20px;
-      margin-bottom: 30px;
-      text-align: center;
-    }
-    .topup-balance {
-      font-family: 'Playfair Display', serif;
-      font-size: 16px;
-      color: rgba(240,230,211,.7);
-      margin-bottom: 12px;
-    }
-    .topup-balance span {
-      font-size: 22px;
-      font-weight: 700;
-      color: #F4D03F;
-      text-shadow: 0 0 10px rgba(244,208,63,.3);
-    }
-    .topup-buttons {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .topup-btn {
-      background: linear-gradient(180deg, rgba(50,35,15,.9), rgba(25,18,8,.95));
-      border: 1px solid rgba(212,175,55,.35);
-      border-top: 1px solid rgba(244,208,63,.45);
-      color: #D4AF37;
-      font-family: 'Playfair Display', serif;
-      font-size: 14px;
-      font-weight: 700;
-      padding: 10px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: .2s;
-      box-shadow: 0 2px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(244,208,63,.1);
-    }
-    .topup-btn:hover {
-      background: linear-gradient(180deg, rgba(80,55,20,.9), rgba(45,30,12,.95));
-      border-color: rgba(244,208,63,.6);
-      color: #F4D03F;
-      box-shadow: 0 2px 12px rgba(0,0,0,.5), 0 0 10px rgba(212,175,55,.15);
-    }
-    .topup-btn:active { transform: scale(.95); }
-    .topup-btn.reset {
-      border-color: rgba(180,40,40,.4);
-      color: rgba(255,100,100,.7);
-    }
-    .topup-btn.reset:hover {
-      border-color: rgba(255,80,80,.5);
-      color: #ff6666;
-      background: linear-gradient(180deg, rgba(60,15,15,.9), rgba(30,8,8,.95));
-    }
-
-    /* ============================================
-       LOGIN / MITGLIED
-       ============================================ */
+    /* ============ AUTH ============ */
     .auth-bar {
       display: flex;
       align-items: center;
@@ -503,6 +652,7 @@
       cursor: pointer;
       transition: .2s;
       letter-spacing: .5px;
+      min-height: 44px;
     }
     .auth-btn:hover {
       border-color: rgba(244,208,63,.7);
@@ -522,6 +672,7 @@
       color: rgba(255,100,100,.7);
       font-size: 11px;
       padding: 6px 10px;
+      min-height: 36px;
     }
     .user-info {
       display: flex;
@@ -599,6 +750,7 @@
       border: none;
       cursor: pointer;
       transition: .2s;
+      min-height: 44px;
     }
     .auth-tab.active {
       background: rgba(212,175,55,.15);
@@ -611,11 +763,12 @@
       border: 1px solid rgba(212,175,55,.2);
       border-radius: 8px;
       color: #F0E6D3;
-      font-size: 15px;
+      font-size: 16px;
       margin-bottom: 10px;
       outline: none;
       font-family: inherit;
       box-sizing: border-box;
+      min-height: 48px;
     }
     .auth-input:focus {
       border-color: rgba(212,175,55,.5);
@@ -638,6 +791,7 @@
       margin-top: 4px;
       transition: .2s;
       letter-spacing: 1px;
+      min-height: 48px;
     }
     .auth-submit:hover { box-shadow: 0 4px 20px rgba(212,175,55,.5); }
     .auth-submit:active { transform: scale(.97); }
@@ -657,412 +811,8 @@
       color: rgba(240,230,211,.4);
       font-size: 24px;
       cursor: pointer;
-    }
-
-    /* ============================================
-       MÜNZEN-SHOP
-       ============================================ */
-    .shop-section {
-      max-width: 500px;
-      width: 100%;
-      padding: 0 20px;
-      margin-bottom: 30px;
-    }
-    .shop-title {
-      text-align: center;
-      font-family: 'Playfair Display', serif;
-      font-size: 22px;
-      background: linear-gradient(135deg, #D4AF37, #F4D03F);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 4px;
-    }
-    .shop-sub {
-      text-align: center;
-      font-size: 12px;
-      color: rgba(240,230,211,.5);
-      margin-bottom: 16px;
-    }
-    .shop-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-    .shop-card {
-      position: relative;
-      background: linear-gradient(180deg, rgba(30,22,10,.95), rgba(12,8,3,.98));
-      border: 1px solid rgba(212,175,55,.2);
-      border-radius: 12px;
-      padding: 16px 12px;
-      text-align: center;
-      cursor: pointer;
-      transition: .25s;
-      overflow: hidden;
-    }
-    .shop-card:hover {
-      border-color: rgba(244,208,63,.5);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,.4), 0 0 16px rgba(212,175,55,.1);
-    }
-    .shop-card.popular {
-      border-color: rgba(244,208,63,.45);
-      box-shadow: 0 0 12px rgba(212,175,55,.1);
-    }
-    .shop-badge {
-      position: absolute;
-      top: -1px; right: -1px;
-      background: linear-gradient(135deg, #FF6B35, #FF4444);
-      color: #fff;
-      font-size: 9px;
-      font-weight: 700;
-      padding: 3px 10px;
-      border-radius: 0 11px 0 8px;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-    }
-    .shop-badge.best {
-      background: linear-gradient(135deg, #D4AF37, #F4D03F);
-      color: #000;
-    }
-    .shop-coins {
-      font-size: 28px;
-      margin-bottom: 2px;
-    }
-    .shop-amount {
-      font-family: 'Playfair Display', serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: #F4D03F;
-      margin-bottom: 2px;
-    }
-    .shop-bonus {
-      font-size: 11px;
-      color: rgba(240,230,211,.4);
-      margin-bottom: 10px;
-      min-height: 16px;
-    }
-    .shop-price {
-      display: inline-block;
-      background: linear-gradient(135deg, #D4AF37, #F4D03F, #D4AF37);
-      color: #000;
-      font-family: 'Playfair Display', serif;
-      font-size: 15px;
-      font-weight: 900;
-      padding: 8px 20px;
-      border-radius: 20px;
-      transition: .2s;
-    }
-    .shop-card:hover .shop-price {
-      box-shadow: 0 4px 12px rgba(212,175,55,.4);
-    }
-    .shop-free {
-      margin-top: 12px;
-      text-align: center;
-    }
-    .shop-free-btn {
-      background: linear-gradient(180deg, rgba(50,35,15,.9), rgba(25,18,8,.95));
-      border: 1px solid rgba(212,175,55,.25);
-      color: #D4AF37;
-      font-family: 'Playfair Display', serif;
-      font-size: 13px;
-      font-weight: 700;
-      padding: 10px 24px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: .2s;
-    }
-    .shop-free-btn:hover {
-      border-color: rgba(244,208,63,.5);
-      color: #F4D03F;
-    }
-    .shop-free-btn:disabled {
-      opacity: .4;
-      cursor: not-allowed;
-    }
-    .shop-methods {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin-top: 12px;
-      font-size: 11px;
-      color: rgba(240,230,211,.35);
-    }
-    .shop-methods span {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* Payment Modal */
-    .pay-modal-overlay {
-      position: fixed; inset: 0; z-index: 1001;
-      background: rgba(0,0,0,.75);
-      backdrop-filter: blur(8px);
+      min-width: 44px; min-height: 44px;
       display: flex; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none;
-      transition: opacity .3s;
-    }
-    .pay-modal-overlay.active {
-      opacity: 1; pointer-events: auto;
-    }
-    .pay-modal {
-      background: linear-gradient(180deg, #1a1520, #0a0a12);
-      border: 1px solid rgba(212,175,55,.3);
-      border-radius: 16px;
-      padding: 28px 24px;
-      max-width: 400px;
-      width: 90%;
-      text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,.8);
-      position: relative;
-    }
-    .pay-modal h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px;
-      color: #D4AF37;
-      margin-bottom: 6px;
-    }
-    .pay-summary {
-      font-size: 14px;
-      color: rgba(240,230,211,.7);
-      margin-bottom: 20px;
-    }
-    .pay-summary strong {
-      color: #F4D03F;
-      font-size: 18px;
-    }
-    #paypal-button-container {
-      min-height: 50px;
-      margin-bottom: 12px;
-    }
-
-    /* Zahlungsmethoden-Tabs */
-    .pay-methods {
-      display: flex;
-      gap: 0;
-      margin-bottom: 16px;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid rgba(212,175,55,.2);
-    }
-    .pay-method-tab {
-      flex: 1;
-      padding: 10px 6px;
-      text-align: center;
-      font-size: 12px;
-      font-weight: 700;
-      background: transparent;
-      color: rgba(240,230,211,.4);
-      border: none;
-      cursor: pointer;
-      transition: .2s;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-    }
-    .pay-method-tab .pay-icon { font-size: 20px; }
-    .pay-method-tab.active {
-      background: rgba(212,175,55,.15);
-      color: #D4AF37;
-    }
-    .pay-method-tab:hover {
-      color: #D4AF37;
-      background: rgba(212,175,55,.08);
-    }
-    .pay-panel { display: none; }
-    .pay-panel.active { display: block; }
-
-    /* Überweisung / Amazon Gutschein Panel */
-    .pay-manual {
-      background: rgba(0,0,0,.3);
-      border: 1px solid rgba(212,175,55,.15);
-      border-radius: 10px;
-      padding: 16px;
-      text-align: left;
-      font-size: 13px;
-      color: rgba(240,230,211,.7);
-      line-height: 1.7;
-    }
-    .pay-manual .label {
-      color: #D4AF37;
-      font-weight: 700;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      margin-bottom: 2px;
-    }
-    .pay-manual .value {
-      color: #F0E6D3;
-      font-size: 14px;
-      margin-bottom: 10px;
-      word-break: break-all;
-    }
-    .pay-manual .value.copyable {
-      cursor: pointer;
-      background: rgba(0,0,0,.3);
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid rgba(212,175,55,.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .pay-manual .value.copyable::after {
-      content: '📋';
-      font-size: 14px;
-      opacity: .5;
-    }
-    .pay-manual .hint {
-      font-size: 11px;
-      color: rgba(240,230,211,.35);
-      font-style: italic;
-      margin-top: 8px;
-    }
-
-    .pay-alt {
-      font-size: 12px;
-      color: rgba(240,230,211,.4);
-      margin-top: 12px;
-    }
-    .pay-alt a {
-      color: #D4AF37;
-      text-decoration: none;
-    }
-
-    /* WhatsApp Button */
-    .pay-whatsapp {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, #25D366, #128C7E);
-      color: #fff;
-      font-family: 'Playfair Display', serif;
-      font-size: 14px;
-      font-weight: 700;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: .2s;
-      width: 100%;
-      justify-content: center;
-    }
-    .pay-whatsapp:hover {
-      box-shadow: 0 4px 16px rgba(37,211,102,.3);
-      transform: scale(1.02);
-    }
-
-    /* ============================================
-       TOPLISTE
-       ============================================ */
-    .topliste-section {
-      max-width: 500px;
-      width: 100%;
-      padding: 0 20px;
-      margin-bottom: 30px;
-    }
-    .topliste-header {
-      text-align: center;
-      margin-bottom: 16px;
-    }
-    .topliste-header h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 22px;
-      background: linear-gradient(135deg, #D4AF37, #F4D03F);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 4px;
-    }
-    .topliste-header .week-info {
-      font-size: 12px;
-      color: rgba(240,230,211,.5);
-    }
-    .topliste-header .prize-info {
-      font-size: 13px;
-      color: #F4D03F;
-      font-weight: 700;
-      margin-top: 4px;
-    }
-    .topliste-timer {
-      text-align: center;
-      font-size: 13px;
-      color: rgba(240,230,211,.6);
-      margin-bottom: 12px;
-    }
-    .topliste-timer span {
-      color: #F4D03F;
-      font-weight: 700;
-      font-size: 15px;
-    }
-    .topliste-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .topliste-table th {
-      font-family: 'Playfair Display', serif;
-      font-size: 11px;
-      color: #D4AF37;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      padding: 8px 6px;
-      border-bottom: 1px solid rgba(212,175,55,.2);
-      text-align: left;
-    }
-    .topliste-table th:last-child { text-align: right; }
-    .topliste-table td {
-      padding: 10px 6px;
-      font-size: 14px;
-      color: rgba(240,230,211,.8);
-      border-bottom: 1px solid rgba(255,255,255,.03);
-    }
-    .topliste-table td:last-child { text-align: right; font-weight: 700; color: #F4D03F; }
-    .topliste-table tr:hover td { background: rgba(212,175,55,.03); }
-    .rank-medal {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; box-shadow: 0 0 10px rgba(255,215,0,.4); }
-    .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); color: #000; }
-    .rank-3 { background: linear-gradient(135deg, #CD7F32, #A0522D); color: #fff; }
-    .rank-other { background: rgba(255,255,255,.05); color: rgba(240,230,211,.5); }
-    .topliste-you { background: rgba(212,175,55,.08) !important; }
-    .topliste-you td { color: #F4D03F !important; }
-    .topliste-empty {
-      text-align: center;
-      padding: 24px;
-      font-size: 14px;
-      color: rgba(240,230,211,.4);
-      font-style: italic;
-    }
-    .topliste-cta {
-      text-align: center;
-      margin-top: 12px;
-    }
-    .topliste-cta-btn {
-      background: linear-gradient(180deg, rgba(50,35,15,.9), rgba(25,18,8,.95));
-      border: 1px solid rgba(212,175,55,.35);
-      color: #D4AF37;
-      font-family: 'Playfair Display', serif;
-      font-size: 13px;
-      font-weight: 700;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: .2s;
-    }
-    .topliste-cta-btn:hover {
-      border-color: rgba(244,208,63,.6);
-      color: #F4D03F;
-      box-shadow: 0 0 10px rgba(212,175,55,.2);
     }
 
     /* Footer */
@@ -1072,8 +822,8 @@
       border-top: 1px solid rgba(212,175,55,.1);
       max-width: 500px;
       width: 100%;
+      margin-top: 10px;
     }
-
     .landing-footer .brand {
       font-family: 'Playfair Display', serif;
       font-size: 16px;
@@ -1081,25 +831,24 @@
       color: #D4AF37;
       margin-bottom: 8px;
     }
-
     .landing-footer .links {
       display: flex;
       gap: 20px;
       justify-content: center;
       margin-bottom: 12px;
     }
-
     .landing-footer .links a {
       color: rgba(240,230,211,.5);
       text-decoration: none;
       font-size: 12px;
       transition: color .3s;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
     }
-
     .landing-footer .links a:hover {
       color: #D4AF37;
     }
-
     .landing-footer .copy {
       font-size: 10px;
       color: rgba(240,230,211,.3);
@@ -1108,9 +857,7 @@
     /* Responsive */
     @media (max-width: 480px) {
       .game-logo { font-size: 28px; }
-      .cta-play { font-size: 16px; padding: 14px 36px; }
-      .play-circle { width: 60px; height: 60px; font-size: 28px; }
-      .features { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .cta-play { font-size: 15px; padding: 12px 30px; }
     }
 
     @media (min-width: 768px) {
@@ -1153,200 +900,167 @@
     <!-- HERO -->
     <section class="game-hero">
       <div class="game-subtitle">Reisendes Casino pr&auml;sentiert</div>
-      <h1 class="game-logo">Stachelingo Rodern</h1>
-      <p class="game-tagline">Der Slot f&uuml;r Reisende &mdash; Latscho Diwes!</p>
+      <h1 class="game-logo">Reisendes Casino</h1>
+      <p class="game-tagline">Put Baxt! &mdash; Latscho Diwes!</p>
     </section>
 
-    <!-- GAME PREVIEW -->
-    <div class="game-preview" onclick="playGame()">
-      <div class="preview-frame-top"></div>
-      <div class="preview-frame-bottom"></div>
-      <div class="preview-frame-left"></div>
-      <div class="preview-frame-right"></div>
-      <div class="preview-grid">
-        <img src="/games/img/card_Q.png" alt="Q">
-        <img src="/games/img/mann.png" alt="Reisender">
-        <img src="/games/img/book.png" alt="Stachelingo">
-        <img src="/games/img/card_A.png" alt="A">
-        <img src="/games/img/geige.png" alt="Geige">
-        <img src="/games/img/card_K.png" alt="K">
-        <img src="/games/img/eye.png" alt="Wahrsagerin">
-        <img src="/games/img/card_10.png" alt="10">
-        <img src="/games/img/pferd.png" alt="Pferd">
-        <img src="/games/img/card_J.png" alt="J">
-        <img src="/games/img/wagen.png" alt="Wagen">
-        <img src="/games/img/card_A.png" alt="A">
-        <img src="/games/img/book.png" alt="Stachelingo">
-        <img src="/games/img/mann.png" alt="Reisender">
-        <img src="/games/img/card_K.png" alt="K">
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 1. POKER TABLE HERO                        -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="poker-table-hero" onclick="openPoker()">
+      <div class="pt-felt">
+        <div class="pt-dealer">
+          <span class="pt-dealer-label">Dealer</span>
+        </div>
+        <div class="pt-community">
+          <div class="pt-card">A<span class="pt-suit red">&#9829;</span></div>
+          <div class="pt-card">K<span class="pt-suit">&#9824;</span></div>
+          <div class="pt-card">Q<span class="pt-suit red">&#9830;</span></div>
+          <div class="pt-card back"></div>
+          <div class="pt-card back"></div>
+        </div>
+        <div class="pt-pot">Pot: 12.500</div>
+        <div class="pt-seat pt-s0">
+          <div class="pt-seat-cards"><div class="pt-mini-card back"></div><div class="pt-mini-card back"></div></div>
+          <div class="pt-seat-name">Platz frei</div>
+        </div>
+        <div class="pt-seat pt-s1 pt-occupied">
+          <div class="pt-seat-cards"><div class="pt-mini-card">J<span class="red">&#9829;</span></div><div class="pt-mini-card">10<span class="red">&#9829;</span></div></div>
+          <div class="pt-seat-name">Django &#129302;</div>
+          <div class="pt-chips">&#128176; 8.400</div>
+        </div>
+        <div class="pt-seat pt-s2 pt-occupied">
+          <div class="pt-seat-cards"><div class="pt-mini-card back"></div><div class="pt-mini-card back"></div></div>
+          <div class="pt-seat-name">Paco &#129302;</div>
+          <div class="pt-chips">&#128176; 14.200</div>
+        </div>
+        <div class="pt-seat pt-s3">
+          <div class="pt-seat-cards"><div class="pt-mini-card back"></div><div class="pt-mini-card back"></div></div>
+          <div class="pt-seat-name">Platz frei</div>
+        </div>
+        <div class="pt-glow"></div>
       </div>
-      <div class="play-overlay-big">
-        <div class="play-circle">&#9654;</div>
-      </div>
+      <div class="pt-join-hint">&#9824; Setz dich an den Tisch &#9824;</div>
     </div>
 
-    <!-- CTA -->
-    <button class="cta-play" onclick="playGame()">
-      Jetzt Spielen
+    <div class="table-select-inline">
+      <label>Tisch:</label>
+      <select id="pkTableSelect">
+        <option value="tisch-1">Tisch 1</option>
+        <option value="tisch-2">Tisch 2</option>
+      </select>
+    </div>
+    <button class="cta-play" onclick="openPoker()">
+      &#9824; Texas Hold'em Spielen
     </button>
 
-    <!-- SPIELELOBBY -->
-    <div class="lobby-section">
-      <h2 class="lobby-title">🎮 Alle Spiele</h2>
-      <div class="lobby-grid">
-        <!-- Slot -->
-        <div class="lobby-card" onclick="playGame()">
-          <div class="lc-icon">🦔</div>
-          <div class="lc-name">Stachelingo Rodern</div>
-          <div class="lc-desc">Slot-Automat mit Freispielen</div>
-          <div class="lc-play">▶ Spielen</div>
+    <div class="game-divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 2. SLOT MACHINE HERO                       -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="slot-hero" onclick="playGame()">
+      <div class="slot-cabinet">
+        <div class="slot-top">
+          <div class="slot-title">&#129430; Stachelingo Rodern</div>
+          <div class="slot-subtitle">Book of Baxt</div>
         </div>
-        <!-- Blackjack -->
-        <div class="lobby-card" onclick="openBlackjack()">
-          <div class="lc-badge multi">Multiplayer</div>
-          <div class="lc-icon">🃏</div>
-          <div class="lc-name">Blackjack</div>
-          <div class="lc-desc">7 Plätze · Echtzeit</div>
-          <div class="lobby-tables">
-            <select id="bjTableSelect">
-              <option value="tisch-1">Tisch 1</option>
-              <option value="tisch-2">Tisch 2</option>
-              <option value="tisch-3">Tisch 3</option>
-            </select>
-          </div>
-          <div class="lc-play">▶ Beitreten</div>
+        <div class="slot-reels">
+          <div class="slot-reel"><img src="/games/img/mann.png" alt="Mann"></div>
+          <div class="slot-reel"><img src="/games/img/book.png" alt="Buch"></div>
+          <div class="slot-reel highlight"><img src="/games/img/eye.png" alt="Auge"></div>
+          <div class="slot-reel"><img src="/games/img/book.png" alt="Buch"></div>
+          <div class="slot-reel"><img src="/games/img/pferd.png" alt="Pferd"></div>
         </div>
-        <!-- Poker -->
-        <div class="lobby-card" onclick="openPoker()">
-          <div class="lc-badge multi">Multiplayer</div>
-          <div class="lc-icon">♠</div>
-          <div class="lc-name">Texas Hold'em</div>
-          <div class="lc-desc">6 Plätze · No Limit</div>
-          <div class="lobby-tables">
-            <select id="pkTableSelect">
-              <option value="tisch-1">Tisch 1</option>
-              <option value="tisch-2">Tisch 2</option>
-            </select>
-          </div>
-          <div class="lc-play">▶ Beitreten</div>
+        <div class="slot-winline"></div>
+        <div class="slot-bottom">
+          <div class="slot-info-item"><span class="slot-label">Einsatz</span><span class="slot-val">500</span></div>
+          <div class="slot-info-item"><span class="slot-label">Gewinn</span><span class="slot-val win">12.500</span></div>
+          <div class="slot-info-item"><span class="slot-label">Freispiele</span><span class="slot-val free">3x &#128214;</span></div>
         </div>
+        <div class="slot-glow"></div>
       </div>
+      <div class="slot-join-hint">&#127920; Dreh die Walzen &#127920;</div>
     </div>
 
-    <!-- GUTHABEN & SHOP -->
-    <div class="topup-section">
-      <div class="topup-balance">
-        Dein Guthaben: <span id="landingBalance">10.000 €</span>
+    <button class="cta-play cta-slot" onclick="playGame()">
+      &#129430; Stachelingo Spielen
+    </button>
+
+    <div class="game-divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 3. BLACKJACK TABLE HERO                    -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="bj-hero" onclick="openBlackjack()">
+      <div class="bj-table">
+        <div class="bj-logo">
+          <div class="bj-logo-text">&#9827; Blackjack &#9830;</div>
+          <div class="bj-payout">Blackjack zahlt 3:2</div>
+        </div>
+
+        <div class="bj-dealer-label">Dealer</div>
+        <div class="bj-dealer-area">
+          <div class="bj-card">A<span class="bj-suit">&#9824;</span></div>
+          <div class="bj-card back"></div>
+        </div>
+
+        <div class="bj-spots">
+          <div class="bj-spot occupied">
+            <div class="bj-spot-cards">
+              <div class="bj-mini-card">K<span class="red">&#9829;</span></div>
+              <div class="bj-mini-card">Q<span class="red">&#9830;</span></div>
+            </div>
+            <div class="bj-spot-value">20</div>
+            <div class="bj-spot-name">Mira</div>
+            <div class="bj-spot-bet">&#128176; 500</div>
+          </div>
+          <div class="bj-spot">
+            <div class="bj-spot-cards">
+              <div class="bj-mini-card back"></div><div class="bj-mini-card back"></div>
+            </div>
+            <div class="bj-spot-name">Platz frei</div>
+          </div>
+          <div class="bj-spot occupied">
+            <div class="bj-spot-cards">
+              <div class="bj-mini-card">A<span class="red">&#9829;</span></div>
+              <div class="bj-mini-card">J<span>&#9824;</span></div>
+            </div>
+            <div class="bj-spot-value" style="color:#4d4">BJ!</div>
+            <div class="bj-spot-name">Romano</div>
+            <div class="bj-spot-bet">&#128176; 1.000</div>
+          </div>
+          <div class="bj-spot">
+            <div class="bj-spot-cards">
+              <div class="bj-mini-card back"></div><div class="bj-mini-card back"></div>
+            </div>
+            <div class="bj-spot-name">Platz frei</div>
+          </div>
+        </div>
+
+        <div class="bj-glow"></div>
       </div>
+      <div class="bj-join-hint">&#9827; Nimm Platz am Tisch &#9827;</div>
     </div>
 
-    <!-- MÜNZEN-SHOP -->
-    <div class="shop-section">
-      <h2 class="shop-title">🪙 Münzen-Shop</h2>
-      <div class="shop-sub">Kaufe Spielmünzen und spiele um den Wochenpreis!</div>
-      <div class="shop-grid">
-        <div class="shop-card" onclick="buyCoins('small')">
-          <div class="shop-coins">🪙</div>
-          <div class="shop-amount">10.000</div>
-          <div class="shop-bonus">&nbsp;</div>
-          <div class="shop-price">1,99 €</div>
-        </div>
-        <div class="shop-card popular" onclick="buyCoins('medium')">
-          <div class="shop-badge">Beliebt</div>
-          <div class="shop-coins">🪙🪙</div>
-          <div class="shop-amount">50.000</div>
-          <div class="shop-bonus">+10.000 Bonus!</div>
-          <div class="shop-price">4,99 €</div>
-        </div>
-        <div class="shop-card" onclick="buyCoins('large')">
-          <div class="shop-badge best">Bester Deal</div>
-          <div class="shop-coins">🪙🪙🪙</div>
-          <div class="shop-amount">150.000</div>
-          <div class="shop-bonus">+50.000 Bonus!</div>
-          <div class="shop-price">9,99 €</div>
-        </div>
-        <div class="shop-card" onclick="buyCoins('vip')">
-          <div class="shop-coins">👑</div>
-          <div class="shop-amount">500.000</div>
-          <div class="shop-bonus">+200.000 Bonus!</div>
-          <div class="shop-price">24,99 €</div>
-        </div>
-      </div>
-      <div class="shop-free">
-        <button class="shop-free-btn" id="dailyFreeBtn" onclick="claimDailyFree()">🎁 Tägliche Gratis-Münzen: 5.000</button>
-      </div>
-      <div class="shop-methods">
-        <span>💳 PayPal</span>
-        <span>🎁 Amazon</span>
-        <span>🏦 Überweisung</span>
-        <span>🔒 Sicher</span>
-      </div>
+    <div class="table-select-inline">
+      <label>Tisch:</label>
+      <select id="bjTableSelect">
+        <option value="tisch-1">Tisch 1</option>
+        <option value="tisch-2">Tisch 2</option>
+        <option value="tisch-3">Tisch 3</option>
+      </select>
     </div>
+    <button class="cta-play cta-bj" onclick="openBlackjack()">
+      &#9827; Blackjack Spielen
+    </button>
 
     <!-- APP INSTALLIEREN -->
+    <div class="game-divider"></div>
     <button class="install-btn" id="installBtn" onclick="installApp()">
-      <span class="install-icon">📲</span> App Installieren
+      <span class="install-icon">&#128242;</span> App Installieren
     </button>
     <div class="install-hint" id="installHint" style="display:none"></div>
-
-    <!-- TOPLISTE -->
-    <div class="topliste-section" id="toplisteSection">
-      <div class="topliste-header">
-        <h2>🏆 Topliste</h2>
-        <div class="week-info" id="toplisteWeek">Kalenderwoche</div>
-        <div class="prize-info">🎁 Platz 1 gewinnt jede Woche 100€ – PayPal, Amazon oder aufs Konto!</div>
-      </div>
-      <div class="topliste-timer" id="toplisteTimer">
-        Endet in: <span id="timerCountdown">--:--:--</span>
-      </div>
-      <table class="topliste-table" id="toplisteTable">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Spieler</th>
-            <th>Gewinne</th>
-          </tr>
-        </thead>
-        <tbody id="toplisteBody">
-          <tr><td colspan="3" class="topliste-empty">Noch keine Einträge diese Woche.<br>Werde Mitglied und spiele mit!</td></tr>
-        </tbody>
-      </table>
-      <div class="topliste-cta" id="toplisteCta">
-        <button class="topliste-cta-btn" onclick="showAuth('register')">🦔 Mitglied werden &amp; mitspielen</button>
-      </div>
-    </div>
-
-    <!-- BADGES -->
-    <div class="game-badges">
-      <div class="g-badge"><span class="val">96.5%</span> RTP</div>
-      <div class="g-badge"><span class="val">10</span> Gewinnlinien</div>
-      <div class="g-badge"><span class="val">10</span> Freispiele</div>
-      <div class="g-badge">Scatter & Wild</div>
-    </div>
-
-    <!-- FEATURES -->
-    <div class="features">
-      <div class="feature-card">
-        <div class="f-icon">🦔</div>
-        <div class="f-title">Stachelingo</div>
-        <div class="f-desc">Scatter & Wild in einem &mdash; der goldene Igel bringt Baxt!</div>
-      </div>
-      <div class="feature-card">
-        <div class="f-icon">🎰</div>
-        <div class="f-title">Freispiele</div>
-        <div class="f-desc">3 Scatter = 10 Freispiele mit expandierendem Symbol</div>
-      </div>
-      <div class="feature-card">
-        <div class="f-icon">🐎</div>
-        <div class="f-title">Reisende Symbole</div>
-        <div class="f-desc">Pferd, Wagen, Ziege &mdash; echte Sinti-Kultur auf den Walzen</div>
-      </div>
-      <div class="feature-card">
-        <div class="f-icon">💰</div>
-        <div class="f-title">Baro Gewinn</div>
-        <div class="f-desc">Bis zu 5000x Einsatz mit dem Reisenden</div>
-      </div>
-    </div>
 
     <!-- FOOTER -->
     <footer class="landing-footer">
@@ -1366,20 +1080,20 @@
     <div class="slot-modal" style="max-width:480px;border-radius:16px;padding:24px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
         <h2 style="font-family:'Playfair Display',serif;font-size:20px;">Hilfe & Support</h2>
-        <button class="slot-close" onclick="document.getElementById('support-modal').classList.remove('active')">&times;</button>
+        <button class="slot-close" onclick="document.getElementById('support-modal').classList.remove('active')" style="min-width:44px;min-height:44px">&times;</button>
       </div>
       <div style="margin-bottom:16px;">
-        <p style="font-size:14px;margin-bottom:8px;">📧 support@reisendes-casino.com</p>
-        <p style="font-size:14px;margin-bottom:8px;">💬 Telegram: @ReisendesCasino</p>
-        <p style="font-size:14px;">⏰ 24/7 erreichbar</p>
+        <p style="font-size:14px;margin-bottom:8px;">&#128231; support@reisendes-casino.com</p>
+        <p style="font-size:14px;margin-bottom:8px;">&#128172; Telegram: @ReisendesCasino</p>
+        <p style="font-size:14px;">&#9200; 24/7 erreichbar</p>
       </div>
       <details style="margin-bottom:10px;">
-        <summary style="cursor:pointer;font-weight:600;font-size:14px;padding:8px 0;">Wie zahle ich ein?</summary>
-        <p style="font-size:13px;color:var(--text-muted);padding:8px 0;">Per Crypto (BTC, USDT), Skrill oder Neteller. Melde dich an und klicke auf Einzahlen.</p>
+        <summary style="cursor:pointer;font-weight:600;font-size:14px;padding:8px 0;">Wie funktioniert das Casino?</summary>
+        <p style="font-size:13px;color:var(--text-muted);padding:8px 0;">Spiele kostenlos Poker, Blackjack und Slots! Sammle XP, steige im Rang auf und &ouml;ffne Truhen mit coolen Items.</p>
       </details>
       <details style="margin-bottom:10px;">
         <summary style="cursor:pointer;font-weight:600;font-size:14px;padding:8px 0;">Sind die Spiele fair?</summary>
-        <p style="font-size:13px;color:var(--text-muted);padding:8px 0;">Ja! Alle Spiele verwenden zertifizierte RNG mit 96.5% RTP.</p>
+        <p style="font-size:13px;color:var(--text-muted);padding:8px 0;">Ja! Alle Spiele verwenden zertifizierte Zufallsgeneratoren.</p>
       </details>
       <details>
         <summary style="cursor:pointer;font-weight:600;font-size:14px;padding:8px 0;">Was bedeutet "Latscho Diwes"?</summary>
@@ -1393,7 +1107,7 @@
     <div class="auth-modal" style="position:relative">
       <button class="auth-close" onclick="closeAuth()">&times;</button>
       <h2 id="authTitle">Mitglied werden</h2>
-      <div class="auth-sub">Tritt der Reisenden-Community bei & spiele um den Wochenpreis!</div>
+      <div class="auth-sub">Tritt der Reisenden-Community bei!</div>
 
       <div class="auth-tabs">
         <button class="auth-tab active" id="tabRegister" onclick="switchTab('register')">Registrieren</button>
@@ -1407,7 +1121,7 @@
         <input class="auth-input" type="text" id="regUsername" placeholder="Dein Spielername" maxlength="20" required>
         <input class="auth-input" type="tel" id="regPhone" placeholder="Handy-Nummer" required>
         <input class="auth-input" type="password" id="regPin" placeholder="4-stelliger PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
-        <button class="auth-submit" type="submit">🦔 Jetzt Mitglied werden</button>
+        <button class="auth-submit" type="submit">&#129430; Jetzt Mitglied werden</button>
       </form>
 
       <!-- LOGIN FORM -->
@@ -1419,391 +1133,14 @@
     </div>
   </div>
 
-  <!-- PAYMENT MODAL -->
-  <div class="pay-modal-overlay" id="payModal">
-    <div class="pay-modal">
-      <button class="auth-close" onclick="closePayModal()">&times;</button>
-      <h3>🪙 Münzen kaufen</h3>
-      <div class="pay-summary" id="paySummary">
-        <strong id="payCoinsDisplay">50.000 Münzen</strong><br>
-        für <strong id="payPriceDisplay">4,99 €</strong>
-      </div>
-
-      <!-- Zahlungsmethoden Tabs -->
-      <div class="pay-methods">
-        <button class="pay-method-tab active" onclick="switchPayMethod('paypal')">
-          <span class="pay-icon">💳</span> PayPal
-        </button>
-        <button class="pay-method-tab" onclick="switchPayMethod('amazon')">
-          <span class="pay-icon">🎁</span> Amazon
-        </button>
-        <button class="pay-method-tab" onclick="switchPayMethod('bank')">
-          <span class="pay-icon">🏦</span> Überweisung
-        </button>
-      </div>
-
-      <!-- PayPal Panel -->
-      <div class="pay-panel active" id="payPanel-paypal">
-        <div id="paypal-button-container"></div>
-      </div>
-
-      <!-- Amazon Gutschein Panel -->
-      <div class="pay-panel" id="payPanel-amazon">
-        <div class="pay-manual">
-          <div class="label">So geht's:</div>
-          <div style="margin-bottom:10px">
-            1. Kaufe einen <b>Amazon-Gutschein</b> über den Betrag<br>
-            2. Sende den <b>Gutschein-Code</b> per WhatsApp<br>
-            3. Münzen werden sofort gutgeschrieben!
-          </div>
-          <button class="pay-whatsapp" onclick="sendWhatsApp('amazon')">
-            💬 Gutschein-Code per WhatsApp senden
-          </button>
-          <div class="hint">Gutschein-Codes werden innerhalb von 10 Min. freigeschaltet</div>
-        </div>
-      </div>
-
-      <!-- Überweisung Panel -->
-      <div class="pay-panel" id="payPanel-bank">
-        <div class="pay-manual">
-          <div class="label">Empfänger</div>
-          <div class="value">Reisendes Casino</div>
-          <div class="label">IBAN</div>
-          <div class="value copyable" onclick="copyText('DE89 3704 0044 0532 0130 00', this)">
-            DE89 3704 0044 0532 0130 00
-          </div>
-          <div class="label">Verwendungszweck</div>
-          <div class="value copyable" id="payRef" onclick="copyText(this.textContent.trim(), this)">
-            CASINO-COINS
-          </div>
-          <div class="hint">
-            ⚡ Sende uns nach der Überweisung eine WhatsApp-Nachricht mit dem Betrag – wir schreiben die Münzen sofort gut!
-          </div>
-          <button class="pay-whatsapp" onclick="sendWhatsApp('bank')">
-            💬 Überweisung bestätigen per WhatsApp
-          </button>
-        </div>
-      </div>
-
-      <div class="pay-alt">
-        Fragen? <a href="mailto:support@reisendes-casino.com">support@reisendes-casino.com</a>
-      </div>
-    </div>
-  </div>
-
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
   <!-- SCRIPTS -->
   <script>
-    function fmtEuro(n) {
-      return n.toLocaleString('de-DE') + ' €';
-    }
-
-    function updateLandingBalance() {
-      const bal = parseInt(localStorage.getItem('slotBalance')) || 10000;
-      document.getElementById('landingBalance').textContent = fmtEuro(bal);
-    }
-
-    function addCoins(amount) {
-      let bal = parseInt(localStorage.getItem('slotBalance')) || 10000;
-      bal += amount;
-      localStorage.setItem('slotBalance', bal);
-      updateLandingBalance();
-      const el = document.getElementById('landingBalance');
-      el.style.transform = 'scale(1.3)';
-      el.style.color = '#44ff44';
-      setTimeout(() => { el.style.transform = 'scale(1)'; el.style.color = ''; }, 500);
-    }
-
-    // Balance beim Laden anzeigen
-    updateLandingBalance();
-
     // =========================================================================
-    // MÜNZEN-SHOP
+    // NAVIGATION
     // =========================================================================
-    const COIN_PACKAGES = {
-      small:  { coins: 10000,  price: '1.99',  priceDisplay: '1,99 €',  coinsDisplay: '10.000 Münzen' },
-      medium: { coins: 60000,  price: '4.99',  priceDisplay: '4,99 €',  coinsDisplay: '60.000 Münzen (inkl. 10.000 Bonus!)' },
-      large:  { coins: 200000, price: '9.99',  priceDisplay: '9,99 €',  coinsDisplay: '200.000 Münzen (inkl. 50.000 Bonus!)' },
-      vip:    { coins: 700000, price: '24.99', priceDisplay: '24,99 €', coinsDisplay: '700.000 Münzen (inkl. 200.000 Bonus!)' }
-    };
-
-    let selectedPackage = null;
-
-    function buyCoins(pkg) {
-      selectedPackage = COIN_PACKAGES[pkg];
-      if (!selectedPackage) return;
-
-      document.getElementById('payCoinsDisplay').textContent = selectedPackage.coinsDisplay;
-      document.getElementById('payPriceDisplay').textContent = selectedPackage.priceDisplay;
-      document.getElementById('payModal').classList.add('active');
-
-      // Tabs zurücksetzen
-      switchPayMethod('paypal');
-      updatePayRef();
-
-      // PayPal Buttons rendern
-      renderPayPalButtons();
-    }
-
-    function closePayModal() {
-      document.getElementById('payModal').classList.remove('active');
-    }
-    document.getElementById('payModal')?.addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) closePayModal();
-    });
-
-    // Zahlungsmethode wechseln
-    function switchPayMethod(method) {
-      document.querySelectorAll('.pay-method-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.pay-panel').forEach(p => p.classList.remove('active'));
-      document.querySelector(`.pay-method-tab[onclick*="${method}"]`)?.classList.add('active');
-      document.getElementById('payPanel-' + method)?.classList.add('active');
-    }
-
-    // Text kopieren
-    function copyText(text, el) {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('📋 Kopiert!');
-        if (el) {
-          el.style.borderColor = 'rgba(68,221,68,.5)';
-          setTimeout(() => el.style.borderColor = '', 1000);
-        }
-      }).catch(() => {
-        // Fallback
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        showToast('📋 Kopiert!');
-      });
-    }
-
-    // WhatsApp Nachricht senden
-    // WICHTIG: Ersetze die Nummer mit deiner echten WhatsApp Business Nummer
-    const WHATSAPP_NUMBER = '491234567890'; // ← Deine Nummer hier (mit Ländercode, ohne +)
-
-    function sendWhatsApp(method) {
-      if (!selectedPackage) return;
-      const user = getUser();
-      const username = user ? user.username : 'Gast';
-
-      let msg = '';
-      if (method === 'amazon') {
-        msg = `Hallo! 🦔\n\nIch möchte ${selectedPackage.coinsDisplay} kaufen (${selectedPackage.priceDisplay}).\n\nMein Spielername: ${username}\n\nZahlung: Amazon-Gutschein\nGutschein-Code: [HIER CODE EINFÜGEN]\n\nBitte Münzen gutschreiben!`;
-      } else if (method === 'bank') {
-        msg = `Hallo! 🦔\n\nIch habe ${selectedPackage.priceDisplay} überwiesen für ${selectedPackage.coinsDisplay}.\n\nMein Spielername: ${username}\n\nBitte Münzen gutschreiben!`;
-      }
-
-      const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
-      window.open(url, '_blank');
-    }
-
-    // Verwendungszweck mit Username aktualisieren
-    function updatePayRef() {
-      const user = getUser();
-      const ref = document.getElementById('payRef');
-      if (ref && user) {
-        ref.textContent = 'CASINO-' + user.username.toUpperCase().replace(/[^A-Z0-9]/g, '');
-      }
-    }
-
-    // PayPal Integration
-    // WICHTIG: Ersetze die Client-ID mit deiner echten PayPal Client-ID
-    // Hol dir eine auf: https://developer.paypal.com/dashboard/applications
-    const PAYPAL_CLIENT_ID = 'YOUR_PAYPAL_CLIENT_ID'; // ← Hier deine ID eintragen
-
-    let paypalLoaded = false;
-    function loadPayPalSDK() {
-      if (paypalLoaded) return Promise.resolve();
-      return new Promise((resolve, reject) => {
-        // Wenn noch keine echte ID: simulieren
-        if (PAYPAL_CLIENT_ID === 'YOUR_PAYPAL_CLIENT_ID') {
-          paypalLoaded = true;
-          resolve();
-          return;
-        }
-        const script = document.createElement('script');
-        script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=EUR`;
-        script.onload = () => { paypalLoaded = true; resolve(); };
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
-    }
-
-    async function renderPayPalButtons() {
-      const container = document.getElementById('paypal-button-container');
-      container.innerHTML = '';
-
-      await loadPayPalSDK();
-
-      // Demo-Modus (solange keine PayPal Client-ID)
-      if (PAYPAL_CLIENT_ID === 'YOUR_PAYPAL_CLIENT_ID') {
-        container.innerHTML = `
-          <button class="auth-submit" onclick="demoPurchase()" style="margin-bottom:8px">
-            💳 Jetzt bezahlen – ${selectedPackage.priceDisplay}
-          </button>
-          <div style="font-size:11px;color:rgba(240,230,211,.35);margin-top:4px">
-            Demo-Modus · PayPal wird nach Aktivierung verfügbar
-          </div>
-        `;
-        return;
-      }
-
-      // Echte PayPal Buttons
-      paypal.Buttons({
-        style: {
-          layout: 'vertical',
-          color: 'gold',
-          shape: 'rect',
-          label: 'pay',
-          height: 45
-        },
-        createOrder: function(data, actions) {
-          return actions.order.create({
-            purchase_units: [{
-              description: selectedPackage.coinsDisplay,
-              amount: {
-                currency_code: 'EUR',
-                value: selectedPackage.price
-              }
-            }]
-          });
-        },
-        onApprove: function(data, actions) {
-          return actions.order.capture().then(function(details) {
-            // Zahlung erfolgreich!
-            addCoins(selectedPackage.coins);
-            closePayModal();
-            showToast('✅ ' + selectedPackage.coinsDisplay + ' gutgeschrieben!');
-
-            // Server benachrichtigen
-            const token = getToken();
-            if (token) {
-              fetch(API + '/api/shop/purchase', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({
-                  orderId: details.id,
-                  packageId: Object.keys(COIN_PACKAGES).find(k => COIN_PACKAGES[k] === selectedPackage),
-                  coins: selectedPackage.coins,
-                  amount: selectedPackage.price,
-                  payerEmail: details.payer?.email_address
-                })
-              }).catch(() => {});
-            }
-          });
-        },
-        onError: function(err) {
-          showToast('❌ Zahlung fehlgeschlagen');
-          console.error('PayPal error:', err);
-        }
-      }).render('#paypal-button-container');
-    }
-
-    // Demo-Kauf (für Tests ohne PayPal)
-    function demoPurchase() {
-      if (!selectedPackage) return;
-      addCoins(selectedPackage.coins);
-      closePayModal();
-      showToast('✅ ' + selectedPackage.coinsDisplay + ' gutgeschrieben!');
-    }
-
-    // Tägliche Gratis-Münzen
-    function claimDailyFree() {
-      const lastClaim = localStorage.getItem('lastFreeClaim');
-      const today = new Date().toDateString();
-
-      if (lastClaim === today) {
-        showToast('Du hast heute schon deine Gratis-Münzen abgeholt! 🕐');
-        return;
-      }
-
-      localStorage.setItem('lastFreeClaim', today);
-      addCoins(5000);
-      showToast('🎁 5.000 Gratis-Münzen! Komm morgen wieder!');
-      updateDailyBtn();
-    }
-
-    function updateDailyBtn() {
-      const btn = document.getElementById('dailyFreeBtn');
-      const lastClaim = localStorage.getItem('lastFreeClaim');
-      const today = new Date().toDateString();
-
-      if (lastClaim === today) {
-        btn.disabled = true;
-        btn.textContent = '✅ Heute schon abgeholt – morgen wieder!';
-      } else {
-        btn.disabled = false;
-        btn.textContent = '🎁 Tägliche Gratis-Münzen: 5.000';
-      }
-    }
-    updateDailyBtn();
-
-    // PWA Install
-    let deferredPrompt = null;
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-    });
-
-    function installApp() {
-      const hint = document.getElementById('installHint');
-
-      // Android Chrome: Native Install Prompt
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choice) => {
-          if (choice.outcome === 'accepted') {
-            document.getElementById('installBtn').style.display = 'none';
-          }
-          deferredPrompt = null;
-        });
-        return;
-      }
-
-      // iOS Safari
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      if (isIOS) {
-        hint.style.display = 'block';
-        hint.innerHTML = `
-          <div style="text-align:center;font-weight:700;color:#D4AF37;margin-bottom:8px">iPhone / iPad Installation</div>
-          <div class="step"><span class="step-num">1</span> Tippe unten auf <b>Teilen</b> (das Quadrat mit Pfeil ⬆️)</div>
-          <div class="step"><span class="step-num">2</span> Scrolle runter und tippe <b>"Zum Home-Bildschirm"</b></div>
-          <div class="step"><span class="step-num">3</span> Tippe <b>"Hinzufügen"</b> — fertig!</div>
-          <div style="margin-top:8px;font-size:11px;color:rgba(240,230,211,.5)">Die App öffnet dann im Vollbild ohne Browser-Leiste.</div>
-        `;
-        return;
-      }
-
-      // Android andere Browser / Desktop
-      hint.style.display = 'block';
-      hint.innerHTML = `
-        <div style="text-align:center;font-weight:700;color:#D4AF37;margin-bottom:8px">App installieren</div>
-        <div class="step"><span class="step-num">1</span> Tippe auf <b>⋮ Menü</b> (3 Punkte oben rechts)</div>
-        <div class="step"><span class="step-num">2</span> Wähle <b>"App installieren"</b> oder <b>"Zum Startbildschirm"</b></div>
-        <div class="step"><span class="step-num">3</span> Bestätige mit <b>"Installieren"</b></div>
-        <div style="margin-top:8px;font-size:11px;color:rgba(240,230,211,.5)">Öffnet dann wie eine echte App im Vollbild!</div>
-      `;
-    }
-
-    // Wenn bereits als PWA installiert: Button verstecken
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-      document.getElementById('installBtn').style.display = 'none';
-    }
-
-    // Service Worker registrieren (nötig für PWA Install)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
-    }
-
     function playGame() {
       window.location.href = '/games/book-of-baxt.html';
     }
@@ -1818,6 +1155,9 @@
       window.location.href = '/games/poker.html?table=' + table;
     }
 
+    // =========================================================================
+    // SUPPORT MODAL
+    // =========================================================================
     function showSupport(e) {
       e.preventDefault();
       document.getElementById('support-modal').classList.add('active');
@@ -1827,13 +1167,67 @@
       if (e.code === 'Escape') {
         document.getElementById('support-modal').classList.remove('active');
         closeAuth();
-        closePayModal();
       }
     });
 
     document.getElementById('support-modal')?.addEventListener('click', (e) => {
       if (e.target === e.currentTarget) e.target.classList.remove('active');
     });
+
+    // =========================================================================
+    // PWA INSTALL
+    // =========================================================================
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    function installApp() {
+      const hint = document.getElementById('installHint');
+
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choice) => {
+          if (choice.outcome === 'accepted') {
+            document.getElementById('installBtn').style.display = 'none';
+          }
+          deferredPrompt = null;
+        });
+        return;
+      }
+
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        hint.style.display = 'block';
+        hint.innerHTML = `
+          <div style="text-align:center;font-weight:700;color:#D4AF37;margin-bottom:8px">iPhone / iPad Installation</div>
+          <div class="step"><span class="step-num">1</span> Tippe unten auf <b>Teilen</b> (das Quadrat mit Pfeil &#11014;&#65039;)</div>
+          <div class="step"><span class="step-num">2</span> Scrolle runter und tippe <b>"Zum Home-Bildschirm"</b></div>
+          <div class="step"><span class="step-num">3</span> Tippe <b>"Hinzuf&uuml;gen"</b> &mdash; fertig!</div>
+          <div style="margin-top:8px;font-size:11px;color:rgba(240,230,211,.5)">Die App &ouml;ffnet dann im Vollbild ohne Browser-Leiste.</div>
+        `;
+        return;
+      }
+
+      hint.style.display = 'block';
+      hint.innerHTML = `
+        <div style="text-align:center;font-weight:700;color:#D4AF37;margin-bottom:8px">App installieren</div>
+        <div class="step"><span class="step-num">1</span> Tippe auf <b>&#8942; Men&uuml;</b> (3 Punkte oben rechts)</div>
+        <div class="step"><span class="step-num">2</span> W&auml;hle <b>"App installieren"</b> oder <b>"Zum Startbildschirm"</b></div>
+        <div class="step"><span class="step-num">3</span> Best&auml;tige mit <b>"Installieren"</b></div>
+        <div style="margin-top:8px;font-size:11px;color:rgba(240,230,211,.5)">&Ouml;ffnet dann wie eine echte App im Vollbild!</div>
+      `;
+    }
+
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      document.getElementById('installBtn').style.display = 'none';
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
 
     // =========================================================================
     // AUTH SYSTEM
@@ -1897,10 +1291,9 @@
         setUser(data.user);
         closeAuth();
         updateAuthUI();
-        showToast('Willkommen ' + data.user.username + '! 🦔');
-        loadLeaderboard();
+        showToast('Willkommen ' + data.user.username + '! &#129430;');
       } catch(err) {
-        showAuthError('Verbindungsfehler – Server läuft?');
+        showAuthError('Verbindungsfehler &ndash; Server l&auml;uft?');
       }
     }
 
@@ -1922,10 +1315,9 @@
         setUser(data.user);
         closeAuth();
         updateAuthUI();
-        showToast('Willkommen zurück, ' + data.user.username + '! 🎰');
-        loadLeaderboard();
+        showToast('Willkommen zur&uuml;ck, ' + data.user.username + '! &#127920;');
       } catch(err) {
-        showAuthError('Verbindungsfehler – Server läuft?');
+        showAuthError('Verbindungsfehler &ndash; Server l&auml;uft?');
       }
     }
 
@@ -1934,7 +1326,6 @@
       localStorage.removeItem('casinoUser');
       updateAuthUI();
       showToast('Abgemeldet');
-      loadLeaderboard();
     }
 
     function updateAuthUI() {
@@ -1945,29 +1336,25 @@
       document.getElementById('loginBtn').style.display = loggedIn ? 'none' : '';
       document.getElementById('registerBtn').style.display = loggedIn ? 'none' : '';
       document.getElementById('userInfo').style.display = loggedIn ? 'flex' : 'none';
-      document.getElementById('toplisteCta').style.display = loggedIn ? 'none' : 'block';
 
       if (loggedIn) {
         document.getElementById('userName').textContent = user.username;
         document.getElementById('userAvatar').textContent = user.username.charAt(0).toUpperCase();
-        // Rang laden
-        loadMyRank();
+        loadMyProfile();
       }
     }
 
-    async function loadMyRank() {
+    async function loadMyProfile() {
       const token = getToken();
       if (!token) return;
       try {
-        const res = await fetch(API + '/api/leaderboard/me', {
+        const res = await fetch(API + '/api/profile', {
           headers: { 'Authorization': 'Bearer ' + token }
         });
         if (res.ok) {
           const data = await res.json();
           const rankEl = document.getElementById('userRank');
-          rankEl.textContent = data.rank > 0
-            ? 'Platz ' + data.rank + ' · ' + fmtEuro(data.totalWin) + ' Gewinne'
-            : 'Noch keine Gewinne diese Woche';
+          rankEl.textContent = data.rang + ' \u00B7 Level ' + data.level;
         }
       } catch(e) {}
     }
@@ -1980,72 +1367,9 @@
     }
 
     // =========================================================================
-    // TOPLISTE LADEN
-    // =========================================================================
-    async function loadLeaderboard() {
-      try {
-        const res = await fetch(API + '/api/leaderboard');
-        if (!res.ok) return;
-        const data = await res.json();
-
-        // Woche anzeigen
-        document.getElementById('toplisteWeek').textContent = data.week;
-
-        // Countdown
-        if (data.endsAt) startCountdown(new Date(data.endsAt));
-
-        // Tabelle füllen
-        const tbody = document.getElementById('toplisteBody');
-        const user = getUser();
-
-        if (!data.entries || data.entries.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="3" class="topliste-empty">Noch keine Einträge diese Woche.<br>Werde Mitglied und spiele mit!</td></tr>';
-          return;
-        }
-
-        tbody.innerHTML = data.entries.map(e => {
-          const isYou = user && (e.username === user.username);
-          const medalCls = e.rank <= 3 ? 'rank-' + e.rank : 'rank-other';
-          const medals = ['', '🥇', '🥈', '🥉'];
-          const rankDisplay = e.rank <= 3
-            ? '<span class="rank-medal ' + medalCls + '">' + medals[e.rank] + '</span>'
-            : '<span class="rank-medal rank-other">' + e.rank + '</span>';
-          return '<tr class="' + (isYou ? 'topliste-you' : '') + '">'
-            + '<td>' + rankDisplay + '</td>'
-            + '<td>' + e.username + (isYou ? ' <small>(Du)</small>' : '') + '</td>'
-            + '<td>' + fmtEuro(e.totalWin) + '</td>'
-            + '</tr>';
-        }).join('');
-      } catch(e) {
-        // Server nicht erreichbar – kein Problem
-      }
-    }
-
-    let countdownInterval = null;
-    function startCountdown(endDate) {
-      if (countdownInterval) clearInterval(countdownInterval);
-      const el = document.getElementById('timerCountdown');
-      function tick() {
-        const now = new Date();
-        const diff = endDate - now;
-        if (diff <= 0) { el.textContent = 'Auswertung läuft...'; return; }
-        const d = Math.floor(diff / 86400000);
-        const h = Math.floor((diff % 86400000) / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        el.textContent = (d > 0 ? d + 'T ' : '') + h + 'h ' + m + 'm ' + s + 's';
-      }
-      tick();
-      countdownInterval = setInterval(tick, 1000);
-    }
-
-    // =========================================================================
     // INIT
     // =========================================================================
     updateAuthUI();
-    loadLeaderboard();
-    // Refresh leaderboard alle 30 Sekunden
-    setInterval(loadLeaderboard, 30000);
   </script>
 
 </body>

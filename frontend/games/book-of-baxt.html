@@ -181,14 +181,15 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   width:100%;aspect-ratio:1/1.1;
   display:flex;align-items:center;justify-content:center;
   position:relative;flex-shrink:0;
+  padding:4px;
 }
 .sym-cell .sym-wrap{
   width:100%;height:100%;position:relative;
   display:flex;align-items:center;justify-content:center;
-  border-radius:2px;
+  border-radius:4px;
   background:none;
   border:none;
-  overflow:hidden;
+  overflow:visible;
 }
 /* Symbol image */
 .sym-cell .sym-img{
@@ -196,13 +197,26 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   display:flex;align-items:center;justify-content:center;
   filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));
 }
+.sym-cell .sym-img img{
+  width:100%;height:100%;
+  object-fit:contain;
+  border-radius:6px;
+}
+/* Igel/Book – rundes Bild richtig rund anzeigen */
+.sym-cell .sym-img img[alt="book"]{
+  border-radius:50%;
+  object-fit:cover;
+  width:92%;height:92%;
+}
 .sym-cell .sym-img svg{width:100%;height:100%}
 
 /* Win highlighting */
 .sym-cell.win-hl .sym-wrap{
   border:2px solid #F4D03F !important;
+  border-radius:8px;
   box-shadow:0 0 15px rgba(244,208,63,.5),0 0 30px rgba(244,208,63,.25),inset 0 0 15px rgba(244,208,63,.15);
   animation:symGlow .5s ease-in-out infinite alternate;
+  overflow:hidden;
 }
 @keyframes symGlow{
   from{box-shadow:0 0 15px rgba(244,208,63,.5),0 0 30px rgba(244,208,63,.25)}
@@ -225,13 +239,29 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 
 /* ========== INFO BAR ========== */
 .info-bar{
-  display:none;
+  height:22px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;letter-spacing:1px;
+  color:#D4AF37;
+  background:linear-gradient(180deg,rgba(10,5,0,.9),rgba(20,10,2,.95));
+  text-shadow:0 0 8px rgba(212,175,55,.4);
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+.info-bar.fs-msg{
+  color:#ff6600;
+  text-shadow:0 0 12px rgba(255,102,0,.6);
+  animation:fsInfoPulse 1s ease-in-out infinite alternate;
+}
+@keyframes fsInfoPulse{from{color:#ff6600}to{color:#ffd700}}
+.info-bar.win-msg{
+  color:#00ff88;
+  text-shadow:0 0 10px rgba(0,255,136,.5);
 }
 
 /* ========== CONTROL PANEL ========== */
 .ctrl-panel{
-  height:72px;display:flex;align-items:center;justify-content:center;gap:4px;
-  padding:2px 8px 4px;
+  display:flex;align-items:stretch;justify-content:stretch;
+  width:100%;
+  padding:0;
   background:linear-gradient(180deg,#1a0e05 0%,#120a02 50%,#0a0500 100%);
   border-top:3px solid;
   border-image:linear-gradient(90deg,#8B6914,#D4AF37,#F4D03F,#D4AF37,#8B6914) 1;
@@ -242,32 +272,32 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   background:linear-gradient(90deg,transparent,rgba(244,208,63,.2),transparent);
 }
 
-/* Control group box — Premium Casino Style */
+/* Control group box — volle Breite, gleichmäßig verteilt */
 .cg{
-  display:flex;flex-direction:column;align-items:center;
+  flex:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:linear-gradient(180deg,rgba(30,20,10,.9) 0%,rgba(15,10,5,.95) 50%,rgba(5,3,1,.98) 100%);
-  border:1px solid rgba(212,175,55,.3);
-  border-top:1px solid rgba(244,208,63,.4);
-  border-bottom:1px solid rgba(100,70,20,.3);
-  border-radius:8px;
-  padding:2px 8px;min-width:65px;
-  box-shadow:0 1px 4px rgba(0,0,0,.6),inset 0 1px 0 rgba(244,208,63,.08),inset 0 -1px 0 rgba(0,0,0,.3);
+  border-right:1px solid rgba(212,175,55,.15);
+  padding:6px 4px;
   position:relative;
+  min-width:0;
 }
+.cg:first-child{border-left:none}
+.cg:last-child{border-right:none}
 .cg::after{
   content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
   background:linear-gradient(90deg,transparent,rgba(244,208,63,.3),transparent);
 }
-.cg .cg-label{font-size:7px;color:rgba(212,175,55,.5);letter-spacing:2px;text-transform:uppercase;font-weight:600}
-.cg .cg-val{font-size:clamp(15px,2.2vw,22px);color:#F4D03F;font-weight:700;text-shadow:0 0 6px rgba(244,208,63,.2)}
-.cg-btns{display:flex;gap:3px;margin-top:1px}
+.cg .cg-label{font-size:8px;color:rgba(212,175,55,.5);letter-spacing:2px;text-transform:uppercase;font-weight:600}
+.cg .cg-val{font-size:clamp(18px,3.5vw,28px);color:#F4D03F;font-weight:700;text-shadow:0 0 6px rgba(244,208,63,.2)}
+.cg-btns{display:flex;gap:4px;margin-top:2px}
 .cg-btns button{
-  width:24px;height:20px;border-radius:5px;
+  width:28px;height:22px;border-radius:5px;
   border:1px solid rgba(212,175,55,.35);
   border-top:1px solid rgba(244,208,63,.5);
   border-bottom:1px solid rgba(100,70,20,.4);
   background:linear-gradient(180deg,rgba(50,35,15,.9) 0%,rgba(30,20,8,.95) 50%,rgba(15,10,3,.98) 100%);
-  color:#D4AF37;font-size:14px;cursor:pointer;font-weight:700;
+  color:#D4AF37;font-size:16px;cursor:pointer;font-weight:700;
   display:flex;align-items:center;justify-content:center;transition:.15s;
   box-shadow:0 2px 4px rgba(0,0,0,.5),inset 0 1px 0 rgba(244,208,63,.1);
   text-shadow:0 0 4px rgba(212,175,55,.3);
@@ -278,12 +308,45 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 8px rgba(212,175,55,.15),inset 0 1px 0 rgba(244,208,63,.2);
 }
 .cg-btns button:active{transform:scale(.9);box-shadow:inset 0 2px 4px rgba(0,0,0,.5)}
-.cg.win-cg{border-color:rgba(139,0,0,.4)}
+.cg.win-cg{background:linear-gradient(180deg,rgba(40,10,10,.9),rgba(20,5,5,.95))}
 .cg.win-cg .cg-val{color:#ff4444}
 .cg.win-cg.has-win .cg-val{color:#F4D03F;text-shadow:0 0 10px rgba(244,208,63,.6)}
 
+/* Gamble side buttons (LEITER / KARTE) — always visible */
+.gamble-side{
+  flex:0 0 auto;padding:0 !important;font-size:11px !important;
+  letter-spacing:1.5px;transition:all .3s;
+  border-radius:0;border-left:1px solid rgba(212,175,55,.15);border-right:1px solid rgba(212,175,55,.15);
+  display:flex;align-items:center;justify-content:center;
+  min-width:50px;
+  background:linear-gradient(180deg,rgba(30,20,10,.9),rgba(15,10,5,.95)) !important;
+  border-top:none;border-bottom:none;
+}
+.gamble-side:disabled{
+  opacity:.25;cursor:not-allowed;pointer-events:none;
+}
+.gamble-side.glow{
+  opacity:1 !important;pointer-events:auto !important;cursor:pointer !important;
+  border-color:rgba(244,208,63,.7) !important;
+  background:linear-gradient(180deg,rgba(100,70,20,.9),rgba(60,42,15,.95)) !important;
+  color:#F4D03F !important;
+  box-shadow:0 0 12px rgba(244,208,63,.3),0 2px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(244,208,63,.2) !important;
+  animation:gambleBtnPulse 1.5s ease-in-out infinite alternate;
+}
+@keyframes gambleBtnPulse{
+  from{box-shadow:0 0 8px rgba(244,208,63,.2),0 2px 6px rgba(0,0,0,.5)}
+  to{box-shadow:0 0 18px rgba(244,208,63,.5),0 2px 6px rgba(0,0,0,.5)}
+}
+
 /* SPIN button — Premium 3D Casino Button */
-.spin-wrap{margin:0 10px;order:99}
+.spin-wrap{
+  flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+  padding:4px 8px;
+  background:linear-gradient(180deg,rgba(30,20,10,.9),rgba(15,10,5,.95));
+  border-left:1px solid rgba(212,175,55,.15);
+  border-right:1px solid rgba(212,175,55,.15);
+}
 .spin-btn{
   width:clamp(48px,7vw,62px);height:clamp(48px,7vw,62px);
   border-radius:50%;cursor:pointer;border:none;
@@ -342,13 +405,12 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 /* Linkshänder switch button — Premium */
 .hand-switch{
   order:-1;
-  background:linear-gradient(180deg,rgba(50,35,15,.9),rgba(25,18,8,.95));
-  border:1px solid rgba(212,175,55,.35);
-  border-top:1px solid rgba(244,208,63,.45);
-  border-bottom:1px solid rgba(100,70,20,.4);
-  color:rgba(212,175,55,.7);font-size:16px;padding:4px 8px;
-  border-radius:6px;cursor:pointer;transition:.2s;flex-shrink:0;
-  box-shadow:0 2px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(244,208,63,.1);
+  background:linear-gradient(180deg,rgba(30,20,10,.9),rgba(15,10,5,.95));
+  border:none;
+  border-right:1px solid rgba(212,175,55,.15);
+  color:rgba(212,175,55,.7);font-size:16px;padding:0 8px;
+  border-radius:0;cursor:pointer;transition:.2s;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
   text-shadow:0 0 4px rgba(212,175,55,.2);
 }
 .hand-switch:hover{
@@ -363,14 +425,15 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 
 /* Side buttons */
 .side-btn{
-  padding:5px 10px;border-radius:6px;
-  border:1px solid rgba(212,175,55,.3);
-  border-top:1px solid rgba(244,208,63,.4);
-  border-bottom:1px solid rgba(100,70,20,.35);
-  background:linear-gradient(180deg,rgba(50,35,15,.9) 0%,rgba(30,20,8,.95) 50%,rgba(15,10,3,.98) 100%);
+  flex:0 0 auto;
+  padding:0 8px;border-radius:0;
+  border:none;
+  border-left:1px solid rgba(212,175,55,.15);
+  border-right:1px solid rgba(212,175,55,.15);
+  background:linear-gradient(180deg,rgba(30,20,10,.9),rgba(15,10,5,.95));
   color:#D4AF37;font-size:9px;cursor:pointer;font-family:inherit;
   letter-spacing:1px;text-transform:uppercase;transition:.2s;font-weight:600;
-  box-shadow:0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(244,208,63,.08);
+  display:flex;align-items:center;justify-content:center;
   text-shadow:0 0 4px rgba(212,175,55,.2);
 }
 .side-btn:hover{
@@ -405,7 +468,9 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 }
 @keyframes fsBounce{from{transform:scale(0) rotate(-8deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
 .fs-overlay p{color:#D4AF37;font-size:clamp(14px,2vw,20px);margin-top:8px;letter-spacing:2px}
-.fs-overlay .fs-sym{font-size:48px;margin-top:12px;animation:fsSpin 1s ease}
+.fs-overlay .fs-sym{font-size:48px;margin-top:12px;animation:fsSpin 1s ease;display:flex;align-items:center;justify-content:center}
+.fs-overlay .fs-sym img{width:80px;height:80px;object-fit:contain;border-radius:8px}
+.fs-overlay .fs-sym img[alt="book"]{border-radius:50%}
 @keyframes fsSpin{from{transform:rotateY(0)}to{transform:rotateY(720deg)}}
 
 /* ========== BIG WIN OVERLAY ========== */
@@ -514,6 +579,184 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 .gamble-info{color:rgba(255,255,255,.5);font-size:13px;margin-top:16px;letter-spacing:1px}
 .gamble-stake{color:#F4D03F;font-size:20px;font-weight:700;margin-bottom:8px}
 
+/* ========== RISIKO-LEITER ========== */
+.ladder-overlay{
+  display:none;position:absolute;inset:0;z-index:56;
+  background:linear-gradient(180deg,rgba(5,2,8,.98),rgba(10,4,15,.99));
+  flex-direction:column;align-items:center;justify-content:center;
+  padding:16px;
+}
+.ladder-overlay.show{display:flex}
+
+.ladder-title{
+  font-family:'Uncial Antiqua',serif;
+  font-size:clamp(18px,3vw,28px);letter-spacing:4px;
+  background:linear-gradient(180deg,#fff5cc,#F4D03F,#D4AF37);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 6px rgba(212,175,55,.6));
+  margin-bottom:8px;
+}
+.ladder-stake{
+  font-size:clamp(14px,2vw,18px);color:#F4D03F;font-weight:700;
+  margin-bottom:12px;
+  text-shadow:0 0 8px rgba(244,208,63,.3);
+}
+
+.ladder-wrap{
+  position:relative;
+  width:min(320px,85vw);
+  display:flex;flex-direction:column;
+  gap:0;
+}
+
+/* Einzelne Leiterstufe */
+.ladder-step{
+  position:relative;
+  display:flex;align-items:center;
+  height:clamp(30px,4.5vh,42px);
+  border-radius:6px;
+  transition:all .3s;
+  cursor:default;
+  overflow:hidden;
+}
+.ladder-step .step-bg{
+  position:absolute;inset:0;
+  border-radius:6px;
+  border:1px solid rgba(212,175,55,.15);
+  background:linear-gradient(90deg,rgba(30,20,10,.7),rgba(40,28,12,.5),rgba(30,20,10,.7));
+  transition:all .3s;
+}
+.ladder-step .step-label{
+  position:relative;z-index:1;
+  flex:1;text-align:center;
+  font-size:clamp(12px,1.8vw,16px);
+  font-weight:700;
+  color:rgba(240,230,211,.6);
+  letter-spacing:1px;
+  transition:all .3s;
+}
+.ladder-step .step-multi{
+  position:relative;z-index:1;
+  width:60px;text-align:center;
+  font-size:clamp(10px,1.4vw,13px);
+  color:rgba(212,175,55,.5);
+  font-weight:600;
+}
+
+/* Aktive Stufe (Marker) */
+.ladder-step.active .step-bg{
+  border-color:#F4D03F;
+  background:linear-gradient(90deg,rgba(244,208,63,.15),rgba(244,208,63,.25),rgba(244,208,63,.15));
+  box-shadow:0 0 20px rgba(244,208,63,.3),inset 0 0 12px rgba(244,208,63,.1);
+}
+.ladder-step.active .step-label{
+  color:#F4D03F;
+  font-size:clamp(14px,2.2vw,20px);
+  text-shadow:0 0 10px rgba(244,208,63,.5);
+}
+.ladder-step.active .step-multi{
+  color:#F4D03F;
+}
+
+/* Gewonnene Stufe (Marker ist durchgelaufen) */
+.ladder-step.passed .step-bg{
+  border-color:rgba(46,204,113,.3);
+  background:linear-gradient(90deg,rgba(46,204,113,.08),rgba(46,204,113,.15),rgba(46,204,113,.08));
+}
+.ladder-step.passed .step-label{color:rgba(46,204,113,.7)}
+.ladder-step.passed .step-multi{color:rgba(46,204,113,.5)}
+
+/* Verlorene Stufe */
+.ladder-step.lost .step-bg{
+  border-color:rgba(231,76,60,.3);
+  background:linear-gradient(90deg,rgba(231,76,60,.1),rgba(231,76,60,.2),rgba(231,76,60,.1));
+  animation:lostFlash .4s ease;
+}
+.ladder-step.lost .step-label{color:#e74c3c}
+@keyframes lostFlash{
+  0%,100%{box-shadow:none}
+  50%{box-shadow:0 0 30px rgba(231,76,60,.5)}
+}
+
+/* Top-Stufe extra bling */
+.ladder-step.top-step .step-bg{
+  border-color:rgba(255,215,0,.4);
+  background:linear-gradient(90deg,rgba(255,215,0,.08),rgba(255,215,0,.18),rgba(255,215,0,.08));
+}
+.ladder-step.top-step .step-label{color:rgba(255,215,0,.8)}
+
+/* Leiter-Verbinder (Seitenbalken) */
+.ladder-rail{
+  position:absolute;
+  top:0;bottom:0;width:4px;
+  background:linear-gradient(180deg,#D4AF37,#8B6914,#D4AF37);
+  border-radius:2px;
+  box-shadow:0 0 6px rgba(212,175,55,.3);
+}
+.ladder-rail.left{left:8px}
+.ladder-rail.right{right:8px}
+
+/* Sprossen (horizontal) */
+.ladder-rung{
+  position:absolute;left:8px;right:8px;
+  height:2px;
+  background:linear-gradient(90deg,#8B6914,rgba(212,175,55,.3),#8B6914);
+}
+
+/* Leiter-Buttons */
+.ladder-btns{
+  display:flex;gap:12px;margin-top:16px;
+}
+.ladder-btns button{
+  padding:clamp(10px,1.5vh,14px) clamp(24px,4vw,36px);
+  border-radius:10px;border:2px solid;
+  font-family:inherit;font-size:clamp(13px,2vw,16px);
+  font-weight:700;cursor:pointer;
+  transition:.2s;letter-spacing:1px;
+  min-height:44px;
+  -webkit-tap-highlight-color:transparent;
+}
+.l-climb{
+  background:linear-gradient(180deg,#22aa22,#0d6d0d);
+  border-color:#44dd44;color:#fff;
+  box-shadow:0 4px 12px rgba(34,170,34,.3);
+}
+.l-climb:hover{background:linear-gradient(180deg,#33bb33,#118811);box-shadow:0 6px 20px rgba(34,170,34,.4)}
+.l-climb:active{transform:scale(.94)}
+.l-collect{
+  background:linear-gradient(180deg,#D4AF37,#8B6914);
+  border-color:#F4D03F;color:#000;
+  box-shadow:0 4px 12px rgba(212,175,55,.3);
+}
+.l-collect:hover{box-shadow:0 6px 20px rgba(212,175,55,.5)}
+.l-collect:active{transform:scale(.94)}
+
+.ladder-info{
+  color:rgba(240,230,211,.4);font-size:clamp(10px,1.5vw,13px);
+  margin-top:10px;letter-spacing:1px;text-align:center;
+}
+
+/* Marker-Animation */
+@keyframes ladderBounce{
+  0%,100%{transform:scaleY(1)}
+  50%{transform:scaleY(1.08)}
+}
+.ladder-step.active .step-bg{
+  animation:ladderBounce 1s ease-in-out infinite;
+}
+
+/* Responsive */
+@media(max-height:500px){
+  .ladder-step{height:clamp(22px,3.5vh,30px)}
+  .ladder-step .step-label{font-size:clamp(10px,1.5vw,13px)}
+  .ladder-step.active .step-label{font-size:clamp(11px,1.7vw,15px)}
+  .ladder-step .step-multi{font-size:clamp(8px,1.2vw,11px);width:45px}
+  .ladder-btns button{padding:8px 20px;font-size:12px;min-height:36px}
+  .ladder-title{font-size:16px;margin-bottom:4px}
+  .ladder-stake{font-size:13px;margin-bottom:6px}
+  .ladder-info{font-size:9px;margin-top:6px}
+}
+
 /* ========== REEL LANDING SNAP ========== */
 /* Clean snap into place — no wobble, just a quick settle */
 .reel-col.reel-landing .sym-cell .sym-wrap{
@@ -594,18 +837,18 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   .bal-display .bv{font-size:14px}
   .bal-display .bl{font-size:6px}
   .info-bar{height:18px;font-size:9px}
-  .ctrl-panel{height:34px;gap:2px;padding:0 3px;padding-bottom:env(safe-area-inset-bottom,0px)}
-  .cg{min-width:38px;padding:1px 2px}
-  .cg .cg-label{font-size:5px}
-  .cg .cg-val{font-size:12px}
-  .cg-btns button{width:16px;height:12px;font-size:9px}
-  .spin-wrap{margin:0 3px}
+  .ctrl-panel{padding-bottom:env(safe-area-inset-bottom,0px)}
+  .cg{padding:2px 2px}
+  .cg .cg-label{font-size:5px;letter-spacing:1px}
+  .cg .cg-val{font-size:14px}
+  .cg-btns button{width:20px;height:14px;font-size:10px}
   .spin-btn{width:32px !important;height:32px !important}
-  .side-btn{padding:2px 5px;font-size:7px}
+  .side-btn{font-size:7px;padding:0 4px}
+  .gamble-side{min-width:28px;font-size:7px !important}
   .frame-bar{height:3px}
-  .sym-cell{aspect-ratio:1/1}
+  .sym-cell{aspect-ratio:1/1;padding:2px}
   .mute-btn{width:20px;height:20px;font-size:10px}
-  .hand-switch{font-size:12px;padding:1px 4px}
+  .hand-switch{font-size:12px;padding:0 4px}
   /* Reels take all remaining space */
   .reels-vp{flex:1;min-height:0}
 }
@@ -614,12 +857,10 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 @media(max-height:340px){
   .top-bar{height:24px}
   .top-bar h1{font-size:11px !important}
-  .ctrl-panel{height:30px}
   .info-bar{height:16px;font-size:8px}
   .gold-frame-l,.gold-frame-r{width:16px}
   .spin-btn{width:28px !important;height:28px !important}
-  .cg{min-width:32px}
-  .cg .cg-val{font-size:10px}
+  .cg .cg-val{font-size:11px}
   .frame-bar{height:2px}
 }
 
@@ -836,6 +1077,9 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
     </div>
 
     <button class="side-btn" id="ptBtn" onclick="togglePaytable()">TABELLE</button>
+    <button class="side-btn" id="autoBtn" onclick="toggleAuto()">AUTO</button>
+
+    <button class="side-btn gamble-side" id="ladderBtn" onclick="startLadder()" disabled>LEITER</button>
 
     <div class="spin-wrap">
       <button class="spin-btn" id="spinBtn" onclick="doSpin()">
@@ -843,8 +1087,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
       </button>
     </div>
 
-    <button class="side-btn" id="autoBtn" onclick="toggleAuto()">AUTO</button>
-    <button class="side-btn" id="gambleBtn" onclick="startGamble()" style="display:none">RISIKO</button>
+    <button class="side-btn gamble-side" id="gambleBtn" onclick="startGamble()" disabled>KARTE</button>
 
     <div class="cg win-cg" id="winCg">
       <div class="cg-label">LETZTER GEWINN</div>
@@ -891,6 +1134,22 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
       <button class="g-collect" onclick="collectGamble()">EINLÖSEN</button>
     </div>
     <div class="gamble-info">Verdopple deinen Gewinn oder verliere alles!</div>
+  </div>
+
+  <!-- Risiko-Leiter overlay -->
+  <div class="ladder-overlay" id="ladderOverlay">
+    <div class="ladder-title">RISIKO-LEITER</div>
+    <div class="ladder-stake">Gewinn: <span id="ladderStake">0</span></div>
+    <div class="ladder-wrap" id="ladderWrap">
+      <div class="ladder-rail left"></div>
+      <div class="ladder-rail right"></div>
+      <!-- Steps werden per JS generiert -->
+    </div>
+    <div class="ladder-btns">
+      <button class="l-climb" id="ladderClimbBtn" onclick="ladderClimb()">⬆ HÖHER</button>
+      <button class="l-collect" onclick="ladderCollect()">EINLÖSEN</button>
+    </div>
+    <div class="ladder-info">Klettere höher für mehr Gewinn — oder stürze ab!</div>
   </div>
 
   <!-- Coin/particle canvas overlay -->
@@ -1364,7 +1623,7 @@ const SVG = {};
 
 // Premium symbols use <img> tags
 function makeImgTag(id) {
-  return `<img src="${IMG_PATH}${id}.png" alt="${id}" style="width:100%;height:100%;object-fit:contain;border-radius:4px">`;
+  return `<img src="${IMG_PATH}${id}.png" alt="${id}">`;
 }
 
 SVG.book = makeImgTag('book');
@@ -1722,11 +1981,11 @@ const _UNUSED_eye = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/sv
 </svg>`;
 
 // Letter symbols - use generated card images
-SVG['A']  = `<img src="img/card_A.png" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`;
-SVG['K']  = `<img src="img/card_K.png" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`;
-SVG['Q']  = `<img src="img/card_Q.png" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`;
-SVG['J']  = `<img src="img/card_J.png" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`;
-SVG['10'] = `<img src="img/card_10.png" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`;
+SVG['A']  = `<img src="img/card_A.png" alt="A">`;
+SVG['K']  = `<img src="img/card_K.png" alt="K">`;
+SVG['Q']  = `<img src="img/card_Q.png" alt="Q">`;
+SVG['J']  = `<img src="img/card_J.png" alt="J">`;
+SVG['10'] = `<img src="img/card_10.png" alt="10">`;
 
 // ===== PAYLINES (10 lines, classic Book of Ra pattern) =====
 const PAYLINE_COLORS = ['#ff0000','#00ff00','#0000ff','#ffff00','#ff00ff','#00ffff','#ff8800','#88ff00','#ff0088','#8800ff'];
@@ -2022,7 +2281,7 @@ async function doSpin() {
   spinBtn.classList.add('is-stop');
   // Allow clicking to quick-stop (don't disable the button)
   spinBtn.disabled = false;
-  document.getElementById('gambleBtn').style.display = 'none';
+  enableGambleBtns(false);
   clearWinHighlights();
   clearWinLines();
 
@@ -2216,7 +2475,7 @@ async function doSpin() {
     clearInterval(sparkleInterval);
 
     if (freeSpins <= 0) {
-      document.getElementById('gambleBtn').style.display = '';
+      enableGambleBtns(true);
       gambleWin = lastWin;
     }
   } else {
@@ -3006,7 +3265,7 @@ function gamblePick(choice) {
       lastWin = 0;
       setInfo('Verloren!');
       document.getElementById('gambleOverlay').classList.remove('show');
-      document.getElementById('gambleBtn').style.display = 'none';
+      enableGambleBtns(false);
     }
     updateUI();
   }, 600);
@@ -3014,9 +3273,192 @@ function gamblePick(choice) {
 
 function collectGamble() {
   document.getElementById('gambleOverlay').classList.remove('show');
-  document.getElementById('gambleBtn').style.display = 'none';
+  enableGambleBtns(false);
   setInfo(`${fmtEuro(gambleWin)} eingelöst!`, 'win-msg');
   gambleWin = 0;
+}
+
+// ===== RISIKO-LEITER =====
+const LADDER_STEPS = [
+  { label: '2x',      multi: 2,    color: '#4CAF50' },
+  { label: '3x',      multi: 3,    color: '#66BB6A' },
+  { label: '5x',      multi: 5,    color: '#FFC107' },
+  { label: '7x',      multi: 7,    color: '#FF9800' },
+  { label: '10x',     multi: 10,   color: '#FF5722' },
+  { label: '15x',     multi: 15,   color: '#F44336' },
+  { label: '25x',     multi: 25,   color: '#E91E63' },
+  { label: '50x',     multi: 50,   color: '#9C27B0' },
+  { label: '💎 100x', multi: 100,  color: '#FFD700', top: true },
+];
+
+let ladderPos = -1;          // -1 = noch nicht gestartet, 0 = erste Stufe
+let ladderBaseWin = 0;       // Original-Gewinn
+let ladderCurrentWin = 0;    // Aktueller Gewinn auf der Leiter
+let ladderBusy = false;      // Animation läuft
+
+function buildLadder() {
+  const wrap = document.getElementById('ladderWrap');
+  // Nur Steps, Rails bleiben
+  wrap.querySelectorAll('.ladder-step').forEach(el => el.remove());
+  wrap.querySelectorAll('.ladder-rung').forEach(el => el.remove());
+
+  // Von oben nach unten (höchste Stufe oben)
+  for (let i = LADDER_STEPS.length - 1; i >= 0; i--) {
+    const s = LADDER_STEPS[i];
+    const step = document.createElement('div');
+    step.className = 'ladder-step' + (s.top ? ' top-step' : '');
+    step.id = 'ladderStep' + i;
+    step.innerHTML = `
+      <div class="step-bg"></div>
+      <div class="step-multi">${s.label}</div>
+      <div class="step-label">${fmtEuro(ladderBaseWin * s.multi)}</div>
+    `;
+    wrap.appendChild(step);
+  }
+}
+
+function updateLadderDisplay() {
+  for (let i = 0; i < LADDER_STEPS.length; i++) {
+    const el = document.getElementById('ladderStep' + i);
+    if (!el) continue;
+    el.classList.remove('active', 'passed', 'lost');
+    if (i < ladderPos) el.classList.add('passed');
+    else if (i === ladderPos) el.classList.add('active');
+  }
+  document.getElementById('ladderStake').textContent = fmtEuro(ladderCurrentWin);
+}
+
+function startLadder() {
+  if (gambleWin <= 0) return;
+  ladderBaseWin = gambleWin;
+  ladderCurrentWin = gambleWin;
+  ladderPos = -1;
+  ladderBusy = false;
+  buildLadder();
+  updateLadderDisplay();
+  document.getElementById('ladderClimbBtn').disabled = false;
+  document.getElementById('ladderOverlay').classList.add('show');
+}
+
+function ladderClimb() {
+  if (ladderBusy) return;
+  ladderBusy = true;
+
+  const nextPos = ladderPos + 1;
+  if (nextPos >= LADDER_STEPS.length) {
+    ladderCollect();
+    return;
+  }
+
+  const step = LADDER_STEPS[nextPos];
+
+  // Gewinnchance sinkt je höher man klettert
+  // Stufe 0: 75%, Stufe 1: 70%, ... runter bis Stufe 8: 30%
+  const chance = Math.max(0.30, 0.75 - (nextPos * 0.05));
+  const won = Math.random() < chance;
+
+  // Klassische Risikoleiter: Schritt für Schritt, ein Step pro Klick
+  SFX.gambleReveal();
+
+  // Marker bewegt sich genau eine Stufe hoch
+  const curEl = ladderPos >= 0 ? document.getElementById('ladderStep' + ladderPos) : null;
+  if (curEl) curEl.classList.remove('active');
+
+  const nextEl = document.getElementById('ladderStep' + nextPos);
+
+  // Kurze Spannungs-Animation: Marker blinkt auf der nächsten Stufe
+  let blinkCount = 0;
+  const blinkInterval = setInterval(() => {
+    if (nextEl) nextEl.classList.toggle('active');
+    blinkCount++;
+    if (blinkCount >= 6) {
+      clearInterval(blinkInterval);
+      if (nextEl) nextEl.classList.remove('active');
+
+      setTimeout(() => {
+        if (won) {
+          // Gewonnen → eine Stufe hoch
+          ladderPos = nextPos;
+          ladderCurrentWin = Math.round(ladderBaseWin * step.multi);
+          if (nextEl) {
+            nextEl.classList.add('active');
+            nextEl.classList.add('passed');
+          }
+          updateLadderDisplay();
+          SFX.gambleWin();
+          FX.spawnCoins(FX.canvas.width / 2, FX.canvas.height / 2, 15);
+
+          // Auf höchster Stufe → auto collect
+          if (ladderPos >= LADDER_STEPS.length - 1) {
+            document.getElementById('ladderClimbBtn').disabled = true;
+            setTimeout(() => ladderCollect(), 1500);
+          }
+
+          ladderBusy = false;
+        } else {
+          // Verloren → rote Markierung auf der Stufe
+          if (nextEl) {
+            nextEl.classList.add('lost');
+          }
+          // Aktuellen Stand-Marker zeigen
+          if (ladderPos >= 0) {
+            const stayEl = document.getElementById('ladderStep' + ladderPos);
+            if (stayEl) stayEl.classList.add('active');
+          }
+
+          SFX.gambleLose();
+
+          if (ladderPos < 0) {
+            // Noch nie gestiegen → alles weg
+            balance -= gambleWin;
+            gambleWin = 0;
+            lastWin = 0;
+            ladderCurrentWin = 0;
+          } else {
+            // Behält den Gewinn der aktuellen Stufe
+            ladderCurrentWin = Math.round(ladderBaseWin * LADDER_STEPS[ladderPos].multi);
+          }
+
+          document.getElementById('ladderStake').textContent = fmtEuro(ladderCurrentWin);
+          setInfo(ladderPos < 0 ? 'Abgestürzt!' : `Zurück auf ${LADDER_STEPS[ladderPos].label}!`);
+
+          setTimeout(() => {
+            if (ladderPos < 0) {
+              document.getElementById('ladderOverlay').classList.remove('show');
+              enableGambleBtns(false);
+            } else {
+              // Auto-collect den bisherigen Gewinn
+              ladderCollect();
+            }
+            updateUI();
+          }, 1200);
+
+          ladderBusy = false;
+        }
+      }, 200);
+    }
+  }, 120);
+}
+
+function ladderCollect() {
+  const overlay = document.getElementById('ladderOverlay');
+  overlay.classList.remove('show');
+  enableGambleBtns(false);
+
+  if (ladderCurrentWin > 0 && ladderPos >= 0) {
+    // Differenz zum Original-Gewinn gutschreiben
+    const bonus = ladderCurrentWin - gambleWin;
+    if (bonus > 0) balance += bonus;
+    setInfo(`${fmtEuro(ladderCurrentWin)} eingelöst!`, 'win-msg');
+    FX.spawnCoins(FX.canvas.width / 2, FX.canvas.height / 2, 25);
+  } else {
+    setInfo(`${fmtEuro(gambleWin)} eingelöst!`, 'win-msg');
+  }
+
+  gambleWin = 0;
+  ladderCurrentWin = 0;
+  ladderPos = -1;
+  updateUI();
 }
 
 // ===== PAYTABLE =====
@@ -3160,6 +3602,19 @@ function setInfo(text, cls) {
   const bar = document.getElementById('infoBar');
   bar.textContent = text;
   bar.className = 'info-bar' + (cls ? ' ' + cls : '');
+}
+
+// Gamble-Buttons aktivieren/deaktivieren (immer sichtbar, nur enabled/disabled)
+function enableGambleBtns(on) {
+  const gb = document.getElementById('gambleBtn');
+  const lb = document.getElementById('ladderBtn');
+  if (on) {
+    gb.disabled = false; gb.classList.add('glow');
+    lb.disabled = false; lb.classList.add('glow');
+  } else {
+    gb.disabled = true; gb.classList.remove('glow');
+    lb.disabled = true; lb.classList.remove('glow');
+  }
 }
 
 // Euro-Formatierung mit Tausenderpunkt
