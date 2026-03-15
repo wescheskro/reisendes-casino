@@ -266,6 +266,63 @@
       line-height: 1.4;
     }
 
+    /* App installieren Button */
+    .install-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(180deg, rgba(50,35,15,.9), rgba(25,18,8,.95));
+      border: 1px solid rgba(212,175,55,.4);
+      border-top: 1px solid rgba(244,208,63,.5);
+      color: #D4AF37;
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 12px 28px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: .2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(244,208,63,.1);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    .install-btn:hover {
+      background: linear-gradient(180deg, rgba(80,55,20,.9), rgba(45,30,12,.95));
+      border-color: rgba(244,208,63,.7);
+      color: #F4D03F;
+      box-shadow: 0 4px 16px rgba(0,0,0,.5), 0 0 12px rgba(212,175,55,.2);
+    }
+    .install-btn:active { transform: scale(.96); }
+    .install-icon { font-size: 20px; }
+
+    .install-hint {
+      max-width: 400px;
+      margin: 0 auto 20px;
+      padding: 14px 18px;
+      background: rgba(0,0,0,.6);
+      border: 1px solid rgba(212,175,55,.25);
+      border-radius: 10px;
+      font-size: 13px;
+      color: rgba(240,230,211,.8);
+      line-height: 1.6;
+      text-align: left;
+    }
+    .install-hint .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .install-hint .step-num {
+      background: #D4AF37;
+      color: #000;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 12px;
+      flex-shrink: 0;
+    }
+
     /* Guthaben aufladen */
     .topup-section {
       max-width: 500px;
@@ -450,6 +507,12 @@
       </div>
     </div>
 
+    <!-- APP INSTALLIEREN -->
+    <button class="install-btn" id="installBtn" onclick="installApp()">
+      <span class="install-icon">📲</span> App Installieren
+    </button>
+    <div class="install-hint" id="installHint" style="display:none"></div>
+
     <!-- BADGES -->
     <div class="game-badges">
       <div class="g-badge"><span class="val">96.5%</span> RTP</div>
@@ -554,6 +617,59 @@
 
     // Balance beim Laden anzeigen
     updateLandingBalance();
+
+    // PWA Install
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    function installApp() {
+      const hint = document.getElementById('installHint');
+
+      // Android Chrome: Native Install Prompt
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choice) => {
+          if (choice.outcome === 'accepted') {
+            document.getElementById('installBtn').style.display = 'none';
+          }
+          deferredPrompt = null;
+        });
+        return;
+      }
+
+      // iOS Safari
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        hint.style.display = 'block';
+        hint.innerHTML = `
+          <div style="text-align:center;font-weight:700;color:#D4AF37;margin-bottom:8px">iPhone / iPad Installation</div>
+          <div class="step"><span class="step-num">1</span> Tippe unten auf <b>Teilen</b> (das Quadrat mit Pfeil ⬆️)</div>
+          <div class="step"><span class="step-num">2</span> Scrolle runter und tippe <b>"Zum Home-Bildschirm"</b></div>
+          <div class="step"><span class="step-num">3</span> Tippe <b>"Hinzufügen"</b> — fertig!</div>
+          <div style="margin-top:8px;font-size:11px;color:rgba(240,230,211,.5)">Die App öffnet dann im Vollbild ohne Browser-Leiste.</div>
+        `;
+        return;
+      }
+
+      // Android andere Browser / Desktop
+      hint.style.display = 'block';
+      hint.innerHTML = `
+        <div style="text-align:center;font-weight:700;color:#D4AF37;margin-bottom:8px">App installieren</div>
+        <div class="step"><span class="step-num">1</span> Tippe auf <b>⋮ Menü</b> (3 Punkte oben rechts)</div>
+        <div class="step"><span class="step-num">2</span> Wähle <b>"App installieren"</b> oder <b>"Zum Startbildschirm"</b></div>
+        <div class="step"><span class="step-num">3</span> Bestätige mit <b>"Installieren"</b></div>
+        <div style="margin-top:8px;font-size:11px;color:rgba(240,230,211,.5)">Öffnet dann wie eine echte App im Vollbild!</div>
+      `;
+    }
+
+    // Wenn bereits als PWA installiert: Button verstecken
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      document.getElementById('installBtn').style.display = 'none';
+    }
 
     function playGame() {
       window.location.href = '/games/book-of-baxt.html';
