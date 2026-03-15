@@ -1120,8 +1120,12 @@ const FX = {
     this.canvas.width = wrap.clientWidth;
     this.canvas.height = wrap.clientHeight;
   },
-  // Spawn coin particles from a position
+  // Spawn coin particles from a position (Mobile-Limit)
   spawnCoins(x, y, count = 20) {
+    const maxParticles = window.innerWidth < 800 ? 80 : 300;
+    if (this.particles.length >= maxParticles) return;
+    const mobFactor = window.innerWidth < 800 ? 0.5 : 1;
+    count = Math.ceil(count * mobFactor);
     for (let i = 0; i < count; i++) {
       this.particles.push({
         x, y,
@@ -1156,14 +1160,16 @@ const FX = {
     }
     if (!this.running) this.loop();
   },
-  // Big win coin shower from top
+  // Big win coin shower from top (mobile-optimiert)
   coinShower(duration = 3000) {
     const w = this.canvas.width;
+    const isMob = window.innerWidth < 800;
+    const count = isMob ? 2 : 5;
     const interval = setInterval(() => {
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < count; i++) {
         this.spawnCoins(Math.random() * w, -10, 1);
       }
-    }, 50);
+    }, isMob ? 80 : 50);
     setTimeout(() => clearInterval(interval), duration);
     if (!this.running) this.loop();
   },
@@ -1697,18 +1703,20 @@ function init() {
 }
 
 function createBackground() {
-  // Create floating particles
+  // Create floating particles (weniger auf Mobile)
   const cont = document.getElementById('bgPart');
-  for (let i = 0; i < 30; i++) {
+  const partCount = window.innerWidth < 800 ? 10 : 30;
+  for (let i = 0; i < partCount; i++) {
     const p = document.createElement('div');
     p.style.cssText = `position:absolute;width:${1+Math.random()*2}px;height:${1+Math.random()*2}px;
       background:rgba(244,208,63,${.2+Math.random()*.3});border-radius:50%;
       left:${Math.random()*100}%;animation:float ${6+Math.random()*10}s linear ${Math.random()*10}s infinite`;
     cont.appendChild(p);
   }
-  // Create stars
+  // Create stars (weniger auf Mobile)
   const stars = document.getElementById('bgStars');
-  for (let i = 0; i < 60; i++) {
+  const starCount = window.innerWidth < 800 ? 20 : 60;
+  for (let i = 0; i < starCount; i++) {
     const s = document.createElement('div');
     const size = .5 + Math.random() * 2;
     s.style.cssText = `position:absolute;width:${size}px;height:${size}px;background:#fff;border-radius:50%;
@@ -2711,9 +2719,10 @@ function playDjangoViolin(duration) {
   const scale = [293.66, 349.23, 392.00, 440.00, 466.16, 554.37, 587.33, 698.46, 880.00];
 
   // Fast swing pattern — Django-style rapid arpeggios
-  const bpm = 200;
+  const isMob = window.innerWidth < 800;
+  const bpm = isMob ? 160 : 200;
   const noteLen = 60 / bpm;
-  const totalNotes = Math.floor(duration / noteLen);
+  const totalNotes = Math.min(Math.floor(duration / noteLen), isMob ? 40 : 999);
 
   for (let i = 0; i < totalNotes; i++) {
     const noteTime = t + i * noteLen;
@@ -2771,7 +2780,8 @@ function playDjangoViolin(duration) {
     osc.stop(noteTime + noteLen + 0.02);
   }
 
-  // Rhythm guitar chords underneath (muted strums)
+  // Rhythm guitar chords underneath (muted strums) — auf Mobile vereinfacht
+  if (isMob) return; // Keine Rhythm-Gitarre auf Mobile für Performance
   const chords = [
     [293.66, 440.00, 554.37], // Dm
     [261.63, 392.00, 523.25], // C
