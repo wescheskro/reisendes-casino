@@ -364,6 +364,36 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 }
 @keyframes bwCount{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
 
+/* ========== FREE SPINS TOTAL WIN OVERLAY ========== */
+.fs-total-overlay{
+  display:none;position:absolute;inset:0;z-index:60;
+  background:rgba(0,0,0,.9);
+  flex-direction:column;align-items:center;justify-content:center;
+}
+.fs-total-overlay.show{display:flex}
+.fs-total-overlay .fs-total-title{
+  font-size:clamp(20px,4vw,36px);letter-spacing:4px;color:#D4AF37;
+  font-weight:700;margin-bottom:6px;
+  animation:fsTotalFade 0.8s ease-out;
+}
+@keyframes fsTotalFade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fs-total-overlay .fs-total-label{
+  font-size:clamp(32px,6vw,56px);font-weight:900;letter-spacing:6px;
+  background:linear-gradient(180deg,#fff5cc,#F4D03F,#D4AF37,#8B6914);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 4px 16px rgba(212,175,55,.8));
+  animation:bigwinPop 1s cubic-bezier(.34,1.56,.64,1);
+}
+.fs-total-overlay .fs-total-amount{
+  font-size:clamp(36px,8vw,72px);color:#F4D03F;font-weight:900;margin-top:12px;
+  text-shadow:0 0 30px rgba(244,208,63,.7),0 0 60px rgba(244,208,63,.3);
+  animation:bwCount 1.5s ease-out;
+}
+.fs-total-overlay .fs-total-sub{
+  font-size:clamp(12px,2vw,18px);color:rgba(212,175,55,.6);margin-top:16px;
+  animation:fsTotalFade 1.2s ease-out;
+}
+
 /* ========== PAYTABLE MODAL ========== */
 .paytable-modal{
   display:none;position:absolute;inset:0;z-index:70;
@@ -775,6 +805,14 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   <div class="bigwin-overlay" id="bigwinOverlay">
     <h2>MEGA GEWINN!</h2>
     <div class="bw-amount" id="bwAmount"></div>
+  </div>
+
+  <!-- Free spins total win overlay -->
+  <div class="fs-total-overlay" id="fsTotalOverlay">
+    <div class="fs-total-title">FREISPIELE BEENDET</div>
+    <div class="fs-total-label">BARO GEWINN!</div>
+    <div class="fs-total-amount" id="fsTotalAmount">0 €</div>
+    <div class="fs-total-sub">Gesamtgewinn aus Freispielen</div>
   </div>
 
   <!-- Gamble overlay -->
@@ -2066,7 +2104,8 @@ async function doSpin() {
     vp.querySelectorAll('.reel-col').forEach(col => { col.style.boxShadow = ''; });
     lockedReels = [false, false, false, false, false];
     if (freeSpinTotalWin > 0) {
-      setInfo(`Freispiele beendet! Gesamtgewinn: ${freeSpinTotalWin} €`, 'win-msg');
+      await showFreeSpinTotal(freeSpinTotalWin);
+      setInfo(`Baro Gewinn: ${freeSpinTotalWin} €`, 'win-msg');
     }
     freeSpinTotalWin = 0;
     freeSpinSymbol = null;
@@ -2627,6 +2666,34 @@ function showBigWin(amount) {
     SFX.coinTick();
   }, 50);
   setTimeout(() => overlay.classList.remove('show'), 4000);
+}
+
+// ===== FREE SPINS TOTAL WIN =====
+async function showFreeSpinTotal(amount) {
+  SFX.bigWin();
+  FX.coinShower(5000);
+  const overlay = document.getElementById('fsTotalOverlay');
+  const el = document.getElementById('fsTotalAmount');
+  overlay.classList.add('show');
+
+  // Count up animation
+  el.textContent = '0 €';
+  let current = 0;
+  const step = Math.max(1, Math.floor(amount / 60));
+  const countUp = setInterval(() => {
+    current += step;
+    if (current >= amount) { current = amount; clearInterval(countUp); }
+    el.textContent = current + ' €';
+    SFX.coinTick();
+  }, 40);
+
+  // Extra coin bursts during celebration
+  setTimeout(() => FX.coinShower(2000), 1500);
+  setTimeout(() => FX.coinShower(2000), 3000);
+
+  // Show for 5 seconds
+  await new Promise(resolve => setTimeout(resolve, 5000));
+  overlay.classList.remove('show');
 }
 
 // ===== GAMBLE =====
