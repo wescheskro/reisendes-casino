@@ -887,7 +887,8 @@ io.use((socket, next) => {
     } catch(e) {}
   }
   // Gast-Spieler erlauben
-  socket.user = { id: 'guest-' + uuidv4().slice(0,8), username: 'Gast-' + Math.floor(Math.random()*999), guest: true };
+  const guestName = socket.handshake.auth?.username;
+  socket.user = { id: 'guest-' + uuidv4().slice(0,8), username: guestName || 'Gast-' + Math.floor(Math.random()*999), guest: true };
   next();
 });
 

@@ -425,6 +425,56 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   .my-hand{gap:6px}
 }
 
+/* ============ NAME OVERLAY ============ */
+.name-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,.85);
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);
+}
+.name-overlay.hidden{display:none}
+.name-dialog{
+  background:linear-gradient(165deg,rgba(30,15,5,.95),rgba(15,8,2,.98));
+  border:2px solid rgba(212,175,55,.5);
+  border-radius:20px;
+  padding:40px 35px;
+  text-align:center;
+  max-width:320px;width:90%;
+  box-shadow:0 0 60px rgba(212,175,55,.15),0 20px 60px rgba(0,0,0,.6);
+}
+.name-icon{font-size:48px;margin-bottom:12px}
+.name-title{
+  font-size:20px;font-weight:800;color:#F4D03F;
+  font-family:'Playfair Display',serif;
+  margin-bottom:6px;
+}
+.name-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px}
+.name-input{
+  width:100%;padding:14px 16px;
+  background:rgba(255,255,255,.08);
+  border:2px solid rgba(212,175,55,.3);
+  border-radius:12px;
+  color:#fff;font-size:18px;font-weight:700;
+  text-align:center;
+  outline:none;
+  transition:border-color .3s;
+}
+.name-input:focus{border-color:rgba(212,175,55,.7)}
+.name-input::placeholder{color:rgba(255,255,255,.25)}
+.name-btn{
+  margin-top:16px;
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,#D4AF37,#B8941F);
+  color:#1a0a00;font-size:16px;font-weight:800;
+  border:none;border-radius:12px;
+  cursor:pointer;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  transition:transform .2s, box-shadow .2s;
+}
+.name-btn:active{transform:scale(.97)}
+.name-btn:disabled{opacity:.4;cursor:not-allowed}
+
 /* ============ NIMM PLATZ EIN ============ */
 .take-seat-area{
   position:fixed;
@@ -861,6 +911,17 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   <div class="pot" id="winnerPot"></div>
 </div>
 
+<!-- NAME EINGABE (vor dem Spielen) -->
+<div class="name-overlay" id="nameOverlay">
+  <div class="name-dialog">
+    <div class="name-icon">🎰</div>
+    <div class="name-title">Willkommen im Reisendes Casino</div>
+    <div class="name-sub">Gib deinen Spielernamen ein</div>
+    <input type="text" id="nameInput" class="name-input" placeholder="Dein Name..." maxlength="20" autocomplete="off">
+    <button class="name-btn" id="nameBtn" onclick="submitName()">Eintreten</button>
+  </div>
+</div>
+
 <!-- NIMM PLATZ (großer Einstiegs-Button) -->
 <div class="take-seat-area" id="takeSeatArea" onclick="takeFirstSeat()">
   <div class="take-seat-icon">🪑</div>
@@ -1158,9 +1219,44 @@ document.addEventListener('touchstart', function(e) {
 <script>
 const token = localStorage.getItem('casinoToken');
 const user = (() => { try { return JSON.parse(localStorage.getItem('casinoUser')); } catch(e) { return null; } })();
-
-const socket = io({ auth: { token } });
+const savedName = localStorage.getItem('pokerPlayerName');
 const tableId = new URLSearchParams(location.search).get('table') || 'tisch-1';
+
+let socket = null;
+
+// Name-Dialog: zeigen wenn kein Token (nicht eingeloggt) und kein gespeicherter Name
+function initNameCheck() {
+  if (token || savedName) {
+    // Direkt verbinden
+    document.getElementById('nameOverlay').classList.add('hidden');
+    connectSocket(savedName);
+  } else {
+    // Name-Dialog zeigen
+    document.getElementById('nameOverlay').classList.remove('hidden');
+    const inp = document.getElementById('nameInput');
+    inp.focus();
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') submitName(); });
+  }
+}
+
+function submitName() {
+  const inp = document.getElementById('nameInput');
+  const name = inp.value.trim();
+  if (!name || name.length < 2) {
+    inp.style.borderColor = '#e74c3c';
+    inp.placeholder = 'Mindestens 2 Zeichen!';
+    return;
+  }
+  localStorage.setItem('pokerPlayerName', name);
+  document.getElementById('nameOverlay').classList.add('hidden');
+  PokerSFX.init();
+  PokerSFX.btnClick();
+  connectSocket(name);
+}
+
+function connectSocket(playerName) {
+  socket = io({ auth: { token, username: playerName || undefined } });
+  setupSocketEvents();
 let myState = null;
 let mySeat = -1;
 let currentPhase = 'waiting';
@@ -1613,38 +1709,43 @@ function showWinner(data) {
   setTimeout(() => banner.classList.remove('show'), 4500);
 }
 
-// ===================== SOCKET EVENTS =====================
-socket.on('connect', () => {
-  socket.emit('poker:join', { tableId, seat: -1 });
-  document.getElementById('tableInfo').textContent = 'Verbunden!';
-});
+// ===================== SOCKET EVENTS (in connectSocket registriert) =====================
+function setupSocketEvents() {
+  socket.on('connect', () => {
+    socket.emit('poker:join', { tableId, seat: -1 });
+    document.getElementById('tableInfo').textContent = 'Verbunden!';
+  });
 
-socket.on('disconnect', () => {
-  document.getElementById('tableInfo').textContent = 'Verbindung verloren...';
-  stopTurnTimer();
-});
+  socket.on('disconnect', () => {
+    document.getElementById('tableInfo').textContent = 'Verbindung verloren...';
+    stopTurnTimer();
+  });
 
-socket.on('poker:state', renderState);
-socket.on('poker:playerJoined', d => { PokerSFX.playerJoin(); showPhase(d.username + ' setzt sich!'); });
-socket.on('poker:playerLeft', d => { PokerSFX.playerLeave(); showPhase(d.username + ' geht...'); });
-socket.on('poker:winner', d => {
-  const me = myState && myState.seats.find(s => s && s.isYou);
-  if (me && d.username === me.username) PokerSFX.win();
-  else PokerSFX.lose();
-  showWinner(d);
-});
+  socket.on('poker:state', renderState);
+  socket.on('poker:playerJoined', d => { PokerSFX.playerJoin(); showPhase(d.username + ' setzt sich!'); });
+  socket.on('poker:playerLeft', d => { PokerSFX.playerLeave(); showPhase(d.username + ' geht...'); });
+  socket.on('poker:winner', d => {
+    const me = myState && myState.seats.find(s => s && s.isYou);
+    if (me && d.username === me.username) PokerSFX.win();
+    else PokerSFX.lose();
+    showWinner(d);
+  });
 
-socket.on('chat:msg', d => {
-  const msgs = document.getElementById('chatMessages');
-  msgs.innerHTML += `<div class="chat-msg"><span class="name">${d.username}:</span> ${d.msg}</div>`;
-  msgs.scrollTop = msgs.scrollHeight;
-});
+  socket.on('chat:msg', d => {
+    const msgs = document.getElementById('chatMessages');
+    msgs.innerHTML += `<div class="chat-msg"><span class="name">${d.username}:</span> ${d.msg}</div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  });
 
-socket.on('error', msg => { showPhase(msg); });
+  socket.on('error', msg => { showPhase(msg); });
+}
 
 // Preload background
 const bgImg = new Image();
 bgImg.src = '/games/img/poker-bg.png';
+
+// Starte Name-Check → Socket-Verbindung
+initNameCheck();
 
 // ===================== VIDEO/SPRACH-CHAT (WebRTC) =====================
 const ICE_SERVERS = [
