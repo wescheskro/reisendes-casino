@@ -255,13 +255,13 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   opacity:1;
   transform:translateY(0);
 }
-/* 3D Flip Container */
+/* Flip Container */
 .my-hand .hand-card-wrap{
   width:95px;height:135px;
-  perspective:600px;
   pointer-events:auto;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
+  position:relative;
 }
 .my-hand .hand-card-wrap:nth-child(1){
   transform:rotate(-6deg) translateY(-8px);
@@ -269,23 +269,13 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .my-hand .hand-card-wrap:nth-child(2){
   transform:rotate(6deg) translateY(-8px);
 }
-.my-hand .hand-card-inner{
-  width:100%;height:100%;
-  position:relative;
-  transform-style:preserve-3d;
-  transition:transform .5s ease;
-}
-.my-hand .hand-card-wrap.flipped .hand-card-inner{
-  transform:rotateY(180deg);
-}
-/* Shared face/back styles */
+/* Face & Back übereinander */
 .my-hand .hand-card-face,
 .my-hand .hand-card-back{
   position:absolute;top:0;left:0;width:100%;height:100%;
-  backface-visibility:hidden;
-  -webkit-backface-visibility:hidden;
   border-radius:10px;
   overflow:hidden;
+  transition:opacity .3s ease, transform .3s ease;
 }
 /* FRONT (card face) */
 .my-hand .hand-card-face{
@@ -294,6 +284,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   font-weight:900;
   box-shadow:0 10px 35px rgba(0,0,0,.7),0 0 0 2px rgba(255,255,255,.2),0 0 25px rgba(244,208,63,.2);
   border:2px solid rgba(212,175,55,.45);
+  opacity:1;z-index:2;
 }
 /* Inner border like real playing cards */
 .my-hand .hand-card-face::before{
@@ -307,7 +298,14 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   background:url('img/card-back.jpg') center/cover no-repeat;
   border:2px solid rgba(212,175,55,.5);
   box-shadow:0 10px 35px rgba(0,0,0,.7),0 0 0 2px rgba(255,255,255,.2);
-  transform:rotateY(180deg);
+  z-index:1;
+}
+/* Verdeckt: Back oben, Face versteckt */
+.my-hand .hand-card-wrap.flipped .hand-card-face{
+  opacity:0;z-index:1;
+}
+.my-hand .hand-card-wrap.flipped .hand-card-back{
+  z-index:2;
 }
 /* Corner top-left */
 .my-hand .hand-card-face .h-corner-tl{
@@ -1097,10 +1095,8 @@ function renderHandCard(c, index) {
   }
   // Karten starten immer verdeckt (flipped) – Antippen dreht um
   return `<div class="hand-card-wrap flipped" data-card-idx="${index}" ontouchstart="flipCard(this, true, event)" ontouchend="flipCard(this, false, event)" onmousedown="flipCard(this, true, event)" onmouseup="flipCard(this, false, event)" onmouseleave="flipCard(this, false, event)">
-    <div class="hand-card-inner">
-      <div class="${faceClass}">${faceHtml}</div>
-      <div class="hand-card-back"></div>
-    </div>
+    <div class="${faceClass}">${faceHtml}</div>
+    <div class="hand-card-back"></div>
   </div>`;
 }
 
