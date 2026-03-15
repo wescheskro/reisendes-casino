@@ -1047,27 +1047,51 @@ const SFX = {
   gambleLose() { this._playMP3('gambleLoseSound', { maxDuration: 2000 }); },
   coinTick() { this._playMP3('coins', { volume: 0.2, playbackRate: 1.2 + Math.random()*0.6, maxDuration: 400 }); },
 
-  // Mystical shimmer when a book/scatter lands on a reel
+  // Igel-Sound when scatter/Stachelingo lands on a reel
   bookLand() {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime;
-    // Magical rising chime
-    [523, 659, 784, 1047].forEach((freq, i) => {
-      const osc = this.ctx.createOscillator();
+
+    // Igel schnüffeln — kurze, schnelle Nasen-Töne
+    const sniffCount = 3 + Math.floor(Math.random() * 3); // 3-5 Schnüffler
+    for (let i = 0; i < sniffCount; i++) {
+      const offset = i * 0.07;
+      // Nasales Schnüffeln (bandpass-gefiltertes Rauschen)
+      const bufSize = this.ctx.sampleRate * 0.06;
+      const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let j = 0; j < bufSize; j++) data[j] = (Math.random() * 2 - 1);
+      const src = this.ctx.createBufferSource();
+      src.buffer = buf;
+      const bp = this.ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 2500 + Math.random() * 1500;
+      bp.Q.value = 3;
       const g = this.ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, t + i * 0.06);
-      g.gain.setValueAtTime(0, t + i * 0.06);
-      g.gain.linearRampToValueAtTime(0.12, t + i * 0.06 + 0.03);
-      g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.4);
-      osc.connect(g); g.connect(this.ctx.destination);
-      osc.start(t + i * 0.06);
-      osc.stop(t + i * 0.06 + 0.5);
-    });
-    // Shimmery noise sweep
-    this._noise(0.3, 0.06, 6000);
-    // Deep mystical tone
-    this._tick(130, 0.3, 0.08, 'sine');
+      g.gain.setValueAtTime(0, t + offset);
+      g.gain.linearRampToValueAtTime(0.15, t + offset + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, t + offset + 0.06);
+      src.connect(bp); bp.connect(g); g.connect(this.ctx.destination);
+      src.start(t + offset);
+      src.stop(t + offset + 0.07);
+    }
+
+    // Kleines Igel-Piepsen (hoher Ton)
+    const piep = this.ctx.createOscillator();
+    const pg = this.ctx.createGain();
+    piep.type = 'sine';
+    piep.frequency.setValueAtTime(2800, t + 0.25);
+    piep.frequency.linearRampToValueAtTime(3200, t + 0.32);
+    piep.frequency.linearRampToValueAtTime(2600, t + 0.45);
+    pg.gain.setValueAtTime(0, t + 0.25);
+    pg.gain.linearRampToValueAtTime(0.1, t + 0.28);
+    pg.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    piep.connect(pg); pg.connect(this.ctx.destination);
+    piep.start(t + 0.25);
+    piep.stop(t + 0.55);
+
+    // Leises Rascheln (Igel im Laub)
+    this._noise(0.15, 0.04, 4000);
   },
 
   startReelAmbience() { this.spinStart(); },
