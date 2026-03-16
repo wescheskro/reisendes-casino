@@ -311,12 +311,16 @@ function buildUI() {
   wrap.id = 'jukebox';
   wrap.className = jkMinimized ? 'jk-mini' : '';
   wrap.innerHTML = `
-    <div class="jk-header" id="jkHeader">
-      <span class="jk-icon">🎵</span>
-      <span class="jk-title" id="jkTitle">Jukebox</span>
-      <button class="jk-minbtn" id="jkMinBtn" title="Minimieren">${jkMinimized ? '▲' : '▼'}</button>
+    <div class="jk-img" id="jkImg" title="Jukebox öffnen">
+      <img src="/img/jukebox-bg.jpg" alt="Jukebox" draggable="false">
     </div>
-    <div class="jk-body" id="jkBody">
+    <div class="jk-panel" id="jkPanel">
+      <div class="jk-header" id="jkHeader">
+        <span class="jk-icon">🎵</span>
+        <span class="jk-title" id="jkTitle">Jukebox</span>
+        <button class="jk-minbtn" id="jkMinBtn" title="Minimieren">✕</button>
+      </div>
+      <div class="jk-body" id="jkBody">
       <div class="jk-track" id="jkTrack">Wähle einen Song...</div>
       <div class="jk-controls">
         <button class="jk-btn" onclick="window._jk.prev()" title="Zurück">⏮</button>
@@ -338,6 +342,7 @@ function buildUI() {
         <div class="jk-search-results" id="jkSearchResults"></div>
       </div>
     </div>
+    </div>
     <div id="jk-yt-player"></div>
   `;
   document.body.appendChild(wrap);
@@ -347,29 +352,38 @@ function buildUI() {
   style.textContent = `
     #jukebox{
       position:fixed;bottom:12px;left:12px;z-index:9998;
-      width:280px;border-radius:18px;overflow:hidden;
-      background:rgba(15,8,3,.97);
-      border:2px solid rgba(212,175,55,.35);
-      box-shadow:0 0 20px rgba(160,120,255,.15),0 8px 32px rgba(0,0,0,.7),inset 0 1px 0 rgba(212,175,55,.1);
       font-family:'Playfair Display',serif;color:#F0E6D3;
-      transition:width .3s,height .3s;
       touch-action:none;user-select:none;
     }
-    #jukebox::before{
-      content:'';position:absolute;top:0;left:0;right:0;bottom:0;
-      background:url('/img/jukebox-bg.jpg') center/cover no-repeat;
-      opacity:.12;pointer-events:none;z-index:0;
-      border-radius:18px;
+    /* ---- Minimiert: nur das Jukebox-Bild ---- */
+    .jk-img{
+      width:100px;height:100px;cursor:pointer;
+      border-radius:16px;overflow:hidden;
+      border:2px solid rgba(212,175,55,.4);
+      box-shadow:0 0 20px rgba(160,120,255,.2),0 4px 16px rgba(0,0,0,.6);
+      transition:transform .2s,box-shadow .2s;
     }
-    #jukebox>*{position:relative;z-index:1}
-    #jukebox.jk-mini .jk-body{display:none}
-    #jukebox.jk-mini{width:160px}
+    .jk-img:hover{
+      transform:scale(1.05);
+      box-shadow:0 0 28px rgba(160,120,255,.35),0 6px 20px rgba(0,0,0,.7);
+    }
+    .jk-img img{width:100%;height:100%;object-fit:cover;display:block}
+    /* ---- Aufgeklappt: Panel ---- */
+    .jk-panel{
+      display:none;width:280px;border-radius:18px;overflow:hidden;
+      background:rgba(15,8,3,.97);
+      border:2px solid rgba(212,175,55,.35);
+      box-shadow:0 0 20px rgba(160,120,255,.15),0 8px 32px rgba(0,0,0,.7);
+    }
+    #jukebox.jk-open .jk-img{display:none}
+    #jukebox.jk-open .jk-panel{display:block}
+    #jukebox.jk-mini .jk-panel{display:none}
+    #jukebox.jk-mini .jk-img{display:block}
     #jk-yt-player{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
     .jk-header{
       display:flex;align-items:center;gap:6px;padding:10px 12px;
       background:linear-gradient(180deg,rgba(160,120,255,.12),rgba(212,175,55,.08));
       border-bottom:1px solid rgba(212,175,55,.2);cursor:grab;
-      border-radius:18px 18px 0 0;
     }
     .jk-icon{font-size:18px;text-shadow:0 0 8px rgba(160,120,255,.5)}
     .jk-title{font-size:11px;font-weight:700;color:#D4AF37;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 0 6px rgba(212,175,55,.3)}
@@ -516,9 +530,26 @@ function buildUI() {
       text-align:center;padding:16px 8px;color:rgba(212,175,55,.3);font-size:10px;
     }
 
+    /* ---- Noten-Animation ---- */
+    .jk-notes{
+      position:absolute;top:0;left:0;width:100%;height:100%;
+      pointer-events:none;overflow:visible;z-index:10;
+    }
+    .jk-note{
+      position:absolute;bottom:100%;
+      color:#D4AF37;opacity:0;
+      animation:jk-float-up 3s ease-out forwards;
+      text-shadow:0 0 6px rgba(160,120,255,.4);
+    }
+    @keyframes jk-float-up{
+      0%{opacity:0.8;transform:translateY(0) rotate(0deg)}
+      50%{opacity:0.6}
+      100%{opacity:0;transform:translateY(-80px) rotate(20deg) translateX(10px)}
+    }
+
     @media(max-width:600px){
-      #jukebox{width:220px;bottom:8px;left:8px}
-      #jukebox.jk-mini{width:130px}
+      .jk-img{width:75px;height:75px}
+      .jk-panel{width:220px}
       .jk-btn{width:26px;height:26px;font-size:10px}
       .jk-play{width:30px;height:30px;font-size:12px}
       .jk-playlist{max-height:100px}
@@ -528,17 +559,56 @@ function buildUI() {
   document.head.appendChild(style);
 
   // Events
-  document.getElementById('jkMinBtn').onclick = toggleMinimize;
+  document.getElementById('jkImg').onclick = () => openJukebox();
+  document.getElementById('jkMinBtn').onclick = () => closeJukebox();
+  // Start in correct state
+  const jk = document.getElementById('jukebox');
+  if (!jkMinimized) jk.classList.add('jk-open');
   buildPlaylist();
   initDrag();
+  startNoteAnimation();
 }
 
-function toggleMinimize() {
-  jkMinimized = !jkMinimized;
+function openJukebox() {
+  jkMinimized = false;
   const jk = document.getElementById('jukebox');
-  jk.classList.toggle('jk-mini', jkMinimized);
-  document.getElementById('jkMinBtn').textContent = jkMinimized ? '▲' : '▼';
+  jk.classList.add('jk-open');
+  jk.classList.remove('jk-mini');
   saveState();
+}
+
+function closeJukebox() {
+  jkMinimized = true;
+  const jk = document.getElementById('jukebox');
+  jk.classList.remove('jk-open');
+  jk.classList.add('jk-mini');
+  saveState();
+}
+
+// ---- Noten-Animation ----
+function startNoteAnimation() {
+  const notes = ['♪','♫','♬','♩','🎵','🎶'];
+  const jk = document.getElementById('jukebox');
+  if (!jk) return;
+
+  // Container für Noten
+  const noteContainer = document.createElement('div');
+  noteContainer.className = 'jk-notes';
+  jk.appendChild(noteContainer);
+
+  function spawnNote() {
+    if (!isPlaying) { setTimeout(spawnNote, 1500); return; }
+    const note = document.createElement('span');
+    note.className = 'jk-note';
+    note.textContent = notes[Math.floor(Math.random() * notes.length)];
+    note.style.left = (15 + Math.random() * 70) + '%';
+    note.style.animationDuration = (2 + Math.random() * 2) + 's';
+    note.style.fontSize = (10 + Math.random() * 8) + 'px';
+    noteContainer.appendChild(note);
+    note.addEventListener('animationend', () => note.remove());
+    setTimeout(spawnNote, 800 + Math.random() * 1200);
+  }
+  setTimeout(spawnNote, 500);
 }
 
 function buildPlaylist() {
