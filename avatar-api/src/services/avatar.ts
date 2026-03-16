@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma';
 import { SaveAvatarRequest } from '../types';
-
-const prisma = new PrismaClient();
 
 export const avatarService = {
   async getByUserId(userId: string) {

@@ -22,6 +22,7 @@ avatarRouter.post('/save', async (req, res) => {
     const avatar = await avatarService.save(req.user!.userId, req.body);
     res.json(avatar);
   } catch (err) {
+    console.error('avatar route error:', err);
     res.status(500).json({ error: 'internal_error' });
   }
 });
@@ -36,6 +37,7 @@ avatarRouter.post('/thumbnail', async (req, res) => {
     });
     res.json({ thumbnailUrl: avatar.thumbnailUrl });
   } catch (err) {
+    console.error('avatar route error:', err);
     res.status(500).json({ error: 'internal_error' });
   }
 });
@@ -62,6 +64,7 @@ avatarRouter.get('/:userId', async (req, res) => {
     }
     res.json(avatar);
   } catch (err) {
+    console.error('avatar route error:', err);
     res.status(500).json({ error: 'internal_error' });
   }
 });

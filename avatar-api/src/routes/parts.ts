@@ -12,6 +12,7 @@ partsRouter.get('/', async (req, res) => {
     const parts = await partsService.list(category);
     res.json(parts);
   } catch (err) {
+    console.error('parts route error:', err);
     res.status(500).json({ error: 'internal_error' });
   }
 });
@@ -29,6 +30,7 @@ partsRouter.get('/:id/glb', async (req, res) => {
     if (err.name === 'NoSuchKey') {
       return res.status(404).json({ error: 'part_not_found' });
     }
+    console.error('storage error:', err);
     res.status(502).json({ error: 'storage_error' });
   }
 });
