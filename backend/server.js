@@ -2448,36 +2448,63 @@ io.on('connection', (socket) => {
   // --- JUKEBOX (globale Musik-Sync) ---
   socket.on('jukebox:join', () => {
     socket.join('jukebox');
-    // Aktuellen State senden
+    // Aktuellen State mit geschätzter Spielzeit senden
     if (global.jukeboxState && global.jukeboxState.videoId) {
-      socket.emit('jukebox:sync', global.jukeboxState);
+      const state = { ...global.jukeboxState };
+      if (state.playing && state.startedAt) {
+        state.time = Math.floor((Date.now() - state.startedAt) / 1000) + (state.timeOffset || 0);
+      }
+      socket.emit('jukebox:sync', state);
     }
   });
 
   socket.on('jukebox:play', (data) => {
     global.jukeboxState = {
       videoId: data.videoId, idx: data.idx, title: data.title,
-      playing: true, time: 0, playlist: data.playlist || global.jukeboxState?.playlist
+      playing: true, time: 0, startedAt: Date.now(), timeOffset: 0,
+      playlist: data.playlist || global.jukeboxState?.playlist || []
     };
     socket.to('jukebox').emit('jukebox:play', data);
   });
 
   socket.on('jukebox:pause', () => {
-    if (global.jukeboxState) global.jukeboxState.playing = false;
+    if (global.jukeboxState) {
+      if (global.jukeboxState.startedAt) {
+        global.jukeboxState.timeOffset = Math.floor((Date.now() - global.jukeboxState.startedAt) / 1000) + (global.jukeboxState.timeOffset || 0);
+      }
+      global.jukeboxState.playing = false;
+      global.jukeboxState.startedAt = null;
+    }
     socket.to('jukebox').emit('jukebox:pause');
   });
 
   socket.on('jukebox:resume', () => {
-    if (global.jukeboxState) global.jukeboxState.playing = true;
+    if (global.jukeboxState) {
+      global.jukeboxState.playing = true;
+      global.jukeboxState.startedAt = Date.now();
+    }
     socket.to('jukebox').emit('jukebox:resume');
   });
 
   socket.on('jukebox:add', (data) => {
-    if (global.jukeboxState && global.jukeboxState.playlist) {
-      const exists = global.jukeboxState.playlist.some(s => s.id === data.videoId);
-      if (!exists) global.jukeboxState.playlist.push({ id: data.videoId, title: data.title });
-    }
+    if (!global.jukeboxState) global.jukeboxState = { playlist: [] };
+    if (!global.jukeboxState.playlist) global.jukeboxState.playlist = [];
+    const exists = global.jukeboxState.playlist.some(s => s.id === data.videoId);
+    if (!exists) global.jukeboxState.playlist.push({ id: data.videoId, title: data.title });
     socket.to('jukebox').emit('jukebox:add', data);
+  });
+
+  // Playlist-Sync: Client sendet seine volle Playlist beim Join
+  socket.on('jukebox:syncPlaylist', (data) => {
+    if (!global.jukeboxState) global.jukeboxState = { playlist: [] };
+    if (data.playlist && data.playlist.length > 0) {
+      // Merge: füge fehlende Songs hinzu
+      for (const song of data.playlist) {
+        if (!global.jukeboxState.playlist.some(s => s.id === song.id)) {
+          global.jukeboxState.playlist.push(song);
+        }
+      }
+    }
   });
 
   // --- CHAT ---

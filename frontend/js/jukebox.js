@@ -129,7 +129,7 @@ function playTrack(idx) {
   updateUI();
   saveState();
   if (jkSocket) {
-    jkSocket.emit('jukebox:play', { videoId: playlist[idx].id, idx, title: playlist[idx].title });
+    jkSocket.emit('jukebox:play', { videoId: playlist[idx].id, idx, title: playlist[idx].title, playlist });
   }
 }
 
@@ -905,6 +905,10 @@ function setupSocketEvents() {
   if (!jkSocket) return;
 
   jkSocket.emit('jukebox:join');
+  // Eigene Playlist an Server senden zum Mergen
+  if (playlist.length > 0) {
+    jkSocket.emit('jukebox:syncPlaylist', { playlist });
+  }
 
   jkSocket.on('jukebox:sync', (data) => {
     if (data.playlist && data.playlist.length > 0) {
