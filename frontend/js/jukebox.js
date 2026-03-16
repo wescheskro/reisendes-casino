@@ -428,6 +428,9 @@ function buildUI() {
       background:rgba(15,8,3,.97);
       border:2px solid rgba(212,175,55,.35);
       box-shadow:0 0 20px rgba(160,120,255,.15),0 8px 32px rgba(0,0,0,.7);
+      max-height:80vh;overflow-y:auto;
+      position:fixed;bottom:12px;left:12px;
+      scrollbar-width:thin;scrollbar-color:rgba(212,175,55,.3) transparent;
     }
     #jukebox.jk-open .jk-img{display:none}
     #jukebox.jk-open .jk-panel{display:block}
