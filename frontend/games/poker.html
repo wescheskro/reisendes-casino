@@ -11,6 +11,16 @@
 <link rel="apple-touch-icon" href="/games/img/icon-192.png">
 <title>Poker – Reisendes Casino</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREEmod from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+window.THREE = Object.assign({}, THREEmod);
+window.THREE.OrbitControls = OrbitControls;
+window.dispatchEvent(new Event('three-ready'));
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;height:100dvh;overflow:hidden;background:#0a0a05;overscroll-behavior:none;-webkit-overflow-scrolling:touch}
@@ -115,8 +125,8 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   display:flex;flex-direction:column;align-items:center;
   line-height:1;z-index:2;
 }
-.card .corner-tl .c-rank{font-size:13px;font-weight:800;font-family:'Playfair Display',serif}
-.card .corner-tl .c-suit{font-size:10px;line-height:1}
+.card .corner-tl .c-rank{font-size:18px;font-weight:800;font-family:'Playfair Display',serif}
+.card .corner-tl .c-suit{font-size:14px;line-height:1}
 /* Corner index – bottom right (rotated) */
 .card .corner-br{
   position:absolute;bottom:3px;right:4px;
@@ -124,11 +134,11 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   line-height:1;z-index:2;
   transform:rotate(180deg);
 }
-.card .corner-br .c-rank{font-size:13px;font-weight:800;font-family:'Playfair Display',serif}
-.card .corner-br .c-suit{font-size:10px;line-height:1}
+.card .corner-br .c-rank{font-size:18px;font-weight:800;font-family:'Playfair Display',serif}
+.card .corner-br .c-suit{font-size:14px;line-height:1}
 /* Center suit – big */
 .card .center-suit{
-  font-size:clamp(24px,4vw,36px);
+  font-size:clamp(30px,5vw,44px);
   z-index:2;
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.08));
 }
@@ -255,6 +265,46 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   border:1.5px solid rgba(139,105,20,.6);
 }
 
+/* ============ AVATARE (3D-Style Premium) ============ */
+.seat-avatar{
+  width:50px;height:50px;
+  margin:0 auto 2px;position:relative;
+  border-radius:50%;overflow:hidden;
+  border:2.5px solid rgba(212,175,55,.35);
+  background:radial-gradient(circle at 30% 30%, rgba(60,50,40,.6), rgba(15,10,8,.8));
+  box-shadow:
+    0 4px 12px rgba(0,0,0,.6),
+    0 1px 3px rgba(0,0,0,.4),
+    inset 0 -2px 6px rgba(0,0,0,.3),
+    inset 0 2px 4px rgba(255,255,255,.05);
+  transform:perspective(200px) rotateX(2deg);
+}
+.seat-avatar img{
+  width:100%;height:100%;object-fit:cover;
+  border-radius:50%;
+  filter:contrast(1.05) saturate(1.1);
+}
+/* 3D Glanz-Effekt */
+.seat-avatar::after{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 45%, rgba(0,0,0,.2) 100%);
+  pointer-events:none;
+}
+.seat.active .seat-avatar{
+  border-color:#F4D03F;
+  box-shadow:
+    0 0 18px rgba(244,208,63,.5),
+    0 0 8px rgba(244,208,63,.25) inset,
+    0 4px 12px rgba(0,0,0,.5);
+  animation:avatar-glow 2s ease-in-out infinite;
+}
+@keyframes avatar-glow{
+  0%,100%{box-shadow:0 0 18px rgba(244,208,63,.5),0 4px 12px rgba(0,0,0,.5)}
+  50%{box-shadow:0 0 28px rgba(244,208,63,.7),0 4px 12px rgba(0,0,0,.5)}
+}
+.seat.folded .seat-avatar{opacity:.3;filter:grayscale(.8) brightness(.7)}
+.seat.empty .seat-avatar{opacity:.08;border-color:rgba(212,175,55,.08)}
+
 /* EMPTY SEAT */
 .seat.empty .seat-inner{opacity:.2}
 .seat.empty:hover .seat-inner{opacity:.55;border-color:rgba(212,175,55,.3)}
@@ -344,10 +394,10 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   line-height:1;z-index:2;
 }
 .my-hand .hand-card-face .h-corner-tl .hc-rank{
-  font-size:40px;font-weight:900;line-height:1;
+  font-size:48px;font-weight:900;line-height:1;
   font-family:'Playfair Display',serif;
 }
-.my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:30px;line-height:1;margin-top:-2px}
+.my-hand .hand-card-face .h-corner-tl .hc-suit{font-size:34px;line-height:1;margin-top:-2px}
 /* Corner bottom-right (upside down) */
 .my-hand .hand-card-face .h-corner-br{
   position:absolute;bottom:12px;right:14px;
@@ -356,10 +406,10 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   transform:rotate(180deg);
 }
 .my-hand .hand-card-face .h-corner-br .hc-rank{
-  font-size:40px;font-weight:900;line-height:1;
+  font-size:48px;font-weight:900;line-height:1;
   font-family:'Playfair Display',serif;
 }
-.my-hand .hand-card-face .h-corner-br .hc-suit{font-size:30px;line-height:1;margin-top:-2px}
+.my-hand .hand-card-face .h-corner-br .hc-suit{font-size:34px;line-height:1;margin-top:-2px}
 /* Center suit – hero */
 .my-hand .hand-card-face .h-center-suit{
   position:absolute;top:50%;left:50%;
@@ -737,6 +787,117 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .bot-style-tag.aggressiv{background:rgba(243,156,18,.2);color:#f39c12}
 .bot-style-tag.verrückt{background:rgba(231,76,60,.2);color:#e74c3c}
 
+/* ============ AVATAR EDITOR ============ */
+.avatar-editor-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,.8);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+}
+.avatar-editor-modal{
+  background:linear-gradient(135deg,#1a1520,#0f0a14);
+  border:2px solid rgba(212,175,55,.3);border-radius:16px;
+  width:100%;max-width:380px;max-height:90vh;overflow-y:auto;
+  padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.8);
+}
+.ave-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.ave-header h3{color:#D4AF37;font-family:'Playfair Display',serif;font-size:18px;margin:0}
+.ave-close{background:none;border:none;color:#888;font-size:20px;cursor:pointer;padding:4px 8px}
+.ave-close:hover{color:#fff}
+.ave-preview{text-align:center;margin-bottom:14px}
+.ave-preview-img{
+  width:100px;height:100px;border-radius:50%;margin:0 auto 8px;
+  border:3px solid rgba(212,175,55,.4);overflow:hidden;
+  background:rgba(20,10,5,.5);box-shadow:0 4px 20px rgba(0,0,0,.5);
+}
+.ave-preview-img img{width:100%;height:100%;object-fit:cover}
+.ave-preview-name{color:#D4AF37;font-size:13px;font-weight:700}
+.ave-tabs{display:flex;gap:4px;margin-bottom:12px}
+.ave-tab{
+  flex:1;padding:8px;border:1px solid rgba(212,175,55,.2);
+  background:rgba(212,175,55,.05);color:#D4AF37;border-radius:8px;
+  font-size:12px;cursor:pointer;font-family:'Playfair Display',serif;
+}
+.ave-tab.active{background:rgba(212,175,55,.2);border-color:rgba(212,175,55,.5)}
+.ave-panel{margin-bottom:12px}
+.ave-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ave-preset{
+  width:100%;aspect-ratio:1;border-radius:12px;cursor:pointer;
+  border:2px solid rgba(212,175,55,.15);background:rgba(20,10,5,.4);
+  overflow:hidden;transition:.2s;padding:4px;
+}
+.ave-preset:hover{border-color:rgba(212,175,55,.5);transform:scale(1.05)}
+.ave-preset.selected{border-color:#F4D03F;box-shadow:0 0 12px rgba(244,208,63,.3)}
+.ave-preset img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.ave-option{margin-bottom:10px}
+.ave-option label{display:block;color:#D4AF37;font-size:11px;margin-bottom:4px;letter-spacing:1px;text-transform:uppercase}
+.ave-colors{display:flex;gap:6px;flex-wrap:wrap}
+.ave-color{
+  width:28px;height:28px;border-radius:50%;cursor:pointer;
+  border:2px solid rgba(255,255,255,.1);transition:.2s;
+}
+.ave-color:hover{transform:scale(1.15)}
+.ave-color.selected{border-color:#F4D03F;box-shadow:0 0 8px rgba(244,208,63,.4)}
+.ave-choices{display:flex;gap:4px;flex-wrap:wrap}
+.ave-choice{
+  padding:4px 10px;border-radius:6px;cursor:pointer;
+  border:1px solid rgba(212,175,55,.15);background:rgba(212,175,55,.05);
+  color:#aaa;font-size:11px;transition:.2s;
+}
+.ave-choice:hover{border-color:rgba(212,175,55,.4);color:#D4AF37}
+.ave-choice.selected{background:rgba(212,175,55,.2);border-color:#F4D03F;color:#F4D03F}
+.ave-save{
+  width:100%;padding:12px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,#D4AF37,#F4D03F);color:#0a0a12;
+  font-size:14px;font-weight:900;cursor:pointer;
+  font-family:'Playfair Display',serif;letter-spacing:1px;
+}
+.ave-save:hover{box-shadow:0 0 20px rgba(244,208,63,.4)}
+/* Avatar-Edit Button am eigenen Seat */
+.seat-avatar-edit{
+  position:absolute;bottom:-2px;right:-2px;
+  width:16px;height:16px;border-radius:50%;
+  background:#D4AF37;color:#000;font-size:8px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:10;border:1.5px solid #0a0a12;
+  box-shadow:0 1px 4px rgba(0,0,0,.5);
+}
+.seat-avatar-edit:hover{background:#F4D03F;transform:scale(1.1)}
+
+/* ============ AVATAR CANVAS CREATOR ============ */
+.acc-canvas-wrap{
+  width:200px;height:200px;margin:0 auto 10px;border-radius:50%;overflow:hidden;
+  border:3px solid rgba(212,175,55,.4);background:rgba(20,10,5,.5);
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+}
+.acc-canvas-wrap canvas{width:100%;height:100%}
+.acc-category{margin-bottom:10px}
+.acc-category label{display:block;color:#D4AF37;font-size:11px;margin-bottom:4px;letter-spacing:1px;text-transform:uppercase}
+.acc-items{display:flex;gap:6px;flex-wrap:wrap}
+.acc-item{
+  width:42px;height:42px;border-radius:8px;cursor:pointer;
+  border:2px solid rgba(212,175,55,.15);background:rgba(20,10,5,.5);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  transition:.2s;
+}
+.acc-item:hover{border-color:rgba(212,175,55,.5);transform:scale(1.1)}
+.acc-item.selected{border-color:#F4D03F;box-shadow:0 0 10px rgba(244,208,63,.3);background:rgba(212,175,55,.15)}
+.acc-item-color{
+  width:28px;height:28px;border-radius:50%;cursor:pointer;
+  border:2px solid rgba(255,255,255,.1);transition:.2s;
+}
+.acc-item-color:hover{transform:scale(1.15)}
+.acc-item-color.selected{border-color:#F4D03F;box-shadow:0 0 8px rgba(244,208,63,.4)}
+.acc-scroll{max-height:320px;overflow-y:auto;padding-right:4px}
+.acc-scroll::-webkit-scrollbar{width:4px}
+.acc-scroll::-webkit-scrollbar-thumb{background:rgba(212,175,55,.3);border-radius:4px}
+/* (old avaturn styles removed) */
+}
+.ave-tab.tab-3d.active{
+  background:linear-gradient(135deg,rgba(212,175,55,.25),rgba(155,89,182,.3));
+  border-color:rgba(155,89,182,.6);
+}
+
 /* ============ VIDEO CHAT (ausklappbar) ============ */
 .vc-fab{
   position:fixed;top:calc(env(safe-area-inset-top, 0px) + 50px);right:8px;z-index:150;
@@ -869,11 +1030,11 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   /* Community Cards – volle Breite */
   .community-cards{gap:4px;padding:0 4px}
   .card{max-width:none;border-radius:6px}
-  .card .corner-tl .c-rank{font-size:12px}
-  .card .corner-tl .c-suit{font-size:9px}
-  .card .corner-br .c-rank{font-size:12px}
-  .card .corner-br .c-suit{font-size:9px}
-  .card .center-suit{font-size:28px}
+  .card .corner-tl .c-rank{font-size:15px}
+  .card .corner-tl .c-suit{font-size:12px}
+  .card .corner-br .c-rank{font-size:15px}
+  .card .corner-br .c-suit{font-size:12px}
+  .card .center-suit{font-size:32px}
   .pot-display{font-size:15px;padding:6px 20px}
   .pot-display .amount{font-size:26px}
 
@@ -932,15 +1093,15 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 @media(max-width:375px){
   .seat{width:clamp(60px,17vw,78px)!important}
   .seat-cards .card{width:22px !important;height:32px !important;flex:0 0 22px !important;font-size:7px;border-radius:3px}
-  .seat-cards .card .corner-tl .c-rank{font-size:6px}
-  .seat-cards .card .corner-tl .c-suit{font-size:4px}
-  .seat-cards .card .center-suit{font-size:9px}
+  .seat-cards .card .corner-tl .c-rank{font-size:8px}
+  .seat-cards .card .corner-tl .c-suit{font-size:6px}
+  .seat-cards .card .center-suit{font-size:11px}
   .seat-cards{min-height:28px;gap:1px}
-  .card .corner-tl .c-rank{font-size:10px}
-  .card .corner-tl .c-suit{font-size:8px}
-  .card .corner-br .c-rank{font-size:10px}
-  .card .corner-br .c-suit{font-size:8px}
-  .card .center-suit{font-size:22px}
+  .card .corner-tl .c-rank{font-size:13px}
+  .card .corner-tl .c-suit{font-size:10px}
+  .card .corner-br .c-rank{font-size:13px}
+  .card .corner-br .c-suit{font-size:10px}
+  .card .center-suit{font-size:26px}
   .btn{padding:10px 12px;font-size:12px}
   .pot-display{font-size:13px;padding:5px 16px}
   .pot-display .amount{font-size:22px}
@@ -1037,6 +1198,22 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   <div class="take-seat-icon">🪑</div>
   <div class="take-seat-text">Nimm deinen Platz ein</div>
   <div class="take-seat-sub">Tippe um mitzuspielen</div>
+</div>
+
+<!-- AVATAR EDITOR MODAL -->
+<div class="avatar-editor-overlay" id="avatarEditor" style="display:none">
+  <div class="avatar-editor-modal">
+    <div class="ave-header">
+      <h3>3D Avatar erstellen</h3>
+      <button class="ave-close" onclick="closeAvatarEditor()">✕</button>
+    </div>
+    <div id="avatar3dContainer" style="width:100%;height:280px;border-radius:12px;overflow:hidden;border:2px solid rgba(212,175,55,.3);background:#0a0a12;position:relative;cursor:grab">
+      <div id="avatar3dHint" style="position:absolute;bottom:8px;left:0;right:0;text-align:center;color:rgba(212,175,55,.4);font-size:10px;pointer-events:none;z-index:2">Drehen mit Maus / Touch</div>
+    </div>
+    <div class="ave-preview-name" id="avePreviewName" style="text-align:center;color:#D4AF37;font-size:13px;font-weight:700;margin:8px 0"></div>
+    <div class="acc-scroll" id="accOptions"></div>
+    <button class="ave-save" onclick="saveAvatar()">Speichern</button>
+  </div>
 </div>
 
 <!-- MEINE HAND (große Karten wie in der Hand) -->
@@ -1528,6 +1705,8 @@ function saveSeatPositions() {
 }
 
 function initSeatDrag(el, seatIdx) {
+  // Im Embed-Mode: kein Dragging
+  if (document.body.classList.contains('embed-mode')) return;
   let isDragging = false;
   let startX, startY, origLeft, origTop;
   let dragMoved = false;
@@ -1589,6 +1768,1261 @@ function initSeatDrag(el, seatIdx) {
 let raiseAmount = 200;
 let turnTimer = null;
 let turnTimerStart = 0;
+
+// ===================== 3D AVATAR CREATOR (Three.js) =====================
+
+const myAvatarConfig = (() => {
+  try { return JSON.parse(localStorage.getItem('pokerAvatar')) || {}; } catch(e) { return {}; }
+})();
+
+// 3D Avatar-Teile Definition
+const AVATAR_PARTS = {
+  skin: ['#f2d3b1','#e8b98a','#d4a67a','#c68e5b','#b87333','#8d5524','#6b3e1f','#4a2a0a'],
+  face: [
+    {id:'round', label:'Rund', icon:'🟡'},
+    {id:'oval', label:'Oval', icon:'🥚'},
+    {id:'square', label:'Eckig', icon:'🟧'},
+    {id:'heart', label:'Herz', icon:'💛'},
+  ],
+  eyes: [
+    {id:'normal', label:'Normal', icon:'👁️'},
+    {id:'happy', label:'Happy', icon:'😊'},
+    {id:'cool', label:'Cool', icon:'😎'},
+    {id:'wink', label:'Zwinkern', icon:'😉'},
+    {id:'angry', label:'Tough', icon:'😠'},
+    {id:'surprised', label:'Überrascht', icon:'😲'},
+    {id:'sleepy', label:'Müde', icon:'😴'},
+    {id:'star', label:'Star', icon:'🤩'},
+  ],
+  eyeColor: ['#4a3728','#1a1a1a','#2d5a27','#1e5aa8','#6b8e23','#8b6914','#4682b4','#2f4f4f'],
+  mouth: [
+    {id:'smile', label:'Lächeln', icon:'😄'},
+    {id:'smirk', label:'Grinsen', icon:'😏'},
+    {id:'serious', label:'Ernst', icon:'😐'},
+    {id:'open', label:'Offen', icon:'😃'},
+    {id:'teeth', label:'Zähne', icon:'😁'},
+    {id:'kiss', label:'Kuss', icon:'😘'},
+  ],
+  nose: [
+    {id:'normal', label:'Normal', icon:'👃'},
+    {id:'small', label:'Klein', icon:'·'},
+    {id:'wide', label:'Breit', icon:'◉'},
+    {id:'pointed', label:'Spitz', icon:'△'},
+  ],
+  hair: [
+    {id:'none', label:'Keine', icon:'🚫'},
+    {id:'short', label:'Kurz', icon:'💇‍♂️'},
+    {id:'spiky', label:'Stachel', icon:'🦔'},
+    {id:'slick', label:'Glatt', icon:'💈'},
+    {id:'curly', label:'Locken', icon:'🌀'},
+    {id:'mohawk', label:'Irokese', icon:'🐓'},
+    {id:'long', label:'Lang', icon:'💇‍♀️'},
+    {id:'bob', label:'Bob', icon:'👩'},
+    {id:'ponytail', label:'Zopf', icon:'🎀'},
+    {id:'afro', label:'Afro', icon:'🌳'},
+    {id:'bun', label:'Dutt', icon:'🍡'},
+    {id:'braids', label:'Zöpfe', icon:'🪢'},
+  ],
+  hairColor: ['#1a1a1a','#2c1810','#8B4513','#d4a03c','#c0392b','#654321','#e8e8e8','#e6c84d','#ff6b35','#9b59b6','#2980b9','#e74c3c'],
+  beard: [
+    {id:'none', label:'Kein', icon:'🚫'},
+    {id:'stubble', label:'3-Tage', icon:'🧔‍♂️'},
+    {id:'short', label:'Kurz', icon:'🧔'},
+    {id:'full', label:'Voll', icon:'🧙'},
+    {id:'goatee', label:'Ziegenbart', icon:'🐐'},
+    {id:'mustache', label:'Schnurrbart', icon:'🥸'},
+    {id:'handlebar', label:'Zwirbelbart', icon:'🎩'},
+  ],
+  accessory: [
+    {id:'none', label:'Keins', icon:'🚫'},
+    {id:'sunglasses', label:'Sonnenbrille', icon:'🕶️'},
+    {id:'glasses', label:'Brille', icon:'👓'},
+    {id:'monocle', label:'Monokel', icon:'🧐'},
+    {id:'eyepatch', label:'Augenklappe', icon:'🏴‍☠️'},
+    {id:'scar', label:'Narbe', icon:'⚔️'},
+  ],
+  hat: [
+    {id:'none', label:'Keins', icon:'🚫'},
+    {id:'tophat', label:'Zylinder', icon:'🎩'},
+    {id:'fedora', label:'Fedora', icon:'🤠'},
+    {id:'crown', label:'Krone', icon:'👑'},
+    {id:'bandana', label:'Bandana', icon:'🏴‍☠️'},
+    {id:'cap', label:'Kappe', icon:'🧢'},
+    {id:'beret', label:'Baskenmütze', icon:'🫒'},
+  ],
+};
+
+// Aktuelle Konfiguration
+let accConfig = {
+  skin:'#f2d3b1', face:'round', eyes:'normal', eyeColor:'#4a3728',
+  mouth:'smile', nose:'normal', hair:'short', hairColor:'#2c1810',
+  beard:'none', accessory:'none', hat:'none'
+};
+
+// ---- Three.js 3D Avatar System ----
+let avatar3d = null; // {scene, camera, renderer, controls, meshes, animId}
+
+function init3DAvatar() {
+  const container = document.getElementById('avatar3dContainer');
+  if (!container || avatar3d) return;
+
+  const w = container.clientWidth || 350;
+  const h = container.clientHeight || 280;
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x0a0a12, 1);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+  container.insertBefore(renderer.domElement, container.firstChild);
+
+  const scene = new THREE.Scene();
+  // Leichter Nebel für Tiefe
+  scene.fog = new THREE.Fog(0x0a0a12, 8, 18);
+
+  const camera = new THREE.PerspectiveCamera(30, w / h, 0.1, 100);
+  camera.position.set(0, 0.0, 5.5);
+  camera.lookAt(0, -0.15, 0);
+
+  // Casino-Beleuchtung
+  const ambientLight = new THREE.AmbientLight(0xfff5e6, 0.4);
+  scene.add(ambientLight);
+
+  // Hauptlicht (warm, von oben-links)
+  const keyLight = new THREE.DirectionalLight(0xfff0d4, 1.2);
+  keyLight.position.set(-2, 4, 3);
+  keyLight.castShadow = true;
+  keyLight.shadow.mapSize.set(512, 512);
+  scene.add(keyLight);
+
+  // Fill-Light (kühler, von rechts)
+  const fillLight = new THREE.DirectionalLight(0xc8d8ff, 0.4);
+  fillLight.position.set(3, 1, 2);
+  scene.add(fillLight);
+
+  // Rim-Light (Gold-Akzent, von hinten)
+  const rimLight = new THREE.DirectionalLight(0xd4af37, 0.6);
+  rimLight.position.set(0, 2, -3);
+  scene.add(rimLight);
+
+  // Boden-Reflex
+  const bottomLight = new THREE.DirectionalLight(0x3a2a1a, 0.2);
+  bottomLight.position.set(0, -3, 0);
+  scene.add(bottomLight);
+
+  // OrbitControls
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.enableZoom = false;
+  controls.enablePan = false;
+  controls.minPolarAngle = Math.PI * 0.3;
+  controls.maxPolarAngle = Math.PI * 0.7;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 1.5;
+
+  // Boden-Plattform
+  const platformGeo = new THREE.CylinderGeometry(1.2, 1.3, 0.08, 32);
+  const platformMat = new THREE.MeshStandardMaterial({
+    color: 0x1a1520, metalness: 0.8, roughness: 0.3,
+  });
+  const platform = new THREE.Mesh(platformGeo, platformMat);
+  platform.position.y = -1.55;
+  platform.receiveShadow = true;
+  scene.add(platform);
+
+  // Gold-Ring um Plattform
+  const ringGeo = new THREE.TorusGeometry(1.25, 0.03, 8, 48);
+  const ringMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.2 });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.position.y = -1.51;
+  ring.rotation.x = Math.PI / 2;
+  scene.add(ring);
+
+  avatar3d = { scene, camera, renderer, controls, meshes: {}, animId: null, container };
+
+  // Ersten Avatar bauen
+  build3DAvatar();
+
+  // Render-Loop
+  function animate() {
+    avatar3d.animId = requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+}
+
+function dispose3DAvatar() {
+  if (!avatar3d) return;
+  cancelAnimationFrame(avatar3d.animId);
+  // Meshes entfernen
+  Object.values(avatar3d.meshes).forEach(m => {
+    if (Array.isArray(m)) m.forEach(mm => { avatar3d.scene.remove(mm); mm.geometry?.dispose(); mm.material?.dispose(); });
+    else { avatar3d.scene.remove(m); m.geometry?.dispose(); m.material?.dispose(); }
+  });
+  avatar3d.renderer.dispose();
+  avatar3d.controls.dispose();
+  avatar3d.renderer.domElement.remove();
+  avatar3d = null;
+}
+
+function build3DAvatar() {
+  if (!avatar3d) return;
+  const { scene, meshes } = avatar3d;
+  const cfg = accConfig;
+
+  // Alte Meshes entfernen
+  Object.values(meshes).forEach(m => {
+    if (Array.isArray(m)) m.forEach(mm => { scene.remove(mm); mm.geometry?.dispose(); mm.material?.dispose(); });
+    else { scene.remove(m); m.geometry?.dispose(); m.material?.dispose(); }
+  });
+  avatar3d.meshes = {};
+
+  // Helper: Mesh erstellen + zur Scene adden
+  const add = (geo, mat, pos, rot, scale) => {
+    const m = new THREE.Mesh(geo, mat);
+    if (pos) m.position.set(pos[0], pos[1], pos[2]);
+    if (rot) m.rotation.set(rot[0], rot[1], rot[2]);
+    if (scale) m.scale.set(scale[0], scale[1], scale[2]);
+    m.castShadow = true;
+    scene.add(m);
+    return m;
+  };
+  const store = (key, obj) => {
+    if (!meshes[key]) meshes[key] = [];
+    if (Array.isArray(obj)) meshes[key].push(...obj);
+    else meshes[key].push(obj);
+  };
+
+  // ---- MATERIALIEN ----
+  const skinColor = new THREE.Color(cfg.skin);
+  const skinMat = new THREE.MeshStandardMaterial({
+    color: skinColor, roughness: 0.55, metalness: 0.0,
+    emissive: skinColor.clone().multiplyScalar(0.08),
+  });
+  const skinMatDark = new THREE.MeshStandardMaterial({
+    color: skinColor.clone().multiplyScalar(0.82), roughness: 0.6, metalness: 0.0,
+    emissive: skinColor.clone().multiplyScalar(0.05),
+  });
+
+  // ---- SHIRT / OBERKÖRPER ----
+  const shirtColor = 0x2a2a3d;
+  const shirtMat = new THREE.MeshStandardMaterial({ color: shirtColor, roughness: 0.65, metalness: 0.05 });
+  const shirtMatDark = new THREE.MeshStandardMaterial({ color: new THREE.Color(shirtColor).multiplyScalar(0.7), roughness: 0.7 });
+
+  // Torso - leicht trapezförmig, breiter oben
+  const torsoGeo = new THREE.CylinderGeometry(0.48, 0.38, 1.15, 20, 1, false);
+  const tPos = torsoGeo.attributes.position;
+  for (let i = 0; i < tPos.count; i++) {
+    const y = tPos.getY(i);
+    const x = tPos.getX(i), z = tPos.getZ(i);
+    // Brust runder machen
+    const chest = Math.max(0, 0.3 - Math.abs(y - 0.2)) * 0.15;
+    // Taille schmaler
+    const waist = Math.max(0, 0.3 - Math.abs(y + 0.1)) * 0.08;
+    const r = Math.sqrt(x*x + z*z);
+    if (r > 0.01) {
+      const factor = 1 + chest - waist;
+      tPos.setX(i, x * factor);
+      tPos.setZ(i, z * factor * (z > 0 ? 1.05 : 0.95));
+    }
+  }
+  tPos.needsUpdate = true;
+  torsoGeo.computeVertexNormals();
+  const torso = add(torsoGeo, shirtMat, [0, -0.95, 0]);
+  store('body', torso);
+
+  // Schultern - rund und breit
+  [-1, 1].forEach(s => {
+    const shGeo = new THREE.SphereGeometry(0.22, 16, 12);
+    shGeo.scale(1.0, 0.8, 0.9);
+    const sh = add(shGeo, shirtMat, [s * 0.46, -0.42, 0]);
+    store('body', sh);
+  });
+
+  // Arme
+  [-1, 1].forEach(s => {
+    // Oberarm
+    const armGeo = new THREE.CylinderGeometry(0.12, 0.10, 0.55, 12);
+    const arm = add(armGeo, shirtMat, [s * 0.58, -0.75, 0], [0, 0, s * 0.12]);
+    store('body', arm);
+    // Unterarm (Haut)
+    const foreGeo = new THREE.CylinderGeometry(0.09, 0.07, 0.35, 12);
+    const fore = add(foreGeo, skinMat, [s * 0.62, -1.15, 0.05], [0.15, 0, s * 0.08]);
+    store('body', fore);
+    // Hand
+    const handGeo = new THREE.SphereGeometry(0.075, 10, 8);
+    handGeo.scale(0.85, 0.6, 1.0);
+    const hand = add(handGeo, skinMat, [s * 0.63, -1.35, 0.08]);
+    store('body', hand);
+  });
+
+  // V-Ausschnitt / Kragen
+  const collarCurve = new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(-0.18, -0.35, 0.42),
+    new THREE.Vector3(0, -0.52, 0.46),
+    new THREE.Vector3(0.18, -0.35, 0.42),
+  );
+  const collarGeo = new THREE.TubeGeometry(collarCurve, 12, 0.022, 8, false);
+  const collar = add(collarGeo, shirtMatDark, null);
+  store('body', collar);
+
+  // ---- HALS ----
+  const neckGeo = new THREE.CylinderGeometry(0.14, 0.17, 0.25, 14);
+  const neck = add(neckGeo, skinMat, [0, -0.22, 0]);
+  store('body', neck);
+
+  // ---- KOPF (Sims-Style) ----
+  const headSeg = 32;
+  let headGeo = new THREE.SphereGeometry(0.58, headSeg, headSeg);
+  const hPos = headGeo.attributes.position;
+  const faceType = cfg.face;
+
+  for (let i = 0; i < hPos.count; i++) {
+    let x = hPos.getX(i), y = hPos.getY(i), z = hPos.getZ(i);
+    const r = Math.sqrt(x*x + z*z);
+
+    // Generelles Kinn/Kiefer formen
+    if (y < -0.1) {
+      const t = (-y - 0.1) / 0.48;
+      const chinNarrow = faceType === 'heart' ? 0.45 : (faceType === 'oval' ? 0.3 : 0.15);
+      x *= 1 - t * chinNarrow;
+      z *= 1 - t * 0.15;
+    }
+
+    // Wangenknochen (leicht breiter auf Augenhöhe)
+    if (y > 0.0 && y < 0.25 && z > 0) {
+      const cheekT = 1 - Math.abs(y - 0.12) / 0.15;
+      x *= 1 + cheekT * 0.06;
+    }
+
+    // Stirn leicht nach vorn
+    if (y > 0.2 && z > 0.2) {
+      z *= 1 + (y - 0.2) * 0.08;
+    }
+
+    // Augen-Mulden (leichte Einbuchtung)
+    [-1, 1].forEach(side => {
+      const ex = side * 0.2, ey = 0.1, ez = 0.45;
+      const dx = x - ex, dy = y - ey, dz = z - ez;
+      const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+      if (dist < 0.15 && z > 0.3) {
+        const indent = (1 - dist / 0.15) * 0.03;
+        z -= indent;
+      }
+    });
+
+    // Face-spezifische Anpassungen
+    if (faceType === 'square') {
+      // Kantiger Kiefer
+      const absX = Math.abs(x);
+      if (y < 0 && y > -0.35) {
+        const sqFactor = Math.max(0, 1 - Math.abs(absX - 0.4) * 3);
+        x += Math.sign(x) * sqFactor * 0.04;
+      }
+    } else if (faceType === 'oval') {
+      // Länger + schmaler
+      y *= 1.08;
+      x *= 0.92;
+    }
+
+    hPos.setXYZ(i, x, y, z);
+  }
+  hPos.needsUpdate = true;
+  headGeo.computeVertexNormals();
+
+  const head = add(headGeo, skinMat, [0, 0.38, 0]);
+  store('head', head);
+
+  // ---- OHREN (detaillierter) ----
+  [-1, 1].forEach(side => {
+    // Äußeres Ohr
+    const earGeo = new THREE.SphereGeometry(0.09, 12, 10);
+    earGeo.scale(0.45, 1.0, 0.7);
+    const ear = add(earGeo, skinMat, [side * 0.55, 0.38, -0.02]);
+    store('head', ear);
+    // Inneres Ohr (dunkler)
+    const innerGeo = new THREE.SphereGeometry(0.055, 10, 8);
+    innerGeo.scale(0.3, 0.75, 0.5);
+    const inner = add(innerGeo, skinMatDark, [side * 0.55, 0.38, 0.01]);
+    store('head', inner);
+  });
+
+  // ---- AUGEN (Sims-Style: groß, ausdrucksstark) ----
+  const eyeY = 0.42, eyeZ = 0.48, eyeSpacing = 0.19;
+  const eyeGroup = [];
+
+  [-1, 1].forEach(side => {
+    const ex = side * eyeSpacing;
+
+    if (cfg.eyes === 'happy') {
+      // Fröhliche geschlossene Augen = Bögen
+      const curve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(ex - side*0.07, eyeY - 0.01, eyeZ + 0.04),
+        new THREE.Vector3(ex, eyeY + 0.04, eyeZ + 0.06),
+        new THREE.Vector3(ex + side*0.07, eyeY - 0.01, eyeZ + 0.04),
+      );
+      const tubeGeo = new THREE.TubeGeometry(curve, 10, 0.015, 8, false);
+      const m = add(tubeGeo, new THREE.MeshStandardMaterial({ color: 0x1a1a1a }), null);
+      eyeGroup.push(m);
+      // Wimpern
+      const lashCurve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(ex - side*0.06, eyeY + 0.02, eyeZ + 0.05),
+        new THREE.Vector3(ex, eyeY + 0.06, eyeZ + 0.06),
+        new THREE.Vector3(ex + side*0.06, eyeY + 0.02, eyeZ + 0.05),
+      );
+      const lashGeo = new THREE.TubeGeometry(lashCurve, 8, 0.008, 6, false);
+      const lash = add(lashGeo, new THREE.MeshStandardMaterial({ color: 0x1a1a1a }), null);
+      eyeGroup.push(lash);
+      return;
+    }
+
+    if (cfg.eyes === 'wink' && side === 1) {
+      const curve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(ex - 0.07, eyeY - 0.01, eyeZ + 0.04),
+        new THREE.Vector3(ex, eyeY + 0.03, eyeZ + 0.06),
+        new THREE.Vector3(ex + 0.07, eyeY - 0.01, eyeZ + 0.04),
+      );
+      const tubeGeo = new THREE.TubeGeometry(curve, 10, 0.015, 8, false);
+      const m = add(tubeGeo, new THREE.MeshStandardMaterial({ color: 0x1a1a1a }), null);
+      eyeGroup.push(m);
+      return;
+    }
+
+    // Augenhöhle (leichte Vertiefung)
+    const socketGeo = new THREE.SphereGeometry(0.11, 14, 12);
+    socketGeo.scale(1.1, 0.8, 0.3);
+    const socket = add(socketGeo, skinMatDark, [ex, eyeY, eyeZ - 0.02]);
+    eyeGroup.push(socket);
+
+    // Augapfel (weiß, größer als vorher)
+    const scaleY = cfg.eyes === 'surprised' ? 1.4 : (cfg.eyes === 'sleepy' ? 0.5 : 0.85);
+    const eyeWGeo = new THREE.SphereGeometry(0.095, 20, 16);
+    const eyeWMat = new THREE.MeshStandardMaterial({
+      color: 0xfafaf5, roughness: 0.05, metalness: 0.0,
+    });
+    const eyeW = add(eyeWGeo, eyeWMat, [ex, eyeY, eyeZ], null, [1.1, scaleY, 0.65]);
+    eyeGroup.push(eyeW);
+
+    // Iris (größer, mit Gradient-Effekt)
+    const irisColor = new THREE.Color(cfg.eyeColor);
+    const irisGeo = new THREE.SphereGeometry(0.055, 18, 14);
+    const irisMat = new THREE.MeshStandardMaterial({
+      color: irisColor, roughness: 0.15, metalness: 0.15,
+      emissive: irisColor.clone().multiplyScalar(0.15),
+    });
+    const iris = add(irisGeo, irisMat, [ex, eyeY, eyeZ + 0.045], null, [1.0, scaleY * 0.95, 0.5]);
+    eyeGroup.push(iris);
+
+    // Iris Ring (dunklerer Rand)
+    const irisRingGeo = new THREE.TorusGeometry(0.048, 0.006, 8, 20);
+    const irisRingMat = new THREE.MeshStandardMaterial({ color: irisColor.clone().multiplyScalar(0.5), roughness: 0.3 });
+    const irisRing = add(irisRingGeo, irisRingMat, [ex, eyeY, eyeZ + 0.06], null, [1.0, scaleY * 0.95, 0.3]);
+    eyeGroup.push(irisRing);
+
+    // Pupille
+    const pupilGeo = new THREE.SphereGeometry(0.028, 14, 12);
+    const pupilMat = new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.0, metalness: 0.0 });
+    const pupil = add(pupilGeo, pupilMat, [ex, eyeY, eyeZ + 0.065], null, [1.0, scaleY * 0.9, 0.4]);
+    eyeGroup.push(pupil);
+
+    // Lichtreflexe (2 Punkte für Lebendigkeit)
+    const reflMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.0 });
+    const refl1Geo = new THREE.SphereGeometry(0.012, 8, 8);
+    const refl1 = add(refl1Geo, reflMat, [ex + 0.025, eyeY + 0.025, eyeZ + 0.075]);
+    eyeGroup.push(refl1);
+    const refl2Geo = new THREE.SphereGeometry(0.006, 6, 6);
+    const refl2 = add(refl2Geo, reflMat, [ex - 0.015, eyeY - 0.01, eyeZ + 0.072]);
+    eyeGroup.push(refl2);
+
+    // Oberes Augenlid
+    const lidGeo = new THREE.SphereGeometry(0.1, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.35);
+    const lidMat = new THREE.MeshStandardMaterial({ color: skinColor.clone().multiplyScalar(0.9), roughness: 0.6 });
+    const lidY = cfg.eyes === 'sleepy' ? eyeY + 0.015 : eyeY + 0.035;
+    const lid = add(lidGeo, lidMat, [ex, lidY, eyeZ + 0.01], [0.2, 0, 0], [1.15, cfg.eyes === 'sleepy' ? 1.2 : 0.7, 0.65]);
+    eyeGroup.push(lid);
+
+    // Wimpern (oberer Lidrand)
+    const lashPts = [];
+    for (let t = 0; t <= 1; t += 0.1) {
+      const a = (t - 0.5) * 1.8;
+      lashPts.push(new THREE.Vector3(
+        ex + Math.sin(a) * 0.1,
+        eyeY + 0.05 + Math.cos(a) * 0.015,
+        eyeZ + 0.045 + Math.cos(a) * 0.01
+      ));
+    }
+    const lashCurve = new THREE.CatmullRomCurve3(lashPts);
+    const lashGeo = new THREE.TubeGeometry(lashCurve, 12, 0.008, 6, false);
+    const lashMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+    const lash = add(lashGeo, lashMat, null);
+    eyeGroup.push(lash);
+
+    // Cool/Star Augen - Overlay
+    if (cfg.eyes === 'cool') {
+      const starGeo = new THREE.SphereGeometry(0.015, 6, 6);
+      const starMat = new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 0.5 });
+      const star = add(starGeo, starMat, [ex, eyeY, eyeZ + 0.078]);
+      eyeGroup.push(star);
+    }
+    if (cfg.eyes === 'star') {
+      // Stern in Pupille
+      for (let p = 0; p < 5; p++) {
+        const angle = (p / 5) * Math.PI * 2 - Math.PI/2;
+        const sGeo = new THREE.ConeGeometry(0.005, 0.02, 4);
+        const sMat = new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 0.8 });
+        const spike = add(sGeo, sMat,
+          [ex + Math.cos(angle)*0.015, eyeY + Math.sin(angle)*0.015, eyeZ + 0.078],
+          [0, 0, angle + Math.PI/2]
+        );
+        eyeGroup.push(spike);
+      }
+    }
+  });
+  meshes.eyes = eyeGroup;
+
+  // ---- AUGENBRAUEN (dicker, natürlicher) ----
+  const browGroup = [];
+  [-1, 1].forEach(side => {
+    const bx = side * eyeSpacing;
+    const angryOffset = cfg.eyes === 'angry' ? side * 0.035 : 0;
+    const browPts = [
+      new THREE.Vector3(bx - side*0.09, eyeY + 0.10, eyeZ + 0.01),
+      new THREE.Vector3(bx - side*0.03, eyeY + 0.13 + angryOffset, eyeZ + 0.025),
+      new THREE.Vector3(bx + side*0.03, eyeY + 0.12 - angryOffset * 0.5, eyeZ + 0.02),
+      new THREE.Vector3(bx + side*0.09, eyeY + 0.09 - angryOffset, eyeZ + 0.01),
+    ];
+    const browCurve = new THREE.CatmullRomCurve3(browPts);
+    const browGeo = new THREE.TubeGeometry(browCurve, 10, 0.022, 8, false);
+    const browColor = new THREE.Color(cfg.hairColor || '#2c1810').multiplyScalar(0.6);
+    const browMat = new THREE.MeshStandardMaterial({ color: browColor, roughness: 0.85 });
+    const brow = add(browGeo, browMat, null);
+    browGroup.push(brow);
+  });
+  meshes.brows = browGroup;
+
+  // ---- NASE (mit Brücke und Spitze) ----
+  const noseGroup = [];
+  const noseMat = new THREE.MeshStandardMaterial({
+    color: skinColor.clone().multiplyScalar(0.93), roughness: 0.6,
+    emissive: skinColor.clone().multiplyScalar(0.04),
+  });
+
+  // Nasenbrücke
+  const bridgePts = [
+    new THREE.Vector3(0, eyeY - 0.03, eyeZ + 0.02),
+    new THREE.Vector3(0, eyeY - 0.10, eyeZ + 0.06),
+    new THREE.Vector3(0, eyeY - 0.17, eyeZ + 0.08),
+  ];
+  const bridgeCurve = new THREE.CatmullRomCurve3(bridgePts);
+  const bThick = cfg.nose === 'wide' ? 0.028 : (cfg.nose === 'small' ? 0.015 : 0.022);
+  const bridgeGeo = new THREE.TubeGeometry(bridgeCurve, 8, bThick, 8, false);
+  const bridge = add(bridgeGeo, noseMat, null);
+  noseGroup.push(bridge);
+
+  // Nasenspitze
+  const tipSize = cfg.nose === 'wide' ? 0.06 : (cfg.nose === 'small' ? 0.035 : 0.048);
+  const tipGeo = new THREE.SphereGeometry(tipSize, 12, 10);
+  if (cfg.nose === 'wide') tipGeo.scale(1.4, 0.8, 0.9);
+  else if (cfg.nose === 'pointed') tipGeo.scale(0.7, 1.2, 1.1);
+  const tip = add(tipGeo, noseMat, [0, eyeY - 0.17, eyeZ + 0.09]);
+  noseGroup.push(tip);
+
+  // Nasenflügel
+  if (cfg.nose !== 'small') {
+    [-1, 1].forEach(s => {
+      const wingGeo = new THREE.SphereGeometry(0.025, 8, 6);
+      wingGeo.scale(1.0, 0.7, 0.8);
+      const wingX = cfg.nose === 'wide' ? s * 0.045 : s * 0.03;
+      const wing = add(wingGeo, noseMat, [wingX, eyeY - 0.18, eyeZ + 0.065]);
+      noseGroup.push(wing);
+    });
+  }
+  meshes.nose = noseGroup;
+
+  // ---- MUND (Lippen, Sims-Style) ----
+  const mouthGroup = [];
+  const mouthY = eyeY - 0.30;
+  const lipColor = skinColor.clone().multiplyScalar(0.7);
+  const lipColorLight = skinColor.clone().lerp(new THREE.Color(0xcc6666), 0.3);
+  const upperLipMat = new THREE.MeshStandardMaterial({ color: lipColor, roughness: 0.4 });
+  const lowerLipMat = new THREE.MeshStandardMaterial({ color: lipColorLight, roughness: 0.35, metalness: 0.05 });
+
+  if (cfg.mouth === 'kiss') {
+    // Kussmund
+    const kissGeo = new THREE.TorusGeometry(0.04, 0.02, 10, 16);
+    const kissMat = new THREE.MeshStandardMaterial({ color: 0xcc4444, roughness: 0.3, metalness: 0.05 });
+    const kiss = add(kissGeo, kissMat, [0, mouthY, eyeZ + 0.065]);
+    mouthGroup.push(kiss);
+  } else if (cfg.mouth === 'open' || cfg.mouth === 'teeth') {
+    // Offener Mund
+    const openGeo = new THREE.SphereGeometry(0.06, 14, 10);
+    openGeo.scale(1.6, cfg.mouth === 'teeth' ? 0.7 : 1.0, 0.45);
+    const openMat = new THREE.MeshStandardMaterial({ color: 0x1a0505, roughness: 0.9 });
+    const open = add(openGeo, openMat, [0, mouthY, eyeZ + 0.04]);
+    mouthGroup.push(open);
+    // Oberlippe
+    const ulPts = [];
+    for (let t = 0; t <= 1; t += 0.1) {
+      const a = (t - 0.5) * 2.5;
+      const cupid = t > 0.35 && t < 0.65 ? 0.012 : 0;
+      ulPts.push(new THREE.Vector3(Math.sin(a) * 0.09, mouthY + 0.035 + Math.cos(a) * 0.008 + cupid, eyeZ + 0.05 + Math.cos(a) * 0.01));
+    }
+    const ulCurve = new THREE.CatmullRomCurve3(ulPts);
+    const ulGeo = new THREE.TubeGeometry(ulCurve, 12, 0.014, 8, false);
+    const ul = add(ulGeo, upperLipMat, null);
+    mouthGroup.push(ul);
+    if (cfg.mouth === 'teeth') {
+      const tGeo = new THREE.BoxGeometry(0.13, 0.028, 0.025, 6, 1, 1);
+      const tMat = new THREE.MeshStandardMaterial({ color: 0xf8f8f0, roughness: 0.15 });
+      const t = add(tGeo, tMat, [0, mouthY + 0.025, eyeZ + 0.05]);
+      mouthGroup.push(t);
+    }
+  } else {
+    // Oberlippe mit Amorbogen
+    const upperPts = [];
+    const smileAmt = cfg.mouth === 'smile' ? 0.025 : (cfg.mouth === 'smirk' ? 0.015 : 0);
+    for (let t = 0; t <= 1; t += 0.08) {
+      const a = (t - 0.5) * 2.8;
+      const cupid = (t > 0.38 && t < 0.62) ? Math.sin((t - 0.38) / 0.24 * Math.PI) * 0.012 : 0;
+      const smirk = cfg.mouth === 'smirk' ? t * 0.02 : 0;
+      upperPts.push(new THREE.Vector3(
+        Math.sin(a) * 0.1,
+        mouthY + 0.01 + cupid - smileAmt * Math.cos(a * 1.2) + smirk,
+        eyeZ + 0.06 + Math.cos(a) * 0.008
+      ));
+    }
+    const upperCurve = new THREE.CatmullRomCurve3(upperPts);
+    const upperGeo = new THREE.TubeGeometry(upperCurve, 14, 0.013, 8, false);
+    const upper = add(upperGeo, upperLipMat, null);
+    mouthGroup.push(upper);
+
+    // Unterlippe (voller)
+    const lowerPts = [];
+    for (let t = 0; t <= 1; t += 0.08) {
+      const a = (t - 0.5) * 2.4;
+      const smirk = cfg.mouth === 'smirk' ? t * 0.015 : 0;
+      lowerPts.push(new THREE.Vector3(
+        Math.sin(a) * 0.085,
+        mouthY - 0.01 - Math.cos(a) * 0.008 - smileAmt * Math.cos(a * 1.2) + smirk,
+        eyeZ + 0.06 + Math.cos(a) * 0.006
+      ));
+    }
+    const lowerCurve = new THREE.CatmullRomCurve3(lowerPts);
+    const lowerGeo = new THREE.TubeGeometry(lowerCurve, 14, 0.016, 8, false);
+    const lower = add(lowerGeo, lowerLipMat, null);
+    mouthGroup.push(lower);
+  }
+  meshes.mouth = mouthGroup;
+
+  // ---- HAARE (volumetrisch, Sims-Style) ----
+  if (cfg.hair !== 'none') {
+    const hc = new THREE.Color(cfg.hairColor || '#2c1810');
+    const hairMat = new THREE.MeshStandardMaterial({ color: hc, roughness: 0.7, metalness: 0.05 });
+    const hairMatShiny = new THREE.MeshStandardMaterial({ color: hc.clone().multiplyScalar(1.1), roughness: 0.5, metalness: 0.1 });
+    const hairMatDark = new THREE.MeshStandardMaterial({ color: hc.clone().multiplyScalar(0.7), roughness: 0.8 });
+    const hairGroup = [];
+    const headY = 0.38;
+
+    if (cfg.hair === 'short') {
+      // Kurze Haare - eng anliegend, mit Textur
+      const topGeo = new THREE.SphereGeometry(0.6, 24, 20, 0, Math.PI*2, 0, Math.PI*0.55);
+      const top = add(topGeo, hairMat, [0, headY + 0.02, -0.02]);
+      hairGroup.push(top);
+      // Seitliche Volumenschicht
+      [-1, 1].forEach(s => {
+        const sGeo = new THREE.SphereGeometry(0.15, 10, 8);
+        sGeo.scale(0.5, 1.2, 0.85);
+        const side = add(sGeo, hairMatDark, [s * 0.5, headY, 0.02]);
+        hairGroup.push(side);
+      });
+    } else if (cfg.hair === 'spiky') {
+      // Basis
+      const baseGeo = new THREE.SphereGeometry(0.59, 20, 16, 0, Math.PI*2, 0, Math.PI*0.45);
+      const base = add(baseGeo, hairMat, [0, headY + 0.02, 0]);
+      hairGroup.push(base);
+      // Spikes - mehr, dynamischer
+      for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
+        const h = 0.2 + Math.random() * 0.15;
+        const sGeo = new THREE.ConeGeometry(0.05 + Math.random()*0.02, h, 6);
+        const spike = add(sGeo, i % 2 === 0 ? hairMat : hairMatShiny,
+          [Math.cos(angle)*0.25, headY + 0.55 + Math.random()*0.08, Math.sin(angle)*0.2],
+          [Math.sin(angle)*0.3, 0, -Math.cos(angle)*0.2]
+        );
+        hairGroup.push(spike);
+      }
+    } else if (cfg.hair === 'slick') {
+      // Slick back - glatt, glänzend
+      const topGeo = new THREE.SphereGeometry(0.6, 24, 18, 0, Math.PI*2, 0, Math.PI*0.5);
+      const top = add(topGeo, hairMatShiny, [0, headY + 0.02, -0.03]);
+      hairGroup.push(top);
+      // Zurückgekämmte Seiten
+      [-1, 1].forEach(s => {
+        const sGeo = new THREE.SphereGeometry(0.14, 12, 10);
+        sGeo.scale(0.5, 1.4, 0.9);
+        const side = add(sGeo, hairMatShiny, [s * 0.5, headY - 0.02, -0.05]);
+        hairGroup.push(side);
+      });
+      // Nacken
+      const nGeo = new THREE.SphereGeometry(0.2, 12, 10);
+      nGeo.scale(1.2, 1.0, 0.6);
+      const nk = add(nGeo, hairMat, [0, headY - 0.15, -0.45]);
+      hairGroup.push(nk);
+    } else if (cfg.hair === 'curly') {
+      // Locken - viele kleine Kugeln für Volumen
+      for (let ring = 0; ring < 3; ring++) {
+        const rr = 0.5 - ring * 0.05;
+        const yy = headY + 0.35 - ring * 0.18;
+        const count = 10 + ring * 2;
+        for (let i = 0; i < count; i++) {
+          const a = (i / count) * Math.PI * 2;
+          const cGeo = new THREE.SphereGeometry(0.08 + Math.random()*0.03, 8, 6);
+          const mat = Math.random() > 0.5 ? hairMat : hairMatDark;
+          const curl = add(cGeo, mat, [Math.cos(a)*rr, yy, Math.sin(a)*rr*0.95]);
+          hairGroup.push(curl);
+        }
+      }
+      // Top-Volumen
+      const topGeo = new THREE.SphereGeometry(0.45, 16, 12);
+      const top = add(topGeo, hairMat, [0, headY + 0.35, -0.05]);
+      hairGroup.push(top);
+    } else if (cfg.hair === 'mohawk') {
+      // Mohawk - Kamm aus Kegeln
+      const baseGeo = new THREE.SphereGeometry(0.59, 16, 12, 0, Math.PI*2, 0, Math.PI*0.35);
+      const base = add(baseGeo, hairMatDark, [0, headY + 0.02, 0]);
+      hairGroup.push(base);
+      for (let i = 0; i < 8; i++) {
+        const t = i / 7;
+        const mGeo = new THREE.ConeGeometry(0.04 + (1 - Math.abs(t - 0.5)*2) * 0.03, 0.3 + (1-Math.abs(t-0.4)*2)*0.1, 6);
+        const spike = add(mGeo, hairMat, [0, headY + 0.65 + (1-Math.abs(t-0.4)*2)*0.08, -0.3 + t*0.6]);
+        hairGroup.push(spike);
+      }
+    } else if (cfg.hair === 'long') {
+      // Lange Haare - fließend
+      const topGeo = new THREE.SphereGeometry(0.61, 24, 18, 0, Math.PI*2, 0, Math.PI*0.52);
+      const top = add(topGeo, hairMat, [0, headY + 0.02, -0.02]);
+      hairGroup.push(top);
+      [-1, 1].forEach(s => {
+        // Seitensträhnen
+        for (let i = 0; i < 3; i++) {
+          const strandGeo = new THREE.CylinderGeometry(0.08 - i*0.01, 0.04, 0.7 + i*0.1, 10);
+          const strand = add(strandGeo, i === 1 ? hairMatShiny : hairMat,
+            [s * (0.48 - i*0.08), headY - 0.35 - i*0.05, -0.05 - i*0.08]
+          );
+          hairGroup.push(strand);
+        }
+      });
+      // Rücken-Haare
+      const backGeo = new THREE.CylinderGeometry(0.2, 0.1, 0.8, 12);
+      const back = add(backGeo, hairMat, [0, headY - 0.3, -0.4], [0.2, 0, 0]);
+      hairGroup.push(back);
+    } else if (cfg.hair === 'afro') {
+      // Afro - Volumen aber Gesicht frei
+      const aGeo = new THREE.SphereGeometry(0.68, 24, 20, 0, Math.PI*2, 0, Math.PI*0.75);
+      const afro = add(aGeo, hairMat, [0, headY + 0.08, -0.03]);
+      hairGroup.push(afro);
+      // Seiten-Volumen
+      [-1, 1].forEach(s => {
+        const sGeo = new THREE.SphereGeometry(0.25, 12, 10);
+        sGeo.scale(0.7, 1.1, 0.9);
+        const side = add(sGeo, hairMatDark, [s * 0.5, headY + 0.05, -0.05]);
+        hairGroup.push(side);
+      });
+      // Textur-Kugeln (nur oben + hinten, nicht vor dem Gesicht)
+      for (let i = 0; i < 15; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const p = Math.random() * Math.PI * 0.5;
+        const r = 0.62 + Math.random() * 0.08;
+        const bGeo = new THREE.SphereGeometry(0.05 + Math.random()*0.03, 6, 5);
+        const bx = Math.sin(p)*Math.cos(a)*r;
+        const bz = Math.sin(p)*Math.sin(a)*r;
+        if (bz > 0.35) continue; // Nicht vor dem Gesicht
+        const bump = add(bGeo, Math.random() > 0.5 ? hairMat : hairMatDark,
+          [bx, headY + 0.08 + Math.cos(p)*r, bz]
+        );
+        hairGroup.push(bump);
+      }
+    } else if (cfg.hair === 'bob') {
+      // Bob - knapp über Schultern
+      const topGeo = new THREE.SphereGeometry(0.6, 24, 18, 0, Math.PI*2, 0, Math.PI*0.55);
+      const top = add(topGeo, hairMat, [0, headY + 0.02, -0.01]);
+      hairGroup.push(top);
+      [-1, 1].forEach(s => {
+        const sGeo = new THREE.SphereGeometry(0.18, 14, 10);
+        sGeo.scale(0.65, 1.5, 0.95);
+        const side = add(sGeo, hairMat, [s * 0.45, headY - 0.1, 0.05]);
+        hairGroup.push(side);
+        // Innere Schicht
+        const iGeo = new THREE.SphereGeometry(0.14, 10, 8);
+        iGeo.scale(0.6, 1.3, 0.8);
+        const inner = add(iGeo, hairMatDark, [s * 0.42, headY - 0.12, 0.1]);
+        hairGroup.push(inner);
+      });
+      // Hinterkopf
+      const bkGeo = new THREE.SphereGeometry(0.25, 14, 10);
+      bkGeo.scale(1.3, 1.2, 0.7);
+      const bk = add(bkGeo, hairMat, [0, headY - 0.05, -0.38]);
+      hairGroup.push(bk);
+    } else if (cfg.hair === 'ponytail') {
+      const topGeo = new THREE.SphereGeometry(0.6, 24, 18, 0, Math.PI*2, 0, Math.PI*0.52);
+      const top = add(topGeo, hairMat, [0, headY + 0.02, -0.02]);
+      hairGroup.push(top);
+      // Zopf - mehrere Segmente
+      for (let i = 0; i < 5; i++) {
+        const tGeo = new THREE.SphereGeometry(0.06 - i * 0.005, 8, 6);
+        tGeo.scale(1.0, 1.3, 0.8);
+        const seg = add(tGeo, i % 2 === 0 ? hairMat : hairMatShiny,
+          [0, headY + 0.2 - i * 0.14, -0.52 - i * 0.04],
+          [0.1 * i, 0, 0]
+        );
+        hairGroup.push(seg);
+      }
+      // Haargummi
+      const bandGeo = new THREE.TorusGeometry(0.07, 0.018, 8, 14);
+      const bandMat = new THREE.MeshStandardMaterial({ color: 0xc0392b, metalness: 0.3, roughness: 0.4 });
+      const band = add(bandGeo, bandMat, [0, headY + 0.28, -0.48], [0.5, 0, 0]);
+      hairGroup.push(band);
+    } else if (cfg.hair === 'bun') {
+      const topGeo = new THREE.SphereGeometry(0.6, 24, 18, 0, Math.PI*2, 0, Math.PI*0.52);
+      const top = add(topGeo, hairMat, [0, headY + 0.02, -0.02]);
+      hairGroup.push(top);
+      // Dutt
+      const bunGeo = new THREE.SphereGeometry(0.16, 14, 12);
+      const bun = add(bunGeo, hairMatShiny, [0, headY + 0.5, -0.15]);
+      hairGroup.push(bun);
+      // Dutt-Wicklung
+      const wrapGeo = new THREE.TorusGeometry(0.12, 0.025, 8, 16);
+      const wrap = add(wrapGeo, hairMat, [0, headY + 0.5, -0.15], [0.3, 0, 0]);
+      hairGroup.push(wrap);
+    } else if (cfg.hair === 'braids') {
+      const topGeo = new THREE.SphereGeometry(0.6, 24, 18, 0, Math.PI*2, 0, Math.PI*0.52);
+      const top = add(topGeo, hairMat, [0, headY + 0.02, -0.02]);
+      hairGroup.push(top);
+      [-1, 1].forEach(s => {
+        // Zopf aus verflochten wirkenden Segmenten
+        for (let i = 0; i < 7; i++) {
+          const bGeo = new THREE.SphereGeometry(0.04 + (1 - i/7) * 0.01, 8, 6);
+          bGeo.scale(1.0, 0.9, 0.8);
+          const mat = i % 2 === 0 ? hairMat : hairMatShiny;
+          const seg = add(bGeo, mat,
+            [s * (0.46 + Math.sin(i*0.8)*0.02), headY + 0.05 - i * 0.13, -0.08],
+          );
+          hairGroup.push(seg);
+        }
+        // Haargummi am Ende
+        const tipGeo = new THREE.SphereGeometry(0.025, 8, 6);
+        const tipMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8 });
+        const tipBead = add(tipGeo, tipMat, [s * 0.46, headY - 0.82, -0.08]);
+        hairGroup.push(tipBead);
+      });
+    }
+    meshes.hair = hairGroup;
+  }
+
+  // ---- BART ----
+  if (cfg.beard !== 'none') {
+    const bc = new THREE.Color(cfg.hairColor || '#2c1810');
+    const beardMat = new THREE.MeshStandardMaterial({ color: bc, roughness: 0.8, transparent: true, opacity: 0.92 });
+    const beardMatDark = new THREE.MeshStandardMaterial({ color: bc.clone().multiplyScalar(0.7), roughness: 0.85, transparent: true, opacity: 0.85 });
+    const beardGroup = [];
+    const chinY = eyeY - 0.35;
+
+    if (cfg.beard === 'stubble') {
+      const sGeo = new THREE.SphereGeometry(0.38, 18, 14, 0, Math.PI*2, Math.PI*0.45, Math.PI*0.35);
+      const stubMat = new THREE.MeshStandardMaterial({ color: bc, roughness: 0.95, transparent: true, opacity: 0.25 });
+      const stub = add(sGeo, stubMat, [0, 0.25, 0.12]);
+      beardGroup.push(stub);
+    } else if (cfg.beard === 'short') {
+      const bGeo = new THREE.SphereGeometry(0.38, 18, 14, 0, Math.PI*2, Math.PI*0.42, Math.PI*0.38);
+      const beard = add(bGeo, beardMat, [0, 0.22, 0.08]);
+      beardGroup.push(beard);
+    } else if (cfg.beard === 'full') {
+      // Voller Bart - mehrere Schichten
+      const bGeo = new THREE.SphereGeometry(0.48, 20, 16, 0, Math.PI*2, Math.PI*0.4, Math.PI*0.4);
+      const beard = add(bGeo, beardMat, [0, 0.28, 0.06]);
+      beardGroup.push(beard);
+      // Kinn-Extension
+      const chinGeo = new THREE.SphereGeometry(0.15, 12, 10);
+      chinGeo.scale(1.3, 1.5, 0.9);
+      const chin = add(chinGeo, beardMatDark, [0, chinY - 0.1, 0.35]);
+      beardGroup.push(chin);
+    } else if (cfg.beard === 'goatee') {
+      const gGeo = new THREE.ConeGeometry(0.07, 0.18, 10);
+      const goat = add(gGeo, beardMat, [0, chinY - 0.05, 0.42]);
+      beardGroup.push(goat);
+      // Kinnbasis
+      const cGeo = new THREE.SphereGeometry(0.05, 8, 6);
+      cGeo.scale(1.5, 0.8, 0.8);
+      const base = add(cGeo, beardMat, [0, chinY + 0.02, 0.44]);
+      beardGroup.push(base);
+    } else if (cfg.beard === 'mustache' || cfg.beard === 'handlebar') {
+      const width = cfg.beard === 'handlebar' ? 0.22 : 0.14;
+      const mPts = [
+        new THREE.Vector3(-width, eyeY - 0.22, eyeZ + 0.04),
+        new THREE.Vector3(-width * 0.4, eyeY - 0.21, eyeZ + 0.06),
+        new THREE.Vector3(0, eyeY - 0.23, eyeZ + 0.07),
+        new THREE.Vector3(width * 0.4, eyeY - 0.21, eyeZ + 0.06),
+        new THREE.Vector3(width, eyeY - 0.22, eyeZ + 0.04),
+      ];
+      if (cfg.beard === 'handlebar') {
+        mPts[0].y -= 0.04;
+        mPts[4].y -= 0.04;
+      }
+      const mCurve = new THREE.CatmullRomCurve3(mPts);
+      const mGeo = new THREE.TubeGeometry(mCurve, 14, 0.025, 8, false);
+      const must = add(mGeo, beardMat, null);
+      beardGroup.push(must);
+    }
+    meshes.beard = beardGroup;
+  }
+
+  // ---- ACCESSOIRE ----
+  if (cfg.accessory === 'sunglasses' || cfg.accessory === 'glasses') {
+    const isSun = cfg.accessory === 'sunglasses';
+    const frameMat = new THREE.MeshStandardMaterial({
+      color: isSun ? 0x1a1a1a : 0x8B7355, metalness: 0.7, roughness: 0.25
+    });
+    const lensMat = isSun
+      ? new THREE.MeshStandardMaterial({ color: 0x0a0a15, roughness: 0.05, metalness: 0.9, transparent: true, opacity: 0.85 })
+      : frameMat;
+    const glassGroup = [];
+
+    [-1, 1].forEach(s => {
+      if (isSun) {
+        // Aviator-Style
+        const lGeo = new THREE.SphereGeometry(0.09, 14, 12);
+        lGeo.scale(1.1, 0.9, 0.15);
+        const lens = add(lGeo, lensMat, [s * eyeSpacing, eyeY, eyeZ + 0.05]);
+        glassGroup.push(lens);
+      } else {
+        const lGeo = new THREE.TorusGeometry(0.085, 0.008, 8, 20);
+        const lens = add(lGeo, frameMat, [s * eyeSpacing, eyeY, eyeZ + 0.06]);
+        glassGroup.push(lens);
+      }
+      // Bügel
+      const templeCurve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(s * (eyeSpacing + 0.09), eyeY, eyeZ + 0.04),
+        new THREE.Vector3(s * 0.5, eyeY, 0.2),
+        new THREE.Vector3(s * 0.48, eyeY - 0.05, -0.15),
+      );
+      const templeGeo = new THREE.TubeGeometry(templeCurve, 12, 0.005, 6, false);
+      const temple = add(templeGeo, frameMat, null);
+      glassGroup.push(temple);
+    });
+    // Bridge
+    const bCurve = new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(-eyeSpacing + 0.06, eyeY, eyeZ + 0.06),
+      new THREE.Vector3(0, eyeY - 0.01, eyeZ + 0.07),
+      new THREE.Vector3(eyeSpacing - 0.06, eyeY, eyeZ + 0.06),
+    );
+    const bGeo = new THREE.TubeGeometry(bCurve, 8, 0.005, 6, false);
+    const br = add(bGeo, frameMat, null);
+    glassGroup.push(br);
+    meshes.accessory = glassGroup;
+  } else if (cfg.accessory === 'monocle') {
+    const monMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.15 });
+    const monGeo = new THREE.TorusGeometry(0.09, 0.006, 10, 28);
+    const mon = add(monGeo, monMat, [eyeSpacing, eyeY, eyeZ + 0.07]);
+    // Glas
+    const glassGeo = new THREE.CircleGeometry(0.085, 20);
+    const glassMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.1, metalness: 0.3, roughness: 0.0 });
+    const glass = add(glassGeo, glassMat, [eyeSpacing, eyeY, eyeZ + 0.068]);
+    // Kette
+    const chainPts = [
+      new THREE.Vector3(eyeSpacing, eyeY - 0.09, eyeZ + 0.06),
+      new THREE.Vector3(eyeSpacing + 0.05, eyeY - 0.25, eyeZ),
+      new THREE.Vector3(0.12, -0.15, 0.4),
+      new THREE.Vector3(0.08, -0.35, 0.35),
+    ];
+    const chainCurve = new THREE.CatmullRomCurve3(chainPts);
+    const chainGeo = new THREE.TubeGeometry(chainCurve, 16, 0.004, 4, false);
+    const chain = add(chainGeo, monMat, null);
+    meshes.accessory = [mon, glass, chain];
+  } else if (cfg.accessory === 'eyepatch') {
+    const patchMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.85 });
+    const patchGeo = new THREE.CircleGeometry(0.1, 14);
+    const patch = add(patchGeo, patchMat, [-eyeSpacing, eyeY, eyeZ + 0.07]);
+    const strapPts = [
+      new THREE.Vector3(-eyeSpacing - 0.08, eyeY + 0.02, eyeZ + 0.04),
+      new THREE.Vector3(-0.3, eyeY + 0.15, 0.1),
+      new THREE.Vector3(0, eyeY + 0.18, -0.3),
+      new THREE.Vector3(0.3, eyeY + 0.1, 0.15),
+      new THREE.Vector3(eyeSpacing + 0.1, eyeY, eyeZ + 0.02),
+    ];
+    const strapCurve = new THREE.CatmullRomCurve3(strapPts);
+    const strapGeo = new THREE.TubeGeometry(strapCurve, 20, 0.008, 6, false);
+    const strapMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+    const strap = add(strapGeo, strapMat, null);
+    meshes.accessory = [patch, strap];
+  } else if (cfg.accessory === 'scar') {
+    const scarPts = [
+      new THREE.Vector3(-eyeSpacing + 0.05, eyeY + 0.15, eyeZ + 0.03),
+      new THREE.Vector3(-eyeSpacing + 0.02, eyeY, eyeZ + 0.07),
+      new THREE.Vector3(-eyeSpacing - 0.02, eyeY - 0.15, eyeZ + 0.04),
+    ];
+    const scarCurve = new THREE.CatmullRomCurve3(scarPts);
+    const scarGeo = new THREE.TubeGeometry(scarCurve, 12, 0.012, 6, false);
+    const scarMat = new THREE.MeshStandardMaterial({ color: 0xb83030, roughness: 0.5, emissive: 0x330000, emissiveIntensity: 0.2 });
+    const scar = add(scarGeo, scarMat, null);
+    meshes.accessory = [scar];
+  }
+
+  // ---- HUT ----
+  if (cfg.hat !== 'none') {
+    const hatGroup = [];
+    const hatY = 0.38;
+    if (cfg.hat === 'tophat') {
+      const hatMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.25, metalness: 0.25 });
+      const brimGeo = new THREE.CylinderGeometry(0.58, 0.56, 0.04, 28);
+      const brim = add(brimGeo, hatMat, [0, hatY + 0.42, 0]);
+      hatGroup.push(brim);
+      const topGeo = new THREE.CylinderGeometry(0.32, 0.34, 0.55, 24);
+      const top = add(topGeo, hatMat, [0, hatY + 0.72, 0]);
+      hatGroup.push(top);
+      // Deckel
+      const capGeo = new THREE.CircleGeometry(0.32, 24);
+      const cap = add(capGeo, hatMat, [0, hatY + 0.995, 0], [-Math.PI/2, 0, 0]);
+      hatGroup.push(cap);
+      // Goldband
+      const bandGeo = new THREE.CylinderGeometry(0.345, 0.345, 0.045, 24);
+      const bandMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.15 });
+      const band = add(bandGeo, bandMat, [0, hatY + 0.48, 0]);
+      hatGroup.push(band);
+    } else if (cfg.hat === 'fedora') {
+      const hatMat = new THREE.MeshStandardMaterial({ color: 0x5C4033, roughness: 0.45 });
+      const brimGeo = new THREE.CylinderGeometry(0.62, 0.58, 0.035, 28);
+      const brim = add(brimGeo, hatMat, [0, hatY + 0.38, 0]);
+      hatGroup.push(brim);
+      // Hutform mit Delle
+      const crownGeo = new THREE.SphereGeometry(0.36, 20, 14, 0, Math.PI*2, 0, Math.PI*0.5);
+      const crPos = crownGeo.attributes.position;
+      for (let i = 0; i < crPos.count; i++) {
+        const y = crPos.getY(i);
+        if (y > 0.2) {
+          const z = crPos.getZ(i);
+          crPos.setY(i, y - Math.abs(z) * 0.15);
+        }
+      }
+      crPos.needsUpdate = true;
+      crownGeo.computeVertexNormals();
+      const crown = add(crownGeo, hatMat, [0, hatY + 0.4, 0]);
+      hatGroup.push(crown);
+      const bandGeo = new THREE.CylinderGeometry(0.37, 0.37, 0.035, 20);
+      const bandMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.15 });
+      const band = add(bandGeo, bandMat, [0, hatY + 0.41, 0]);
+      hatGroup.push(band);
+    } else if (cfg.hat === 'crown') {
+      const crownMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.12 });
+      const baseGeo = new THREE.CylinderGeometry(0.37, 0.4, 0.18, 20);
+      const base = add(baseGeo, crownMat, [0, hatY + 0.45, 0]);
+      hatGroup.push(base);
+      // Zacken (5 große, 5 kleine dazwischen)
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2;
+        const sGeo = new THREE.ConeGeometry(0.04, 0.14, 6);
+        const spike = add(sGeo, crownMat, [Math.cos(a)*0.34, hatY + 0.62, Math.sin(a)*0.34]);
+        hatGroup.push(spike);
+        // kleine Zacke dazwischen
+        const a2 = a + Math.PI / 5;
+        const sGeo2 = new THREE.ConeGeometry(0.025, 0.08, 5);
+        const spike2 = add(sGeo2, crownMat, [Math.cos(a2)*0.34, hatY + 0.58, Math.sin(a2)*0.34]);
+        hatGroup.push(spike2);
+      }
+      // Juwelen
+      const jewColors = [0xe74c3c, 0x2ecc71, 0x3498db, 0x9b59b6, 0xe67e22];
+      for (let i = 0; i < 5; i++) {
+        const a = (i/5)*Math.PI*2 + Math.PI/5;
+        const jGeo = new THREE.SphereGeometry(0.028, 10, 8);
+        const jMat = new THREE.MeshStandardMaterial({ color: jewColors[i], emissive: jewColors[i], emissiveIntensity: 0.4, roughness: 0.05 });
+        const jewel = add(jGeo, jMat, [Math.cos(a)*0.38, hatY + 0.46, Math.sin(a)*0.38]);
+        hatGroup.push(jewel);
+      }
+      // Samtpolster oben
+      const velvetGeo = new THREE.CircleGeometry(0.35, 20);
+      const velvetMat = new THREE.MeshStandardMaterial({ color: 0x8b0000, roughness: 0.8 });
+      const velvet = add(velvetGeo, velvetMat, [0, hatY + 0.54, 0], [-Math.PI/2, 0, 0]);
+      hatGroup.push(velvet);
+    } else if (cfg.hat === 'bandana') {
+      const bandMat = new THREE.MeshStandardMaterial({ color: 0xc0392b, roughness: 0.65 });
+      const bandGeo = new THREE.SphereGeometry(0.6, 18, 10, 0, Math.PI*2, 0, Math.PI*0.35);
+      const band = add(bandGeo, bandMat, [0, hatY + 0.02, 0]);
+      hatGroup.push(band);
+      // Knoten hinten
+      [-1, 1].forEach(s => {
+        const kGeo = new THREE.CylinderGeometry(0.02, 0.01, 0.15, 6);
+        const knot = add(kGeo, bandMat, [s * 0.08, hatY + 0.15, -0.55], [0.5, s * 0.3, 0]);
+        hatGroup.push(knot);
+      });
+    } else if (cfg.hat === 'cap') {
+      const capMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.55 });
+      const capGeo = new THREE.SphereGeometry(0.61, 18, 14, 0, Math.PI*2, 0, Math.PI*0.4);
+      const cap = add(capGeo, capMat, [0, hatY + 0.02, 0]);
+      hatGroup.push(cap);
+      // Schirm (besser geformt)
+      const visorGeo = new THREE.CircleGeometry(0.38, 18, 0, Math.PI);
+      const visor = add(visorGeo, capMat, [0, hatY + 0.32, 0.42], [-1.15, 0, 0]);
+      hatGroup.push(visor);
+      // Button oben
+      const btnGeo = new THREE.SphereGeometry(0.03, 8, 6);
+      const btn = add(btnGeo, capMat, [0, hatY + 0.57, 0]);
+      hatGroup.push(btn);
+    } else if (cfg.hat === 'beret') {
+      const bMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.65 });
+      const bGeo = new THREE.SphereGeometry(0.42, 18, 14);
+      bGeo.scale(1.3, 0.4, 1.15);
+      const beret = add(bGeo, bMat, [-0.06, hatY + 0.4, 0]);
+      hatGroup.push(beret);
+      // Nippel oben
+      const nGeo = new THREE.SphereGeometry(0.025, 8, 6);
+      const nipple = add(nGeo, bMat, [-0.06, hatY + 0.55, 0]);
+      hatGroup.push(nipple);
+    }
+    meshes.hat = hatGroup;
+  }
+}
+
+// Thumbnail für Seat generieren
+function capture3DThumbnail() {
+  if (!avatar3d) return null;
+  const { renderer, scene, camera, controls } = avatar3d;
+  // Rotation stoppen und frontal ausrichten
+  const oldAutoRotate = controls.autoRotate;
+  controls.autoRotate = false;
+  camera.position.set(0, 0.3, 4.5);
+  camera.lookAt(0, 0.1, 0);
+  controls.update();
+  renderer.render(scene, camera);
+  const url = renderer.domElement.toDataURL('image/png');
+  controls.autoRotate = oldAutoRotate;
+  return url;
+}
+
+// ---- Avatar URL (DataURL) ----
+function getAvatarUrl(username, serverAvatarUrl) {
+  if (serverAvatarUrl) return serverAvatarUrl;
+  if (myAvatarConfig.url && username === (myAvatarConfig.forName || '')) {
+    return myAvatarConfig.url;
+  }
+  // Fallback: einfacher farbiger Kreis mit Initiale
+  return generateSimpleAvatar(username);
+}
+
+function generateSimpleAvatar(username) {
+  const c = document.createElement('canvas');
+  c.width = 100; c.height = 100;
+  const ctx = c.getContext('2d');
+  let hash = 0;
+  for (let i = 0; i < username.length; i++) hash = ((hash << 5) - hash + username.charCodeAt(i)) | 0;
+  const hue = Math.abs(hash) % 360;
+  ctx.fillStyle = `hsl(${hue}, 40%, 30%)`;
+  ctx.beginPath();
+  ctx.arc(50, 50, 50, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#F0E6D3';
+  ctx.font = 'bold 40px Playfair Display, serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText((username[0] || '?').toUpperCase(), 50, 52);
+  return c.toDataURL('image/png');
+}
+
+function renderAvatar(username, isYou, serverAvatarUrl) {
+  const url = getAvatarUrl(username, isYou ? null : serverAvatarUrl);
+  const editBtn = isYou ? '<div class="seat-avatar-edit" onclick="event.stopPropagation();openAvatarEditor()">✎</div>' : '';
+  return `<div class="seat-avatar" style="position:relative"><img src="${url}" alt="${username}" loading="lazy">${editBtn}</div>`;
+}
+
+// ---- Avatar Editor UI ----
+function openAvatarEditor() {
+  const editor = document.getElementById('avatarEditor');
+  editor.style.display = 'flex';
+  const name = localStorage.getItem('pokerPlayerName') || 'Spieler';
+  document.getElementById('avePreviewName').textContent = name;
+  if (myAvatarConfig.config) Object.assign(accConfig, myAvatarConfig.config);
+  renderAccOptions();
+  // 3D initialisieren (kurzes Delay damit Container sichtbar ist)
+  const startInit = () => setTimeout(() => init3DAvatar(), 50);
+  if (typeof THREE !== 'undefined') { startInit(); }
+  else { window.addEventListener('three-ready', startInit, { once: true }); }
+}
+
+function closeAvatarEditor() {
+  dispose3DAvatar();
+  document.getElementById('avatarEditor').style.display = 'none';
+}
+
+function renderAccOptions() {
+  const container = document.getElementById('accOptions');
+  let html = '';
+  // Hautfarbe
+  html += `<div class="acc-category"><label>Hautfarbe</label><div class="acc-items">`;
+  AVATAR_PARTS.skin.forEach(c => {
+    html += `<div class="acc-item-color ${accConfig.skin===c?'selected':''}" style="background:${c}" onclick="accSet('skin','${c}',this,'color')"></div>`;
+  });
+  html += `</div></div>`;
+  html += buildItemCategory('Gesicht', 'face', AVATAR_PARTS.face);
+  html += buildItemCategory('Augen', 'eyes', AVATAR_PARTS.eyes);
+  html += `<div class="acc-category"><label>Augenfarbe</label><div class="acc-items">`;
+  AVATAR_PARTS.eyeColor.forEach(c => {
+    html += `<div class="acc-item-color ${accConfig.eyeColor===c?'selected':''}" style="background:${c}" onclick="accSet('eyeColor','${c}',this,'color')"></div>`;
+  });
+  html += `</div></div>`;
+  html += buildItemCategory('Nase', 'nose', AVATAR_PARTS.nose);
+  html += buildItemCategory('Mund', 'mouth', AVATAR_PARTS.mouth);
+  html += buildItemCategory('Frisur', 'hair', AVATAR_PARTS.hair);
+  html += `<div class="acc-category"><label>Haarfarbe</label><div class="acc-items">`;
+  AVATAR_PARTS.hairColor.forEach(c => {
+    html += `<div class="acc-item-color ${accConfig.hairColor===c?'selected':''}" style="background:${c}" onclick="accSet('hairColor','${c}',this,'color')"></div>`;
+  });
+  html += `</div></div>`;
+  html += buildItemCategory('Bart', 'beard', AVATAR_PARTS.beard);
+  html += buildItemCategory('Accessoire', 'accessory', AVATAR_PARTS.accessory);
+  html += buildItemCategory('Kopfbedeckung', 'hat', AVATAR_PARTS.hat);
+  container.innerHTML = html;
+}
+
+function buildItemCategory(label, key, items) {
+  let html = `<div class="acc-category"><label>${label}</label><div class="acc-items">`;
+  items.forEach(item => {
+    html += `<div class="acc-item ${accConfig[key]===item.id?'selected':''}" onclick="accSet('${key}','${item.id}',this,'item')" title="${item.label}">${item.icon}</div>`;
+  });
+  html += `</div></div>`;
+  return html;
+}
+
+function accSet(key, value, el, type) {
+  accConfig[key] = value;
+  if (type === 'color') {
+    el.parentElement.querySelectorAll('.acc-item-color').forEach(c => c.classList.remove('selected'));
+  } else {
+    el.parentElement.querySelectorAll('.acc-item').forEach(c => c.classList.remove('selected'));
+  }
+  el.classList.add('selected');
+  // 3D Avatar neu bauen
+  build3DAvatar();
+}
+
+function saveAvatar() {
+  const thumbnailUrl = capture3DThumbnail();
+  const name = localStorage.getItem('pokerPlayerName') || 'Spieler';
+  myAvatarConfig.url = thumbnailUrl;
+  myAvatarConfig.forName = name;
+  myAvatarConfig.config = {...accConfig};
+  localStorage.setItem('pokerAvatar', JSON.stringify(myAvatarConfig));
+
+  if (socket && socket.connected) {
+    socket.emit('poker:setAvatar', { avatarUrl: thumbnailUrl });
+  }
+
+  closeAvatarEditor();
+  if (myState) renderState(myState);
+}
 
 // ===================== CARD RENDERING =====================
 function renderCard(c) {
@@ -1661,7 +3095,7 @@ function renderState(state) {
   if (!wasMyTurn && isNowMyTurn && state.phase !== 'waiting') PokerSFX.yourTurn();
 
   // Pot
-  document.getElementById('potAmount').textContent = state.pot.toLocaleString('de-DE');
+  document.getElementById('potAmount').textContent = state.pot.toLocaleString('de-DE') + ' ₿';
 
   // Community cards with animation
   const cc = document.getElementById('communityCards');
@@ -1690,9 +3124,11 @@ function renderState(state) {
       div.className = 'seat';
       div.setAttribute('data-pos', i);
       container.appendChild(div);
-      // Gespeicherte Position laden
-      const saved = seatPositions[i];
-      if (saved) { div.style.top = saved.top; div.style.left = saved.left; }
+      // Gespeicherte Position laden (nicht im Embed-Mode)
+      if (!document.body.classList.contains('embed-mode')) {
+        const saved = seatPositions[i];
+        if (saved) { div.style.top = saved.top; div.style.left = saved.left; }
+      }
       // Drag initialisieren
       initSeatDrag(div, i);
     }
@@ -1713,23 +3149,26 @@ function renderState(state) {
     // Inhalt aktualisieren
     if (!s) {
       div.innerHTML = `<div class="seat-inner">
+        <div class="seat-avatar"><img src="https://api.dicebear.com/9.x/shapes/svg?seed=empty&backgroundColor=transparent" alt="" loading="lazy"></div>
         <div class="seat-cards"></div>
         <div class="seat-name">Freier Platz</div>
       </div>`;
       div.onclick = (e) => { if (!div._dragMoved) joinSeat(i); };
     } else {
       const dealerChip = s.isDealer ? '<div class="dealer-chip">D</div>' : '';
-      const betBubble = s.bet > 0 ? `<div class="seat-bet-bubble">${s.bet.toLocaleString('de-DE')}</div>` : '';
+      const betBubble = s.bet > 0 ? `<div class="seat-bet-bubble">${s.bet.toLocaleString('de-DE')} ₿</div>` : '';
       const handName = s.handName ? `<div class="seat-hand">${s.handName}</div>` : '';
       const foldedLabel = s.folded ? '<div style="font-size:10px;color:#d44;margin-top:2px">Gepasst</div>' : '';
       const botBadge = s.isBot ? `<span class="bot-badge">KI</span>` : '';
       const botStyle = s.isBot && s.botStyle ? `<div class="bot-style-tag ${s.botStyle}">${s.botStyle}</div>` : '';
 
+      const avatarHTML = renderAvatar(s.username, s.isYou, s.avatarUrl);
       div.innerHTML = `<div class="seat-inner" style="position:relative">
         ${dealerChip}
+        ${avatarHTML}
         <div class="seat-cards">${s.cards.map(renderCard).join('')}</div>
         <div class="seat-name">${s.username}${s.isYou ? ' (Du)' : ''}${botBadge}</div>
-        <div class="seat-chips">💰 ${(s.chips || 0).toLocaleString('de-DE')}</div>
+        <div class="seat-chips">💰 ${(s.chips || 0).toLocaleString('de-DE')} ₿</div>
         ${botStyle}${betBubble}${handName}${foldedLabel}
       </div>`;
       div.onclick = null;
@@ -1841,6 +3280,8 @@ function updatePeekState() {
 }
 
 function updateMyHand(state) {
+  // Im Embed-Mode: simulierte Karten nicht überschreiben
+  if (document.body.classList.contains('embed-mode')) return;
   const handEl = document.getElementById('myHand');
   const labelEl = document.querySelector('.my-hand-label');
   const me = state.seats.find(s => s && s.isYou);
@@ -1867,8 +3308,8 @@ function updateMyHand(state) {
   html += `<div class="hand-flip-both" ontouchstart="flipAllCards(true, event)" ontouchend="flipAllCards(false, event)" onmousedown="flipAllCards(true, event)" onmouseup="flipAllCards(false, event)" onmouseleave="flipAllCards(false, event)">👁</div>`;
 
   // Chips-Info zwischen den Karten
-  const chipsStr = (me.chips || 0).toLocaleString('de-DE');
-  const betStr = me.bet > 0 ? `<div class="hand-bet">Einsatz: ${me.bet.toLocaleString('de-DE')}</div>` : '';
+  const chipsStr = (me.chips || 0).toLocaleString('de-DE') + ' ₿';
+  const betStr = me.bet > 0 ? `<div class="hand-bet">Einsatz: ${me.bet.toLocaleString('de-DE')} ₿</div>` : '';
   html += `<div class="hand-info">
     <div class="hand-chips">💰 ${chipsStr}</div>
     ${betStr}
@@ -2003,10 +3444,10 @@ function renderControls(state) {
     html += `<button class="btn btn-check" onclick="doCheck()">✓ Schieben</button>`;
   } else {
     const callAmt = Math.min(toCall, myChips);
-    html += `<button class="btn btn-call" onclick="doCall()">📞 Mitgehen ${callAmt.toLocaleString('de-DE')}</button>`;
+    html += `<button class="btn btn-call" onclick="doCall()">📞 Mitgehen ${callAmt.toLocaleString('de-DE')} ₿</button>`;
   }
   if (myChips > 0) {
-    html += `<button class="btn btn-allin" onclick="doAllIn()">🔥 Alles (${myChips.toLocaleString('de-DE')})</button>`;
+    html += `<button class="btn btn-allin" onclick="doAllIn()">🔥 Alles (${myChips.toLocaleString('de-DE')} ₿)</button>`;
   }
   html += '</div>';
 
@@ -2018,7 +3459,7 @@ function renderControls(state) {
     const maxR = myChips;
     if (raiseAmount < minR) raiseAmount = minR;
     if (raiseAmount > maxR) raiseAmount = maxR;
-    html += `<button class="btn btn-raise" onclick="doRaise()">⬆ ${raiseAmount.toLocaleString('de-DE')}</button>`;
+    html += `<button class="btn btn-raise" onclick="doRaise()">⬆ ${raiseAmount.toLocaleString('de-DE')} ₿</button>`;
     html += `<input type="range" class="chip-slider" min="${minR}" max="${maxR}" step="50" value="${raiseAmount}"
       oninput="updateRaise(this.value)">`;
   }
@@ -2029,7 +3470,8 @@ function renderControls(state) {
 
 // ===================== ACTIONS =====================
 function joinSeat(seat) {
-  socket.emit('poker:join', { tableId, seat });
+  const myAvatar = myAvatarConfig.url || null;
+  socket.emit('poker:join', { tableId, seat, avatarUrl: myAvatar });
   // Sofort "Nimm Platz" ausblenden
   document.getElementById('takeSeatArea').classList.add('hidden');
   document.getElementById('controls').style.display = '';
@@ -2055,7 +3497,7 @@ function updateRaise(val) {
   raiseAmount = parseInt(val);
   // Erhöhen-Button Text aktualisieren
   const raiseBtn = document.querySelector('.btn-raise');
-  if (raiseBtn) raiseBtn.textContent = '⬆ ' + raiseAmount.toLocaleString('de-DE');
+  if (raiseBtn) raiseBtn.textContent = '⬆ ' + raiseAmount.toLocaleString('de-DE') + ' ₿';
 }
 function doAllIn() {
   PokerSFX.raise();
@@ -2190,8 +3632,119 @@ function setupSocketEvents() {
 const bgImg = new Image();
 bgImg.src = '/games/img/poker-bg.png';
 
+// ===================== EMBED MODE =====================
+const isEmbedMode = new URLSearchParams(location.search).get('embed') === '1';
+
+if (isEmbedMode) {
+  document.body.classList.add('embed-mode');
+  // Embed-Mode CSS: kompakter, kein Chat, keine Buttons
+  const embedCSS = document.createElement('style');
+  embedCSS.textContent = `
+    body.embed-mode .top-bar { height: 28px !important; padding: 0 6px !important; }
+    body.embed-mode .top-bar h1 { font-size: 11px !important; }
+    body.embed-mode .top-bar .table-sub { display: none !important; }
+    body.embed-mode .back-btn { display: none !important; }
+    body.embed-mode .bot-controls { display: none !important; }
+    body.embed-mode .chat-btn { display: none !important; }
+    body.embed-mode #chatBox { display: none !important; }
+    body.embed-mode .vc-btn { display: none !important; }
+    body.embed-mode .hand-label { font-size: 8px !important; }
+    body.embed-mode #nameOverlay { display: none !important; }
+    body.embed-mode .action-bar { display: none !important; }
+    body.embed-mode .my-hand {
+      position: fixed !important;
+      bottom: 0 !important; left: 0 !important; right: 0 !important;
+      height: auto !important; min-height: 0 !important;
+      padding: 8px 12px 14px !important;
+      background: linear-gradient(0deg, rgba(10,10,18,.95) 0%, rgba(10,10,18,.6) 100%) !important;
+      z-index: 100 !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: flex-end !important;
+      gap: 8px !important;
+      opacity: 0 !important;
+      transform: translateY(40px) !important;
+      transition: opacity .5s ease, transform .5s ease !important;
+    }
+    body.embed-mode .my-hand.visible {
+      opacity: 1 !important;
+      transform: translateY(0) !important;
+    }
+    body.embed-mode .my-hand .hand-label { display: none !important; }
+    body.embed-mode .my-hand .hand-card-wrap {
+      width: 70px !important; height: 100px !important;
+      pointer-events: none !important;
+    }
+    body.embed-mode .my-hand .hand-card-wrap:nth-child(1) { transform: rotate(-6deg) translateY(-4px) !important; }
+    body.embed-mode .my-hand .hand-card-wrap:nth-child(2) { transform: rotate(6deg) translateY(-4px) !important; }
+    body.embed-mode .my-hand .hand-card-face,
+    body.embed-mode .my-hand .hand-card-back {
+      border-radius: 8px !important;
+      border-width: 2px !important;
+    }
+    body.embed-mode .my-hand .hand-card-face .hc-rank { font-size: 22px !important; }
+    body.embed-mode .my-hand .hand-card-face .hc-suit { font-size: 20px !important; }
+    body.embed-mode .my-hand .hand-card-face .h-center-suit { font-size: 28px !important; }
+    body.embed-mode .my-hand .hand-card-face .h-corner-tl { padding: 4px !important; }
+    body.embed-mode .my-hand .hand-card-face .h-corner-br { padding: 4px !important; }
+    body.embed-mode .my-hand .hand-name { font-size: 9px !important; padding: 2px 6px !important; }
+    body.embed-mode .seat.you { display: none !important; }
+    body.embed-mode .take-seat-area { display: none !important; }
+    body.embed-mode #controls { display: none !important; }
+    body.embed-mode .seat.empty .seat-cards::after { display: none !important; }
+    body.embed-mode .seat.empty:hover .seat-inner { opacity: .2 !important; cursor: default !important; }
+    body.embed-mode .seat.empty { pointer-events: none !important; }
+    /* Seats im Embed fixieren – kein Dragging, feste Positionen */
+    body.embed-mode .seat { cursor: default !important; pointer-events: none !important; touch-action: auto !important; }
+    body.embed-mode .seat[data-pos="0"] { top: 34% !important; left: 10% !important; }
+    body.embed-mode .seat[data-pos="1"] { top: 29% !important; left: 30% !important; }
+    body.embed-mode .seat[data-pos="2"] { top: 27% !important; left: 50% !important; }
+    body.embed-mode .seat[data-pos="3"] { top: 29% !important; left: 70% !important; }
+    body.embed-mode .seat[data-pos="4"] { top: 34% !important; left: 90% !important; }
+    body.embed-mode .seat[data-pos="5"] { top: 31% !important; left: 50% !important; }
+    body.embed-mode .seats-container { position: fixed !important; inset: 0 !important; }
+  `;
+  document.head.appendChild(embedCSS);
+}
+
 // Starte: Prüfe ob Name vorhanden
 (function() {
+  if (isEmbedMode) {
+    // Im Embed-Modus: als Zuschauer starten, Bots spielen lassen
+    startGame('Zuschauer');
+    let embedBotsAdded = false;
+    const waitForSocket = setInterval(() => {
+      if (socket && socket.connected) {
+        clearInterval(waitForSocket);
+        // Bots hinzufügen
+        setTimeout(() => { socket.emit('poker:addBot', { tableId }); }, 500);
+        setTimeout(() => { socket.emit('poker:addBot', { tableId }); }, 1000);
+        setTimeout(() => { socket.emit('poker:addBot', { tableId }); }, 1500);
+        setTimeout(() => { socket.emit('poker:addBot', { tableId }); }, 2000);
+
+        // Simulierte eigene Karten unten anzeigen (aufgedeckt)
+        setTimeout(() => {
+          const handEl = document.getElementById('myHand');
+          if (handEl) {
+            handEl.classList.add('visible');
+            // Karten direkt aufgedeckt rendern (ohne flipped-Klasse)
+            handEl.innerHTML = `
+              <div class="hand-card-wrap" data-card-idx="0">
+                <div class="hand-card-face"><div class="h-corner-tl"><span class="hc-rank">A</span><span class="hc-suit">♠</span></div><span class="h-center-suit">♠</span><div class="h-corner-br"><span class="hc-rank">A</span><span class="hc-suit">♠</span></div></div>
+                <div class="hand-card-back"></div>
+              </div>
+              <div class="hand-card-wrap" data-card-idx="1">
+                <div class="hand-card-face red"><div class="h-corner-tl"><span class="hc-rank">K</span><span class="hc-suit">♥</span></div><span class="h-center-suit">♥</span><div class="h-corner-br"><span class="hc-rank">K</span><span class="hc-suit">♥</span></div></div>
+                <div class="hand-card-back"></div>
+              </div>
+            `;
+          }
+        }, 3000);
+      }
+    }, 200);
+    return;
+  }
+
   const savedName = localStorage.getItem('pokerPlayerName');
   if (token || savedName) {
     startGame(savedName);
@@ -2490,6 +4043,8 @@ function removePeer(peerId) {
 
 // (RTC Socket Events + Drag-System sind jetzt in setupSocketEvents() bzw. initSeatDrag() integriert)
 </script>
+<script src="/js/baxt-coins.js"></script>
+<script src="/js/friends.js"></script>
 <script src="/js/jukebox.js"></script>
 </body>
 </html>

@@ -787,15 +787,34 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
 }
 .mute-btn:hover{opacity:1;border-color:#D4AF37}
 
-/* ========== ROTATE PHONE OVERLAY ========== */
+/* ========== ROTATE PHONE OVERLAY (alt, nicht mehr blockierend) ========== */
 .rotate-overlay{
-  display:none;position:fixed;inset:0;z-index:99999;
-  background:#000;
-  flex-direction:column;align-items:center;justify-content:center;
-  color:#D4AF37;font-family:'Cinzel',serif;text-align:center;
+  display:none;
 }
-.rotate-overlay .rotate-icon{
-  font-size:64px;margin-bottom:20px;
+
+/* ========== ROTATE HINT TOAST ========== */
+.rotate-hint{
+  display:none;
+  position:fixed;
+  bottom:24px;left:50%;transform:translateX(-50%);
+  z-index:99999;
+  background:rgba(10,10,18,0.92);
+  border:1px solid rgba(212,175,55,0.4);
+  border-radius:16px;
+  padding:14px 24px;
+  color:#D4AF37;
+  font-family:'Cinzel',serif;
+  text-align:center;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  box-shadow:0 8px 32px rgba(0,0,0,0.6);
+  animation:hintSlideUp .5s ease-out;
+  cursor:pointer;
+  max-width:90vw;
+}
+.rotate-hint .hint-icon{
+  font-size:32px;margin-bottom:6px;
+  display:inline-block;
   animation:rotateHint 2s ease-in-out infinite;
 }
 @keyframes rotateHint{
@@ -804,18 +823,37 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   50%{transform:rotate(-90deg)}
   75%{transform:rotate(0deg)}
 }
-.rotate-overlay .rotate-text{
-  font-size:18px;letter-spacing:2px;
+@keyframes hintSlideUp{
+  from{opacity:0;transform:translateX(-50%) translateY(30px)}
+  to{opacity:1;transform:translateX(-50%) translateY(0)}
 }
-.rotate-overlay .rotate-sub{
-  font-size:12px;color:rgba(212,175,55,.5);margin-top:8px;
+@keyframes hintFadeOut{
+  from{opacity:1;transform:translateX(-50%) translateY(0)}
+  to{opacity:0;transform:translateX(-50%) translateY(30px)}
+}
+.rotate-hint .hint-text{
+  font-size:14px;letter-spacing:1px;
+}
+.rotate-hint .hint-sub{
+  font-size:10px;color:rgba(212,175,55,.45);margin-top:4px;
 }
 
-/* Show rotate overlay only in portrait on small screens */
+/* Hint nur im Portrait auf kleinen Screens zeigen */
 @media(max-width:600px) and (orientation:portrait){
-  .rotate-overlay{display:flex}
-  .game-wrap{display:none !important}
+  .rotate-hint.show{display:block}
 }
+/* Embed-Modus: kein Rotate-Overlay, Spiel immer sichtbar */
+body.embed-mode .rotate-overlay{display:none !important}
+body.embed-mode .rotate-hint{display:none !important}
+body.embed-mode .game-wrap{display:flex !important}
+body.embed-mode .fs-splash{display:none !important}
+body.embed-mode .top-bar{height:28px;padding:0 6px}
+body.embed-mode .top-bar h1{font-size:12px !important}
+body.embed-mode .top-bar .sub{display:none}
+body.embed-mode .back-btn{display:none}
+body.embed-mode .bal-display{padding:1px 6px}
+body.embed-mode .bal-display .bv{font-size:14px}
+body.embed-mode .bal-display .bl{font-size:6px}
 
 /* ========== RESPONSIVE - Landscape Mobile ========== */
 @media(max-height:500px){
@@ -992,11 +1030,11 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   </div>
 </div>
 
-<!-- ========== ROTATE PHONE OVERLAY ========== -->
-<div class="rotate-overlay">
-  <div class="rotate-icon">📱</div>
-  <div class="rotate-text">Dreh dein Handy!</div>
-  <div class="rotate-sub">Querformat für das beste Spielerlebnis</div>
+<!-- ========== ROTATE HINT (leichter Toast) ========== -->
+<div class="rotate-hint" id="rotateHint" onclick="dismissRotateHint()">
+  <div class="hint-icon">📱</div>
+  <div class="hint-text">Dreh dein Handy!</div>
+  <div class="hint-sub">Querformat für das beste Erlebnis · Tippe zum Schließen</div>
 </div>
 
 <!-- ========== BACKGROUND ========== -->
@@ -1024,7 +1062,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
     </div>
     <div class="bal-display">
       <div class="bl">GUTHABEN</div>
-      <div class="bv" id="balVal">10.000 €</div>
+      <div class="bv" id="balVal">10.000 ₿</div>
     </div>
     <button class="mute-btn" id="muteBtn" onclick="toggleMute()" title="Ton an/aus">🔊</button>
     <button class="fullscreen-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Vollbild">⛶</button>
@@ -1120,7 +1158,7 @@ body{font-family:'Cinzel',serif;color:#fff;display:flex;align-items:center;justi
   <div class="fs-total-overlay" id="fsTotalOverlay">
     <div class="fs-total-title">FREISPIELE BEENDET</div>
     <div class="fs-total-label">BARO GEWINN!</div>
-    <div class="fs-total-amount" id="fsTotalAmount">0 €</div>
+    <div class="fs-total-amount" id="fsTotalAmount">0 ₿</div>
     <div class="fs-total-sub">Gesamtgewinn aus Freispielen</div>
   </div>
 
@@ -3082,7 +3120,7 @@ function showBigWin(amount) {
   overlay.classList.add('show');
   // Animate amount counting up
   const el = document.getElementById('bwAmount');
-  el.textContent = '0';
+  el.textContent = '0 ₿';
   let current = 0;
   const step = Math.max(1, Math.floor(amount / 40));
   const countUp = setInterval(() => {
@@ -3210,7 +3248,7 @@ async function showFreeSpinTotal(amount) {
   playDjangoViolin(6);
 
   // Count up animation
-  el.textContent = '0 €';
+  el.textContent = '0 ₿';
   let current = 0;
   const step = Math.max(1, Math.floor(amount / 60));
   const countUp = setInterval(() => {
@@ -3617,9 +3655,9 @@ function enableGambleBtns(on) {
   }
 }
 
-// Euro-Formatierung mit Tausenderpunkt
+// Formatierung mit Tausenderpunkt + Baxt-Symbol
 function fmtEuro(n) {
-  return n.toLocaleString('de-DE') + ' €';
+  return n.toLocaleString('de-DE') + ' ₿';
 }
 
 function updateUI() {
@@ -3967,11 +4005,56 @@ window.addEventListener('resize', () => {
   setTimeout(checkFullscreenSplash, 200);
 });
 
+// ===== EMBED MODE =====
+if (new URLSearchParams(window.location.search).get('embed') === '1') {
+  document.body.classList.add('embed-mode');
+}
+
+// ===== ROTATE HINT (leichter Toast) =====
+function dismissRotateHint() {
+  const hint = document.getElementById('rotateHint');
+  if (!hint) return;
+  hint.style.animation = 'hintFadeOut .4s ease-in forwards';
+  setTimeout(() => { hint.classList.remove('show'); hint.style.animation = ''; }, 400);
+  sessionStorage.setItem('rotateHintDismissed', '1');
+}
+
+function showRotateHint() {
+  if (document.body.classList.contains('embed-mode')) return;
+  if (sessionStorage.getItem('rotateHintDismissed')) return;
+  const hint = document.getElementById('rotateHint');
+  if (!hint) return;
+  // Nur im Portrait zeigen
+  if (window.innerWidth <= 600 && window.innerHeight > window.innerWidth) {
+    hint.classList.add('show');
+    // Nach 6 Sekunden automatisch ausblenden
+    setTimeout(() => {
+      if (hint.classList.contains('show')) dismissRotateHint();
+    }, 6000);
+  }
+}
+
+// Bei Orientierungswechsel zu Landscape → Hint sofort weg
+window.addEventListener('orientationchange', () => {
+  const hint = document.getElementById('rotateHint');
+  if (hint) { hint.classList.remove('show'); }
+});
+window.matchMedia('(orientation:landscape)').addEventListener('change', e => {
+  if (e.matches) {
+    const hint = document.getElementById('rotateHint');
+    if (hint) hint.classList.remove('show');
+  }
+});
+
 // ===== START =====
 window.addEventListener('DOMContentLoaded', () => {
   fixMobileHeight();
   init();
-  checkFullscreenSplash();
+  if (!document.body.classList.contains('embed-mode')) {
+    checkFullscreenSplash();
+    // Rotate-Hint nach kurzem Delay zeigen
+    setTimeout(showRotateHint, 800);
+  }
 });
 window.addEventListener('load', () => { setTimeout(onResize, 100); fixMobileHeight(); });
 
@@ -3993,6 +4076,8 @@ function submitToLeaderboard(winAmount) {
 }
 </script>
 <script src="/socket.io/socket.io.js"></script>
+<script src="/js/baxt-coins.js"></script>
+<script src="/js/friends.js"></script>
 <script src="/js/jukebox.js"></script>
 </body>
 </html>

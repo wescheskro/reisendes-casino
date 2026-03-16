@@ -1,5 +1,5 @@
 // ===================== GLOBALE JUKEBOX =====================
-// YouTube-basierter Musikplayer, synchronisiert über alle Spieler
+// YouTube-basierter Musikplayer mit Suche, Playlist-Management & Persistenz
 (function() {
 'use strict';
 
@@ -13,18 +13,26 @@ const DEFAULT_PLAYLIST = [
   { id: 'twqM56f_cVo', title: 'Electro Swing Mix' },
 ];
 
-let player = null;      // YouTube player instance
-let playlist = [...DEFAULT_PLAYLIST];
+const STORAGE_KEY = 'jukeboxState';
+const PLAYLIST_KEY = 'jukeboxPlaylist';
+const YT_API_KEY = ''; // Optional: YouTube Data API Key für bessere Suche
+
+let player = null;
+let playlist = [];
 let currentIdx = 0;
 let isPlaying = false;
 let volume = 30;
-let jkSocket = null;    // Socket reference
+let jkSocket = null;
 let jkMinimized = false;
 let jkDragging = false;
+let searchOpen = false;
+let searchTimeout = null;
+let dragItem = null;
+let dragOverItem = null;
 
-// ---- Gespeicherte Einstellungen laden ----
+// ---- Gespeicherte Playlist & Einstellungen laden ----
 try {
-  const saved = JSON.parse(localStorage.getItem('jukeboxState'));
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
   if (saved) {
     volume = saved.volume ?? 30;
     currentIdx = saved.idx ?? 0;
@@ -32,11 +40,31 @@ try {
   }
 } catch(e) {}
 
+try {
+  const savedPL = JSON.parse(localStorage.getItem(PLAYLIST_KEY));
+  if (savedPL && Array.isArray(savedPL) && savedPL.length > 0) {
+    playlist = savedPL;
+  } else {
+    playlist = [...DEFAULT_PLAYLIST];
+  }
+} catch(e) {
+  playlist = [...DEFAULT_PLAYLIST];
+}
+
+// Sicherstellen dass idx nicht out of bounds
+if (currentIdx >= playlist.length) currentIdx = 0;
+
 function saveState() {
   try {
-    localStorage.setItem('jukeboxState', JSON.stringify({
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
       volume, idx: currentIdx, minimized: jkMinimized
     }));
+  } catch(e) {}
+}
+
+function savePlaylist() {
+  try {
+    localStorage.setItem(PLAYLIST_KEY, JSON.stringify(playlist));
   } catch(e) {}
 }
 
@@ -74,16 +102,12 @@ function onPlayerReady() {
 }
 
 function onPlayerState(e) {
-  if (e.data === YT.PlayerState.ENDED) {
-    // Nächster Song
-    nextTrack();
-  }
+  if (e.data === YT.PlayerState.ENDED) nextTrack();
   isPlaying = (e.data === YT.PlayerState.PLAYING);
   updatePlayBtn();
 }
 
 function onPlayerError() {
-  // Bei Fehler nächsten Song probieren
   setTimeout(nextTrack, 1000);
 }
 
@@ -97,7 +121,6 @@ function playTrack(idx) {
   }
   updateUI();
   saveState();
-  // An andere broadcasten
   if (jkSocket) {
     jkSocket.emit('jukebox:play', { videoId: playlist[idx].id, idx, title: playlist[idx].title });
   }
@@ -137,27 +160,207 @@ function setVolume(v) {
   saveState();
 }
 
+// ---- Song löschen ----
+function removeSong(idx) {
+  if (playlist.length <= 1) return; // Mindestens 1 Song
+  const wasPlaying = idx === currentIdx;
+  playlist.splice(idx, 1);
+  if (currentIdx >= playlist.length) currentIdx = 0;
+  else if (idx < currentIdx) currentIdx--;
+  savePlaylist();
+  if (wasPlaying && isPlaying) playTrack(currentIdx);
+  else updateUI();
+}
+
+// ---- Reihenfolge ändern (Drag & Drop) ----
+function moveTrack(fromIdx, toIdx) {
+  if (fromIdx === toIdx) return;
+  const item = playlist.splice(fromIdx, 1)[0];
+  playlist.splice(toIdx, 0, item);
+  // currentIdx anpassen
+  if (currentIdx === fromIdx) currentIdx = toIdx;
+  else if (fromIdx < currentIdx && toIdx >= currentIdx) currentIdx--;
+  else if (fromIdx > currentIdx && toIdx <= currentIdx) currentIdx++;
+  savePlaylist();
+  buildPlaylist();
+}
+
+// ---- Song nach oben/unten ----
+function moveUp(idx) {
+  if (idx <= 0) return;
+  moveTrack(idx, idx - 1);
+}
+
+function moveDown(idx) {
+  if (idx >= playlist.length - 1) return;
+  moveTrack(idx, idx + 1);
+}
+
 // ---- Custom URL hinzufügen ----
 function addCustomUrl() {
   const url = prompt('YouTube-URL oder Video-ID eingeben:');
   if (!url) return;
-  let videoId = url;
-  // URL parsen
+  let videoId = url.trim();
   const match = url.match(/(?:v=|youtu\.be\/|\/embed\/)([a-zA-Z0-9_-]{11})/);
   if (match) videoId = match[1];
   if (videoId.length !== 11) { alert('Ungültige YouTube-URL'); return; }
-  const title = prompt('Titel (optional):', 'Custom Song') || 'Custom Song';
-  playlist.push({ id: videoId, title });
-  playTrack(playlist.length - 1);
-  // An alle broadcasten
-  if (jkSocket) {
-    jkSocket.emit('jukebox:add', { videoId, title });
+  const title = prompt('Titel (optional):', 'Mein Song') || 'Mein Song';
+  addToPlaylist(videoId, title, true);
+}
+
+function addToPlaylist(videoId, title, autoPlay) {
+  // Duplikat-Check
+  if (playlist.some(s => s.id === videoId)) {
+    const idx = playlist.findIndex(s => s.id === videoId);
+    if (autoPlay) playTrack(idx);
+    return;
   }
+  playlist.push({ id: videoId, title });
+  savePlaylist();
+  if (autoPlay) playTrack(playlist.length - 1);
+  else buildPlaylist();
+  if (jkSocket) jkSocket.emit('jukebox:add', { videoId, title });
+}
+
+// ---- YouTube Suche ----
+async function searchYouTube(query) {
+  if (!query || query.length < 2) {
+    renderSearchResults([]);
+    return;
+  }
+
+  // Methode 1: YouTube Data API (wenn Key vorhanden)
+  if (YT_API_KEY) {
+    try {
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=8&q=${encodeURIComponent(query)}&key=${YT_API_KEY}`);
+      const data = await res.json();
+      if (data.items) {
+        const results = data.items.map(i => ({
+          id: i.id.videoId,
+          title: i.snippet.title,
+          channel: i.snippet.channelTitle,
+          thumb: i.snippet.thumbnails?.default?.url
+        }));
+        renderSearchResults(results);
+        return;
+      }
+    } catch(e) {}
+  }
+
+  // Methode 2: Invidious API (kostenlos, kein Key nötig)
+  const instances = [
+    'https://vid.puffyan.us',
+    'https://invidious.fdn.fr',
+    'https://y.com.sb',
+    'https://invidious.nerdvpn.de'
+  ];
+
+  for (const inst of instances) {
+    try {
+      const res = await fetch(`${inst}/api/v1/search?q=${encodeURIComponent(query)}&type=video&sort_by=relevance`, {
+        signal: AbortSignal.timeout(5000)
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        const results = data.slice(0, 8).map(v => ({
+          id: v.videoId,
+          title: v.title,
+          channel: v.author,
+          thumb: v.videoThumbnails?.[0]?.url || ''
+        }));
+        renderSearchResults(results);
+        return;
+      }
+    } catch(e) { continue; }
+  }
+
+  // Methode 3: Fallback – Piped API
+  try {
+    const res = await fetch(`https://pipedapi.kavin.rocks/search?q=${encodeURIComponent(query)}&filter=music_songs`, {
+      signal: AbortSignal.timeout(5000)
+    });
+    const data = await res.json();
+    if (data.items) {
+      const results = data.items.filter(i => i.type === 'stream').slice(0, 8).map(v => ({
+        id: v.url?.replace('/watch?v=', '') || '',
+        title: v.title,
+        channel: v.uploaderName,
+        thumb: v.thumbnail
+      }));
+      renderSearchResults(results);
+      return;
+    }
+  } catch(e) {}
+
+  renderSearchResults([]);
+}
+
+function renderSearchResults(results) {
+  const el = document.getElementById('jkSearchResults');
+  if (!el) return;
+
+  if (results.length === 0) {
+    const q = document.getElementById('jkSearchInput')?.value || '';
+    el.innerHTML = q.length >= 2
+      ? '<div class="jk-sr-empty">Keine Ergebnisse</div>'
+      : '';
+    return;
+  }
+
+  el.innerHTML = results.map(r => {
+    const inPlaylist = playlist.some(s => s.id === r.id);
+    return `
+      <div class="jk-sr-item" onclick="window._jk.addFromSearch('${r.id}', '${esc(r.title)}')">
+        <div class="jk-sr-info">
+          <div class="jk-sr-title">${esc(r.title)}</div>
+          <div class="jk-sr-channel">${esc(r.channel || '')}</div>
+        </div>
+        <div class="jk-sr-action">${inPlaylist ? '✓' : '+'}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function esc(s) {
+  return String(s || '').replace(/'/g, "\\'").replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function addFromSearch(videoId, title) {
+  // Decode escaped characters
+  title = title.replace(/\\'/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  addToPlaylist(videoId, title, true);
+  // Suche schließen
+  toggleSearch(false);
+}
+
+function toggleSearch(force) {
+  searchOpen = force !== undefined ? force : !searchOpen;
+  const panel = document.getElementById('jkSearchPanel');
+  if (panel) panel.style.display = searchOpen ? 'block' : 'none';
+  if (searchOpen) {
+    setTimeout(() => document.getElementById('jkSearchInput')?.focus(), 100);
+  }
+}
+
+function onSearchInput(val) {
+  clearTimeout(searchTimeout);
+  if (val.length < 2) { renderSearchResults([]); return; }
+  searchTimeout = setTimeout(() => searchYouTube(val), 400);
+}
+
+// ---- Playlist Reset ----
+function resetPlaylist() {
+  if (!confirm('Playlist auf Standard zurücksetzen?')) return;
+  playlist = [...DEFAULT_PLAYLIST];
+  currentIdx = 0;
+  savePlaylist();
+  saveState();
+  if (isPlaying) playTrack(0);
+  else updateUI();
 }
 
 // ---- UI bauen ----
 function buildUI() {
-  // Container
   const wrap = document.createElement('div');
   wrap.id = 'jukebox';
   wrap.className = jkMinimized ? 'jk-mini' : '';
@@ -177,18 +380,28 @@ function buildUI() {
           oninput="window._jk.vol(this.value)" title="Lautstärke">
       </div>
       <div class="jk-playlist" id="jkPlaylist"></div>
-      <button class="jk-add" onclick="window._jk.addUrl()">+ YouTube hinzufügen</button>
+      <div class="jk-bottom-btns">
+        <button class="jk-search-btn" onclick="window._jk.toggleSearch()">🔍 YouTube Suche</button>
+        <button class="jk-add" onclick="window._jk.addUrl()">+ URL</button>
+        <button class="jk-reset-btn" onclick="window._jk.reset()" title="Playlist zurücksetzen">↺</button>
+      </div>
+      <!-- YouTube Search Panel -->
+      <div class="jk-search-panel" id="jkSearchPanel" style="display:none">
+        <input type="text" class="jk-search-input" id="jkSearchInput"
+          placeholder="Song suchen..." oninput="window._jk.onSearch(this.value)">
+        <div class="jk-search-results" id="jkSearchResults"></div>
+      </div>
     </div>
     <div id="jk-yt-player"></div>
   `;
   document.body.appendChild(wrap);
 
-  // Style injizieren
+  // Style
   const style = document.createElement('style');
   style.textContent = `
     #jukebox{
       position:fixed;bottom:12px;left:12px;z-index:9998;
-      width:240px;border-radius:14px;overflow:hidden;
+      width:260px;border-radius:14px;overflow:hidden;
       background:rgba(15,8,3,.95);border:1.5px solid rgba(212,175,55,.25);
       box-shadow:0 8px 32px rgba(0,0,0,.6);backdrop-filter:blur(12px);
       font-family:'Playfair Display',serif;color:#F0E6D3;
@@ -237,30 +450,118 @@ function buildUI() {
       width:14px;height:14px;border-radius:50%;
       background:#D4AF37;border:none;
     }
+
+    /* ---- Playlist ---- */
     .jk-playlist{
-      max-height:120px;overflow-y:auto;margin-bottom:4px;
+      max-height:150px;overflow-y:auto;margin-bottom:6px;
       scrollbar-width:thin;scrollbar-color:rgba(212,175,55,.3) transparent;
     }
     .jk-playlist::-webkit-scrollbar{width:3px}
     .jk-playlist::-webkit-scrollbar-thumb{background:rgba(212,175,55,.3);border-radius:2px}
+
     .jk-song{
-      font-size:9px;padding:4px 6px;border-radius:4px;cursor:pointer;
+      display:flex;align-items:center;gap:4px;
+      font-size:9px;padding:3px 4px;border-radius:4px;
       color:rgba(240,230,211,.5);transition:.15s;
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      cursor:pointer;
     }
     .jk-song:hover{background:rgba(212,175,55,.1);color:#D4AF37}
     .jk-song.active{color:#F4D03F;font-weight:700;background:rgba(212,175,55,.12)}
+    .jk-song.drag-over{border-top:2px solid #D4AF37}
+
+    .jk-song-title{
+      flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .jk-song-actions{
+      display:flex;gap:1px;opacity:0;transition:opacity .15s;flex-shrink:0;
+    }
+    .jk-song:hover .jk-song-actions{opacity:1}
+    .jk-sa{
+      width:16px;height:16px;border-radius:3px;border:none;
+      background:none;color:rgba(212,175,55,.4);font-size:8px;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      transition:.15s;padding:0;
+    }
+    .jk-sa:hover{color:#D4AF37;background:rgba(212,175,55,.15)}
+    .jk-sa-del:hover{color:#f44;background:rgba(255,68,68,.15)}
+    .jk-song-grip{
+      cursor:grab;color:rgba(212,175,55,.25);font-size:10px;flex-shrink:0;
+      padding:0 2px;
+    }
+    .jk-song-grip:active{cursor:grabbing}
+    .jk-song.dragging{opacity:0.4}
+
+    /* ---- Bottom Buttons ---- */
+    .jk-bottom-btns{
+      display:flex;gap:4px;margin-bottom:4px;
+    }
+    .jk-search-btn{
+      flex:1;padding:5px;border:1.5px solid rgba(212,175,55,.2);
+      background:rgba(212,175,55,.08);color:rgba(212,175,55,.7);font-size:9px;
+      border-radius:6px;cursor:pointer;font-family:inherit;transition:.15s;
+    }
+    .jk-search-btn:hover{border-color:rgba(212,175,55,.4);color:#D4AF37;background:rgba(212,175,55,.15)}
     .jk-add{
-      width:100%;padding:5px;border:1.5px dashed rgba(212,175,55,.2);
+      padding:5px 8px;border:1.5px dashed rgba(212,175,55,.2);
       background:none;color:rgba(212,175,55,.5);font-size:9px;
       border-radius:6px;cursor:pointer;font-family:inherit;transition:.15s;
     }
     .jk-add:hover{border-color:rgba(212,175,55,.4);color:#D4AF37}
+    .jk-reset-btn{
+      width:28px;padding:5px;border:1.5px solid rgba(212,175,55,.15);
+      background:none;color:rgba(212,175,55,.35);font-size:10px;
+      border-radius:6px;cursor:pointer;font-family:inherit;transition:.15s;
+    }
+    .jk-reset-btn:hover{border-color:rgba(212,175,55,.3);color:#D4AF37}
+
+    /* ---- Search Panel ---- */
+    .jk-search-panel{
+      margin-top:6px;border-top:1px solid rgba(212,175,55,.1);
+      padding-top:6px;
+    }
+    .jk-search-input{
+      width:100%;padding:7px 10px;border-radius:8px;
+      background:rgba(255,255,255,.06);border:1px solid rgba(212,175,55,.2);
+      color:#F0E6D3;font-size:11px;outline:none;box-sizing:border-box;
+      font-family:inherit;
+    }
+    .jk-search-input::placeholder{color:rgba(212,175,55,.35)}
+    .jk-search-input:focus{border-color:rgba(212,175,55,.5)}
+    .jk-search-results{
+      max-height:180px;overflow-y:auto;margin-top:4px;
+      scrollbar-width:thin;scrollbar-color:rgba(212,175,55,.3) transparent;
+    }
+    .jk-search-results::-webkit-scrollbar{width:3px}
+    .jk-search-results::-webkit-scrollbar-thumb{background:rgba(212,175,55,.3);border-radius:2px}
+    .jk-sr-item{
+      display:flex;align-items:center;gap:6px;
+      padding:5px 6px;border-radius:5px;cursor:pointer;
+      transition:.15s;
+    }
+    .jk-sr-item:hover{background:rgba(212,175,55,.1)}
+    .jk-sr-info{flex:1;min-width:0}
+    .jk-sr-title{
+      font-size:10px;color:#e0d6c2;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .jk-sr-channel{font-size:8px;color:rgba(212,175,55,.4);margin-top:1px}
+    .jk-sr-action{
+      width:22px;height:22px;border-radius:50%;
+      background:rgba(212,175,55,.15);color:#D4AF37;
+      font-size:12px;font-weight:700;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .jk-sr-empty{
+      text-align:center;padding:16px 8px;color:rgba(212,175,55,.3);font-size:10px;
+    }
+
     @media(max-width:600px){
-      #jukebox{width:200px;bottom:8px;left:8px}
+      #jukebox{width:220px;bottom:8px;left:8px}
       #jukebox.jk-mini{width:130px}
       .jk-btn{width:26px;height:26px;font-size:10px}
       .jk-play{width:30px;height:30px;font-size:12px}
+      .jk-playlist{max-height:100px}
+      .jk-search-results{max-height:130px}
     }
   `;
   document.head.appendChild(style);
@@ -282,9 +583,94 @@ function toggleMinimize() {
 function buildPlaylist() {
   const el = document.getElementById('jkPlaylist');
   if (!el) return;
-  el.innerHTML = playlist.map((s, i) =>
-    `<div class="jk-song${i === currentIdx ? ' active' : ''}" onclick="window._jk.play(${i})" title="${s.title}">${i + 1}. ${s.title}</div>`
-  ).join('');
+  el.innerHTML = playlist.map((s, i) => `
+    <div class="jk-song${i === currentIdx ? ' active' : ''}"
+         data-idx="${i}" draggable="true"
+         ondragstart="window._jk.dragStart(event,${i})"
+         ondragover="window._jk.dragOver(event,${i})"
+         ondragleave="window._jk.dragLeave(event)"
+         ondrop="window._jk.drop(event,${i})"
+         ondragend="window._jk.dragEnd(event)">
+      <span class="jk-song-grip">⠿</span>
+      <span class="jk-song-title" onclick="window._jk.play(${i})">${i + 1}. ${escHtml(s.title)}</span>
+      <span class="jk-song-actions">
+        <button class="jk-sa" onclick="event.stopPropagation();window._jk.moveUp(${i})" title="Nach oben">▲</button>
+        <button class="jk-sa" onclick="event.stopPropagation();window._jk.moveDown(${i})" title="Nach unten">▼</button>
+        <button class="jk-sa jk-sa-del" onclick="event.stopPropagation();window._jk.remove(${i})" title="Löschen">✕</button>
+      </span>
+    </div>
+  `).join('');
+
+  // Touch drag support
+  el.querySelectorAll('.jk-song').forEach(song => {
+    let touchStartY = 0;
+    let touchIdx = parseInt(song.dataset.idx);
+    song.addEventListener('touchstart', (e) => {
+      if (!e.target.closest('.jk-song-grip')) return;
+      touchStartY = e.touches[0].clientY;
+      dragItem = touchIdx;
+      song.classList.add('dragging');
+    }, { passive: true });
+    song.addEventListener('touchmove', (e) => {
+      if (dragItem === null) return;
+      const touchY = e.touches[0].clientY;
+      const songs = el.querySelectorAll('.jk-song');
+      songs.forEach(s => {
+        const r = s.getBoundingClientRect();
+        if (touchY > r.top && touchY < r.bottom) {
+          dragOverItem = parseInt(s.dataset.idx);
+          s.classList.add('drag-over');
+        } else {
+          s.classList.remove('drag-over');
+        }
+      });
+    }, { passive: true });
+    song.addEventListener('touchend', () => {
+      if (dragItem !== null && dragOverItem !== null && dragItem !== dragOverItem) {
+        moveTrack(dragItem, dragOverItem);
+      }
+      el.querySelectorAll('.jk-song').forEach(s => s.classList.remove('dragging', 'drag-over'));
+      dragItem = null;
+      dragOverItem = null;
+    });
+  });
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ---- Drag & Drop (Desktop) ----
+function onDragStart(e, idx) {
+  dragItem = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  e.target.classList.add('dragging');
+}
+function onDragOver(e, idx) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  dragOverItem = idx;
+  // Visual feedback
+  const songs = document.querySelectorAll('.jk-song');
+  songs.forEach(s => s.classList.remove('drag-over'));
+  e.currentTarget.classList.add('drag-over');
+}
+function onDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+function onDrop(e, idx) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (dragItem !== null && dragItem !== idx) {
+    moveTrack(dragItem, idx);
+  }
+  dragItem = null;
+  dragOverItem = null;
+}
+function onDragEnd(e) {
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.jk-song').forEach(s => s.classList.remove('drag-over'));
+  dragItem = null;
 }
 
 function updateUI() {
@@ -305,7 +691,7 @@ function updatePlayBtn() {
   if (btn) btn.textContent = isPlaying ? '⏸' : '▶';
 }
 
-// ---- Drag ----
+// ---- Drag (Jukebox Widget verschieben) ----
 function initDrag() {
   const header = document.getElementById('jkHeader');
   const jk = document.getElementById('jukebox');
@@ -346,16 +732,11 @@ function initDrag() {
 
 // ---- Socket Sync ----
 function initSocket() {
-  // Warte auf globalen Socket oder erstelle eigenen
   function tryConnect() {
-    // Nutze existierenden Socket falls vorhanden
     if (window.io && !jkSocket) {
-      // Prüfe ob schon ein Socket existiert (z.B. vom Pokerspiel)
-      const existingSocket = document.querySelector('script')?.['_socket'];
       if (typeof socket !== 'undefined' && socket && socket.connected) {
         jkSocket = socket;
       } else {
-        // Eigene Verbindung für Jukebox
         const token = localStorage.getItem('casinoToken');
         const name = localStorage.getItem('pokerPlayerName');
         jkSocket = io({ auth: { token, username: name || undefined } });
@@ -363,8 +744,6 @@ function initSocket() {
       setupSocketEvents();
     }
   }
-
-  // Warte kurz bis Socket.IO geladen ist
   if (window.io) tryConnect();
   else setTimeout(tryConnect, 2000);
 }
@@ -375,9 +754,9 @@ function setupSocketEvents() {
   jkSocket.emit('jukebox:join');
 
   jkSocket.on('jukebox:sync', (data) => {
-    // State vom Server empfangen
     if (data.playlist && data.playlist.length > 0) {
       playlist = data.playlist;
+      savePlaylist();
     }
     if (data.videoId && player) {
       currentIdx = data.idx || 0;
@@ -390,13 +769,13 @@ function setupSocketEvents() {
   });
 
   jkSocket.on('jukebox:play', (data) => {
-    // Anderer Spieler hat Song gestartet
     if (data.videoId && player) {
       const idx = playlist.findIndex(s => s.id === data.videoId);
       if (idx >= 0) currentIdx = idx;
       else {
         playlist.push({ id: data.videoId, title: data.title || 'Unbekannt' });
         currentIdx = playlist.length - 1;
+        savePlaylist();
       }
       player.loadVideoById(data.videoId);
       isPlaying = true;
@@ -417,6 +796,7 @@ function setupSocketEvents() {
       const exists = playlist.some(s => s.id === data.videoId);
       if (!exists) {
         playlist.push({ id: data.videoId, title: data.title || 'Custom Song' });
+        savePlaylist();
         buildPlaylist();
       }
     }
@@ -431,6 +811,19 @@ window._jk = {
   prev: prevTrack,
   vol: setVolume,
   addUrl: addCustomUrl,
+  remove: removeSong,
+  moveUp,
+  moveDown,
+  reset: resetPlaylist,
+  toggleSearch,
+  onSearch: onSearchInput,
+  addFromSearch,
+  // Drag events
+  dragStart: onDragStart,
+  dragOver: onDragOver,
+  dragLeave: onDragLeave,
+  drop: onDrop,
+  dragEnd: onDragEnd,
 };
 
 // ---- Init ----

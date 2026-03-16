@@ -132,6 +132,250 @@
     .online-game b { color: #F4D03F; }
 
     /* ============ POKER TABLE HERO ============ */
+    /* ============ LIVE EMBED ============ */
+    .live-embed-wrap {
+      position: relative;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    /* ============ DRAGGABLE + RESIZABLE EMBED WINDOWS ============ */
+    .embed-adjustable {
+      position: relative;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .embed-adjustable.dragging {
+      z-index: 999;
+      opacity: 0.92;
+    }
+
+    /* Drag-Handle oben */
+    .embed-drag-handle {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 28px;
+      background: linear-gradient(180deg, rgba(212,175,55,0.25) 0%, transparent 100%);
+      cursor: grab;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px 14px 0 0;
+      transition: background 0.2s;
+    }
+    .embed-drag-handle:active { cursor: grabbing; }
+    .embed-drag-handle::after {
+      content: '';
+      width: 40px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(212,175,55,0.5);
+    }
+    .embed-drag-handle:hover {
+      background: linear-gradient(180deg, rgba(212,175,55,0.4) 0%, transparent 100%);
+    }
+
+    /* Resize-Handle unten rechts */
+    .embed-resize-handle {
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 24px; height: 24px;
+      cursor: nwse-resize;
+      z-index: 10;
+      background: transparent;
+    }
+    .embed-resize-handle::before {
+      content: '';
+      position: absolute;
+      bottom: 4px; right: 4px;
+      width: 10px; height: 10px;
+      border-right: 2px solid rgba(212,175,55,0.5);
+      border-bottom: 2px solid rgba(212,175,55,0.5);
+    }
+
+    /* Embed Control Buttons */
+    .embed-controls {
+      position: absolute;
+      top: 4px; right: 6px;
+      display: flex;
+      gap: 4px;
+      z-index: 11;
+    }
+    .embed-ctrl-btn {
+      width: 22px; height: 22px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 50%;
+      color: rgba(212,175,55,0.7);
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: all 0.2s;
+      padding: 0;
+    }
+    .embed-ctrl-btn:hover {
+      background: rgba(212,175,55,0.2);
+      color: #D4AF37;
+    }
+    .embed-ctrl-btn.saved {
+      background: rgba(46,204,113,0.3);
+      border-color: rgba(46,204,113,0.5);
+      color: #2ecc71;
+    }
+
+    .lp-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,0,0,0.15);
+      border: 1px solid rgba(255,60,60,0.4);
+      color: #ff4444;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+      animation: lpBadgePulse 2s ease-in-out infinite;
+    }
+    .lp-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #ff4444;
+      animation: lpDotBlink 1s ease-in-out infinite;
+    }
+    @keyframes lpDotBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    @keyframes lpBadgePulse {
+      0%, 100% { box-shadow: 0 0 8px rgba(255,0,0,0.1); }
+      50% { box-shadow: 0 0 16px rgba(255,0,0,0.25); }
+    }
+    /* Slot – Hochformat (Automat ist vertikal) */
+    .slot-embed-frame {
+      position: relative;
+      width: 90%;
+      max-width: 320px;
+      margin: 0 auto;
+      height: 500px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid rgba(212,175,55,0.35);
+      box-shadow: 0 8px 35px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,175,55,0.15);
+      background: #0a0a12;
+    }
+    .slot-embed-iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: calc(100% / 0.85);
+      height: calc(100% / 0.85);
+      border: none;
+      pointer-events: auto;
+      transform: scale(0.85);
+      transform-origin: top left;
+      z-index: 1;
+    }
+
+    /* Slot Vollbild-Leiste unten (nicht das ganze Overlay) */
+    .slot-fullscreen-bar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 36px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0.85));
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      transition: background 0.2s;
+    }
+    .slot-fullscreen-bar:hover {
+      background: linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.95));
+    }
+
+    /* Klick-Overlay über dem ganzen Embed */
+    .embed-click-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 4;
+      cursor: pointer;
+    }
+
+    .lp-badge-slot {
+      background: rgba(212,175,55,0.15);
+      border-color: rgba(212,175,55,0.4);
+      color: #D4AF37;
+      animation: lpBadgeSlotPulse 2s ease-in-out infinite;
+    }
+    .lp-dot-slot { background: #D4AF37; }
+    @keyframes lpBadgeSlotPulse {
+      0%, 100% { box-shadow: 0 0 8px rgba(212,175,55,0.1); }
+      50% { box-shadow: 0 0 16px rgba(212,175,55,0.25); }
+    }
+    .live-embed-frame {
+      position: relative;
+      width: 90%;
+      max-width: 360px;
+      margin: 0 auto;
+      height: 520px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid rgba(212,175,55,0.35);
+      box-shadow: 0 8px 35px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,175,55,0.15);
+      background: #0a0a12;
+    }
+    .live-iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: calc(100% / 0.55);
+      height: calc(100% / 0.55);
+      border: none;
+      pointer-events: none;
+      transform: scale(0.55);
+      transform-origin: top left;
+    }
+    .live-embed-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.75));
+      cursor: pointer;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 18px;
+      transition: background 0.3s;
+      z-index: 2;
+    }
+    .live-embed-overlay:hover {
+      background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.8) 100%);
+    }
+    .live-overlay-text {
+      color: #D4AF37;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+      animation: pt-hint-pulse 2s ease-in-out infinite;
+    }
+    @keyframes pt-hint-pulse {
+      0%,100% { opacity: .6; }
+      50% { opacity: 1; }
+    }
+
+    @media (max-width: 480px) {
+      .live-embed-frame {
+        max-width: 320px;
+        height: 460px;
+        border-radius: 10px;
+      }
+      .live-overlay-text { font-size: 11px; }
+    }
+
     .poker-table-hero {
       position: relative;
       width: 100%;
@@ -221,6 +465,8 @@
     .pt-s1 { bottom: -10%; right: 15%; }
     .pt-s2 { top: 10%; right: -5%; }
     .pt-s3 { top: 10%; left: -5%; }
+    .pt-s4 { bottom: -10%; left: 50%; transform: translateX(-50%); }
+    .pt-s5 { top: 40%; left: -8%; }
 
     .pt-seat-cards { display: flex; gap: 2px; justify-content: center; }
     .pt-mini-card {
@@ -271,6 +517,8 @@
       .pt-s1 { bottom: -14%; right: 10%; }
       .pt-s2 { top: 8%; right: -8%; }
       .pt-s3 { top: 8%; left: -8%; }
+      .pt-s4 { bottom: -14%; left: 50%; transform: translateX(-50%); }
+      .pt-s5 { top: 38%; left: -10%; }
     }
 
     /* ============ SLOT MACHINE HERO ============ */
@@ -616,6 +864,126 @@
       align-items: center;
     }
 
+    /* ============ BAXT COINS PROMO ============ */
+    .baxt-promo {
+      position: relative;
+      padding: 2.5rem 1.2rem 2rem;
+      text-align: center;
+      overflow: hidden;
+    }
+    .baxt-promo-glow {
+      position: absolute;
+      top: -60px; left: 50%; transform: translateX(-50%);
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(255,215,0,0.10) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .baxt-promo > * { position: relative; z-index: 1; }
+
+    .baxt-coin-hero { margin-bottom: 0.5rem; }
+    .baxt-coin-spin {
+      display: inline-block;
+      font-size: 4rem;
+      animation: baxtSpin 3s ease-in-out infinite;
+      text-shadow: 0 0 30px rgba(255,215,0,0.6), 0 0 60px rgba(255,215,0,0.3);
+    }
+    @keyframes baxtSpin {
+      0%, 100% { transform: rotateY(0deg) scale(1); }
+      50% { transform: rotateY(180deg) scale(1.1); }
+    }
+
+    .baxt-promo-title {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, #ffd700, #ffaa00, #ffd700);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0.3rem 0 0.2rem;
+    }
+    .baxt-promo-subtitle {
+      color: #ccc;
+      font-size: 1rem;
+      margin: 0 0 1.2rem;
+      font-style: italic;
+    }
+    .baxt-promo-desc {
+      max-width: 600px;
+      margin: 0 auto 1.5rem;
+      color: #ddd;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+    .baxt-promo-desc strong { color: #ffd700; }
+
+    .baxt-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      max-width: 700px;
+      margin: 0 auto 1.5rem;
+    }
+    .baxt-feature-card {
+      background: linear-gradient(145deg, rgba(255,215,0,0.08), rgba(0,0,0,0.4));
+      border: 1px solid rgba(255,215,0,0.2);
+      border-radius: 14px;
+      padding: 1.2rem 0.8rem;
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+    }
+    .baxt-feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,215,0,0.5);
+      box-shadow: 0 8px 25px rgba(255,215,0,0.15);
+    }
+    .baxt-feature-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .baxt-feature-card h3 {
+      color: #ffd700;
+      font-size: 0.9rem;
+      margin: 0 0 0.4rem;
+      font-weight: 700;
+    }
+    .baxt-feature-card p {
+      color: #bbb;
+      font-size: 0.78rem;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    .baxt-promo-cta { margin: 1.5rem 0 1rem; }
+    .baxt-start-bonus {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,170,0,0.1));
+      border: 2px solid rgba(255,215,0,0.4);
+      border-radius: 50px;
+      padding: 0.9rem 1.8rem;
+      font-size: 1rem;
+      color: #fff;
+      animation: baxtPulse 2s ease-in-out infinite;
+    }
+    .baxt-start-bonus strong { color: #ffd700; }
+    .baxt-start-icon { font-size: 1.4rem; }
+    @keyframes baxtPulse {
+      0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.2); }
+      50% { box-shadow: 0 0 25px rgba(255,215,0,0.4); }
+    }
+
+    .baxt-promo-legal {
+      margin-top: 1rem;
+      font-size: 0.7rem;
+      color: #777;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.4;
+    }
+
     /* ============ APP INSTALL ============ */
     .install-btn {
       display: inline-flex;
@@ -957,44 +1325,25 @@
     </div>
 
     <!-- ═══════════════════════════════════════════ -->
-    <!-- 1. POKER TABLE HERO                        -->
+    <!-- 1. POKER – LIVE EMBED                       -->
     <!-- ═══════════════════════════════════════════ -->
-    <div class="poker-table-hero" onclick="openPoker()">
-      <div class="pt-felt">
-        <div class="pt-dealer">
-          <span class="pt-dealer-label">Dealer</span>
-        </div>
-        <div class="pt-community">
-          <div class="pt-card">A<span class="pt-suit red">&#9829;</span></div>
-          <div class="pt-card">K<span class="pt-suit">&#9824;</span></div>
-          <div class="pt-card">Q<span class="pt-suit red">&#9830;</span></div>
-          <div class="pt-card back"></div>
-          <div class="pt-card back"></div>
-        </div>
-        <div class="pt-pot">Pot: 12.500</div>
-        <div class="pt-seat pt-s0 pt-occupied">
-          <div class="pt-seat-cards"><div class="pt-mini-card back"></div><div class="pt-mini-card back"></div></div>
-          <div class="pt-seat-name">Marko</div>
-          <div class="pt-chips">&#128176; 6.800</div>
-        </div>
-        <div class="pt-seat pt-s1 pt-occupied">
-          <div class="pt-seat-cards"><div class="pt-mini-card">J<span class="red">&#9829;</span></div><div class="pt-mini-card">10<span class="red">&#9829;</span></div></div>
-          <div class="pt-seat-name">Django</div>
-          <div class="pt-chips">&#128176; 8.400</div>
-        </div>
-        <div class="pt-seat pt-s2 pt-occupied">
-          <div class="pt-seat-cards"><div class="pt-mini-card back"></div><div class="pt-mini-card back"></div></div>
-          <div class="pt-seat-name">Sandrina</div>
-          <div class="pt-chips">&#128176; 14.200</div>
-        </div>
-        <div class="pt-seat pt-s3 pt-occupied">
-          <div class="pt-seat-cards"><div class="pt-mini-card back"></div><div class="pt-mini-card back"></div></div>
-          <div class="pt-seat-name">Luca</div>
-          <div class="pt-chips">&#128176; 11.500</div>
-        </div>
-        <div class="pt-glow"></div>
+    <div class="live-embed-wrap">
+      <div class="lp-badge">
+        <span class="lp-dot"></span> LIVE POKER
       </div>
-      <div class="pt-join-hint">&#9824; Setz dich an den Tisch &#9824;</div>
+      <div class="live-embed-frame embed-adjustable" id="pokerEmbedWrap" data-embed="poker">
+        <div class="embed-drag-handle" data-drag="pokerEmbedWrap"></div>
+        <div class="embed-controls">
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('pokerEmbedWrap', this)" title="Speichern">💾</button>
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('pokerEmbedWrap')" title="Zurücksetzen">↺</button>
+        </div>
+        <iframe id="pokerEmbed" src="/games/poker.html?embed=1&table=embed-preview" class="live-iframe" allow="camera;microphone" loading="lazy" style="pointer-events:none;"></iframe>
+        <div class="embed-click-overlay" onclick="openPoker()"></div>
+        <div class="slot-fullscreen-bar" onclick="openPoker()">
+          <div class="live-overlay-text">&#9824; Vollbild &ouml;ffnen &amp; mitspielen &#9824;</div>
+        </div>
+        <div class="embed-resize-handle" data-resize="pokerEmbedWrap"></div>
+      </div>
     </div>
 
     <div class="table-select-inline">
@@ -1011,30 +1360,25 @@
     <div class="game-divider"></div>
 
     <!-- ═══════════════════════════════════════════ -->
-    <!-- 2. SLOT MACHINE HERO                       -->
+    <!-- 2. SLOT MACHINE – LIVE EMBED               -->
     <!-- ═══════════════════════════════════════════ -->
-    <div class="slot-hero" onclick="playGame()">
-      <div class="slot-cabinet">
-        <div class="slot-top">
-          <div class="slot-title">&#129430; Stachelingo Rodern</div>
-          <div class="slot-subtitle">Book of Baxt</div>
-        </div>
-        <div class="slot-reels">
-          <div class="slot-reel"><img src="/games/img/mann.png" alt="Mann"></div>
-          <div class="slot-reel"><img src="/games/img/book.png" alt="Buch"></div>
-          <div class="slot-reel highlight"><img src="/games/img/eye.png" alt="Auge"></div>
-          <div class="slot-reel"><img src="/games/img/book.png" alt="Buch"></div>
-          <div class="slot-reel"><img src="/games/img/pferd.png" alt="Pferd"></div>
-        </div>
-        <div class="slot-winline"></div>
-        <div class="slot-bottom">
-          <div class="slot-info-item"><span class="slot-label">Einsatz</span><span class="slot-val">500</span></div>
-          <div class="slot-info-item"><span class="slot-label">Gewinn</span><span class="slot-val win">12.500</span></div>
-          <div class="slot-info-item"><span class="slot-label">Freispiele</span><span class="slot-val free">3x &#128214;</span></div>
-        </div>
-        <div class="slot-glow"></div>
+    <div class="live-embed-wrap">
+      <div class="lp-badge lp-badge-slot">
+        <span class="lp-dot lp-dot-slot"></span> SLOT PREVIEW
       </div>
-      <div class="slot-join-hint">&#127920; Dreh die Walzen &#127920;</div>
+      <div class="slot-embed-frame embed-adjustable" id="slotEmbedWrap" data-embed="slot">
+        <div class="embed-drag-handle" data-drag="slotEmbedWrap"></div>
+        <div class="embed-controls">
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('slotEmbedWrap', this)" title="Speichern">💾</button>
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('slotEmbedWrap')" title="Zurücksetzen">↺</button>
+        </div>
+        <iframe src="/games/book-of-baxt.html?embed=1" class="slot-embed-iframe" allow="autoplay" style="pointer-events:none;"></iframe>
+        <div class="embed-click-overlay" onclick="playGame()"></div>
+        <div class="slot-fullscreen-bar" onclick="playGame()">
+          <div class="live-overlay-text">&#127920; Vollbild öffnen &#127920;</div>
+        </div>
+        <div class="embed-resize-handle" data-resize="slotEmbedWrap"></div>
+      </div>
     </div>
 
     <button class="cta-play cta-slot" onclick="playGame()">
@@ -1108,6 +1452,71 @@
     <button class="cta-play cta-bj" onclick="openBlackjack()">
       &#9827; Blackjack Spielen
     </button>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- BAXT COINS PROMO SECTION -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <div class="game-divider"></div>
+    <section class="baxt-promo" id="baxtPromo">
+      <div class="baxt-promo-glow"></div>
+      <div class="baxt-promo-header">
+        <div class="baxt-coin-hero">
+          <div class="baxt-coin-spin">₿</div>
+        </div>
+        <h2 class="baxt-promo-title">BAXT COINS</h2>
+        <p class="baxt-promo-subtitle">Die exklusive Casino-Währung der Reisenden</p>
+      </div>
+
+      <div class="baxt-promo-desc">
+        <p>Sammle <strong>Baxt Coins</strong> &mdash; deine digitale Währung im Reisendes Casino.
+        Spiele, gewinne und steige auf. Je mehr du spielst, desto mehr verdienst du!</p>
+      </div>
+
+      <div class="baxt-features">
+        <div class="baxt-feature-card">
+          <div class="baxt-feature-icon">🎰</div>
+          <h3>Beim Spielen verdienen</h3>
+          <p>Jede Runde bringt dir Baxt Coins &mdash; egal ob Poker, Blackjack oder Slots. Gewinne bringen Extra-Coins!</p>
+        </div>
+        <div class="baxt-feature-card">
+          <div class="baxt-feature-icon">📅</div>
+          <h3>Täglicher Bonus</h3>
+          <p>Hol dir jeden Tag deinen <strong>100 Baxt Coins</strong> Login-Bonus ab. Einfach einloggen &amp; kassieren!</p>
+        </div>
+        <div class="baxt-feature-card">
+          <div class="baxt-feature-icon">🎁</div>
+          <h3>Coins verschenken</h3>
+          <p>Schicke Baxt Coins an Freunde und andere Spieler. Teile deinen Reichtum mit der Community!</p>
+        </div>
+        <div class="baxt-feature-card">
+          <div class="baxt-feature-icon">🏆</div>
+          <h3>Ranking & Prestige</h3>
+          <p>Klettere die Rangliste hoch! Die Top-Sammler werden im Casino für alle sichtbar geehrt.</p>
+        </div>
+        <div class="baxt-feature-card">
+          <div class="baxt-feature-icon">⬆️</div>
+          <h3>Level-Up Belohnungen</h3>
+          <p>Mit jedem Level-Up gibt es fette Coin-Boni &mdash; je höher dein Level, desto mehr bekommst du!</p>
+        </div>
+        <div class="baxt-feature-card">
+          <div class="baxt-feature-icon">💎</div>
+          <h3>Exklusive Vorteile</h3>
+          <p>Setze Baxt Coins für besondere Items, Truhen und exklusive Casino-Features ein. Bald verfügbar!</p>
+        </div>
+      </div>
+
+      <div class="baxt-promo-cta">
+        <div class="baxt-start-bonus">
+          <span class="baxt-start-icon">🎉</span>
+          <span><strong>500 Baxt Coins Startguthaben</strong> bei Registrierung &mdash; kostenlos!</span>
+        </div>
+      </div>
+
+      <div class="baxt-promo-legal">
+        Baxt Coins sind eine exklusive Casino-Währung innerhalb des Reisendes Casino.
+        Kein Echtgeld. Kein Krypto. Kein Rücktausch. Reiner Spielspaß!
+      </div>
+    </section>
 
     <!-- APP INSTALLIEREN -->
     <div class="game-divider"></div>
@@ -1421,46 +1830,9 @@
     }
 
     // =========================================================================
-    // LIVE POKER-TISCH auf Landing Page
+    // LIVE POKER EMBED – iframe zeigt das echte Spiel
     // =========================================================================
-    function updateLivePokerTable() {
-      fetch('/api/poker/tables')
-        .then(r => r.json())
-        .then(data => {
-          const table = data.tables && data.tables[0];
-          if (!table) return;
-
-          // Pot aktualisieren
-          const potEl = document.querySelector('.pt-pot');
-          if (potEl && table.pot > 0) potEl.textContent = 'Pot: ' + table.pot.toLocaleString('de-DE');
-
-          // Seats aktualisieren
-          const seatEls = document.querySelectorAll('.pt-seat');
-          for (let i = 0; i < seatEls.length; i++) {
-            const el = seatEls[i];
-            const s = table.seats[i];
-            if (s && s.username) {
-              el.classList.add('pt-occupied');
-              const nameEl = el.querySelector('.pt-seat-name');
-              if (nameEl) nameEl.textContent = s.username;
-              let chipsEl = el.querySelector('.pt-chips');
-              if (!chipsEl) {
-                chipsEl = document.createElement('div');
-                chipsEl.className = 'pt-chips';
-                el.appendChild(chipsEl);
-              }
-              chipsEl.textContent = '\u{1F4B0} ' + (s.chips || 0).toLocaleString('de-DE');
-            } else {
-              el.classList.remove('pt-occupied');
-              const nameEl = el.querySelector('.pt-seat-name');
-              if (nameEl) nameEl.textContent = 'Platz frei';
-              const chipsEl = el.querySelector('.pt-chips');
-              if (chipsEl) chipsEl.textContent = '';
-            }
-          }
-        })
-        .catch(() => {});
-    }
+    // (Kein extra JS nötig – iframe lädt poker.html komplett)
 
     // =========================================================================
     // LIVE ONLINE ANZEIGE
@@ -1477,11 +1849,163 @@
         .catch(() => {});
     }
 
-    // Alle 5 Sekunden aktualisieren
-    updateLivePokerTable();
     updateOnlineCount();
-    setInterval(updateLivePokerTable, 5000);
     setInterval(updateOnlineCount, 5000);
+
+    // =========================================================================
+    // DRAGGABLE + RESIZABLE EMBED WINDOWS
+    // =========================================================================
+    (function() {
+      const savedPositions = JSON.parse(localStorage.getItem('embedPositions') || '{}');
+
+      function applyStored(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const s = savedPositions[id];
+        if (s) {
+          if (s.w) { el.style.width = s.w + 'px'; el.style.maxWidth = 'none'; }
+          if (s.h) el.style.height = s.h + 'px';
+          if (s.x !== undefined && s.x !== 0) el.style.marginLeft = s.x + 'px';
+          if (s.y !== undefined && s.y !== 0) el.style.marginTop = s.y + 'px';
+        }
+      }
+
+      function savePos(id, data) {
+        savedPositions[id] = { ...savedPositions[id], ...data };
+        localStorage.setItem('embedPositions', JSON.stringify(savedPositions));
+      }
+
+      window.saveEmbed = function(id, btn) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        savedPositions[id] = {
+          w: Math.round(rect.width),
+          h: Math.round(rect.height),
+          x: parseInt(el.style.marginLeft) || 0,
+          y: parseInt(el.style.marginTop) || 0
+        };
+        localStorage.setItem('embedPositions', JSON.stringify(savedPositions));
+        if (btn) {
+          btn.classList.add('saved');
+          btn.textContent = '✓';
+          setTimeout(() => { btn.classList.remove('saved'); btn.textContent = '💾'; }, 1500);
+        }
+      };
+
+      window.resetEmbed = function(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.width = '';
+        el.style.height = '';
+        el.style.marginLeft = '';
+        el.style.marginTop = '';
+        el.style.maxWidth = '';
+        delete savedPositions[id];
+        localStorage.setItem('embedPositions', JSON.stringify(savedPositions));
+      };
+
+      // DRAG
+      document.querySelectorAll('.embed-drag-handle').forEach(handle => {
+        const targetId = handle.dataset.drag;
+        let startX, startY, startML, startMT, isDragging = false;
+
+        function onStart(e) {
+          const el = document.getElementById(targetId);
+          if (!el) return;
+          e.preventDefault();
+          isDragging = true;
+          el.classList.add('dragging');
+          const t = e.touches ? e.touches[0] : e;
+          startX = t.clientX;
+          startY = t.clientY;
+          startML = parseInt(el.style.marginLeft) || 0;
+          startMT = parseInt(el.style.marginTop) || 0;
+          el.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'none');
+        }
+        function onMove(e) {
+          if (!isDragging) return;
+          const el = document.getElementById(targetId);
+          const t = e.touches ? e.touches[0] : e;
+          const dx = t.clientX - startX;
+          const dy = t.clientY - startY;
+          el.style.marginLeft = (startML + dx) + 'px';
+          el.style.marginTop = (startMT + dy) + 'px';
+        }
+        function onEnd() {
+          if (!isDragging) return;
+          isDragging = false;
+          const el = document.getElementById(targetId);
+          if (!el) return;
+          el.classList.remove('dragging');
+          el.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = '');
+          savePos(targetId, {
+            x: parseInt(el.style.marginLeft) || 0,
+            y: parseInt(el.style.marginTop) || 0
+          });
+        }
+
+        handle.addEventListener('mousedown', onStart);
+        handle.addEventListener('touchstart', onStart, { passive: false });
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchend', onEnd);
+      });
+
+      // RESIZE
+      document.querySelectorAll('.embed-resize-handle').forEach(handle => {
+        const targetId = handle.dataset.resize;
+        let startX, startY, startW, startH, isResizing = false;
+
+        function onStart(e) {
+          const el = document.getElementById(targetId);
+          if (!el) return;
+          e.preventDefault();
+          e.stopPropagation();
+          isResizing = true;
+          const t = e.touches ? e.touches[0] : e;
+          startX = t.clientX;
+          startY = t.clientY;
+          const rect = el.getBoundingClientRect();
+          startW = rect.width;
+          startH = rect.height;
+          el.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'none');
+        }
+        function onMove(e) {
+          if (!isResizing) return;
+          const el = document.getElementById(targetId);
+          const t = e.touches ? e.touches[0] : e;
+          const dx = t.clientX - startX;
+          const dy = t.clientY - startY;
+          const newW = Math.max(150, startW + dx);
+          const newH = Math.max(120, startH + dy);
+          el.style.width = newW + 'px';
+          el.style.height = newH + 'px';
+          el.style.maxWidth = 'none';
+        }
+        function onEnd() {
+          if (!isResizing) return;
+          isResizing = false;
+          const el = document.getElementById(targetId);
+          if (!el) return;
+          el.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = '');
+          const rect = el.getBoundingClientRect();
+          savePos(targetId, { w: Math.round(rect.width), h: Math.round(rect.height) });
+        }
+
+        handle.addEventListener('mousedown', onStart);
+        handle.addEventListener('touchstart', onStart, { passive: false });
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchend', onEnd);
+      });
+
+      // Gespeicherte Positionen wiederherstellen
+      applyStored('pokerEmbedWrap');
+      applyStored('slotEmbedWrap');
+    })();
 
     // =========================================================================
     // INIT
@@ -1490,6 +2014,8 @@
   </script>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="/js/baxt-coins.js"></script>
+<script src="/js/friends.js"></script>
 <script src="/js/jukebox.js"></script>
 </body>
 </html>

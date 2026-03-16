@@ -160,9 +160,10 @@ function awardXP(user, amount) {
 
   const results = { xpGained: amount, newXP: user.xp, newLevel, leveledUp: false, newChests: [] };
 
-  // Level-Up Truhen vergeben
+  // Level-Up Truhen + Baxt Coins vergeben
   if (newLevel > oldLevel) {
     results.leveledUp = true;
+    let totalBaxtBonus = 0;
     for (let lvl = oldLevel + 1; lvl <= newLevel; lvl++) {
       let chestType = 'holz';
       if (lvl % 50 === 0) chestType = 'diamant';
@@ -171,6 +172,14 @@ function awardXP(user, amount) {
       else if (lvl % 5 === 0) chestType = 'bronze';
       user.chestsReady.push(chestType);
       results.newChests.push({ type: chestType, label: CHEST_TYPES[chestType].label });
+      // Baxt Coins pro Level-Up (steigt mit Level)
+      const levelBonus = BAXT_REWARDS.levelUp + (lvl * 10);
+      totalBaxtBonus += levelBonus;
+    }
+    if (totalBaxtBonus > 0) {
+      user.baxtCoins = (user.baxtCoins || 0) + totalBaxtBonus;
+      results.baxtBonus = totalBaxtBonus;
+      results.baxtTotal = user.baxtCoins;
     }
   }
   return results;
@@ -184,6 +193,42 @@ const XP_REWARDS = {
   highscoreTop3: 100,   // Wochen-Top 3
   highscoreTop1: 250    // Wochen-Platz 1
 };
+
+// ---------------------------------------------------------------------------
+// BAXT COINS SYSTEM – Interne Casino-Währung
+// ---------------------------------------------------------------------------
+const BAXT_REWARDS = {
+  pokerWin: 50,         // Poker-Hand gewonnen
+  blackjackWin: 30,     // Blackjack gewonnen
+  blackjackBJ: 75,      // Blackjack (21 mit 2 Karten)
+  roundPlayed: 5,       // Runde gespielt (egal welches Spiel)
+  levelUp: 200,         // Level-Up Bonus
+  dailyLogin: 100,      // Täglicher Login-Bonus
+  slotBigWin: 40,       // Slot: großer Gewinn (>10x)
+};
+
+// Baxt Coins vergeben
+function awardBaxtCoins(user, amount, reason) {
+  if (!user || amount <= 0) return null;
+  user.baxtCoins = (user.baxtCoins || 0) + amount;
+
+  // Transaktion loggen
+  const tx = {
+    id: uuidv4(),
+    userId: user.id,
+    type: 'earn',
+    amount,
+    reason,
+    baxtAfter: user.baxtCoins,
+    timestamp: new Date().toISOString()
+  };
+
+  if (!user.baxtHistory) user.baxtHistory = [];
+  user.baxtHistory.unshift(tx);
+  if (user.baxtHistory.length > 100) user.baxtHistory.length = 100; // Max 100 Einträge
+
+  return { coins: amount, reason, total: user.baxtCoins };
+}
 
 // ---------------------------------------------------------------------------
 // Middleware
@@ -293,7 +338,15 @@ app.post('/api/auth/register', async (req, res) => {
     chestsOpened: 0,
     roundsPlayed: 0,
     handsWon: 0,
-    highscoreAllTime: 0
+    highscoreAllTime: 0,
+    // Baxt Coins
+    baxtCoins: 500,        // Startguthaben: 500 Baxt Coins
+    baxtHistory: [],       // Transaktionshistorie
+    lastDailyBaxt: null,   // Letzter Daily-Login Bonus
+    // Friends
+    friends: [],           // Array von User-IDs
+    friendRequests: [],    // Eingehende Anfragen
+    friendRequestsSent: [] // Gesendete Anfragen
   };
 
   db.users.set(userId, user);
@@ -302,7 +355,7 @@ app.post('/api/auth/register', async (req, res) => {
 
   res.status(201).json({
     token,
-    user: { id: userId, username, phone, balance: 0, currency: 'EUR' }
+    user: { id: userId, username, phone, balance: 0, currency: 'EUR', baxtCoins: 500 }
   });
 });
 
@@ -333,7 +386,8 @@ app.post('/api/auth/login', async (req, res) => {
       username: foundUser.username,
       phone: foundUser.phone,
       balance: foundUser.balance,
-      currency: foundUser.currency
+      currency: foundUser.currency,
+      baxtCoins: foundUser.baxtCoins || 0
     }
   });
 });
@@ -405,6 +459,315 @@ app.get('/api/wallet/transactions', authMiddleware, (req, res) => {
   }
   userTx.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   res.json({ transactions: userTx.slice(0, 50) });
+});
+
+// ---------------------------------------------------------------------------
+// FRIENDS SYSTEM
+// ---------------------------------------------------------------------------
+
+// Online-Status Tracking: userId -> { socketId, lastSeen }
+const onlineUsers = new Map();
+
+// Freundschaftsanfrage senden
+app.post('/api/friends/request', authMiddleware, (req, res) => {
+  const { username } = req.body;
+  if (!username) return res.status(400).json({ error: 'Username erforderlich' });
+
+  const me = req.user;
+  if (username.toLowerCase() === me.username.toLowerCase()) {
+    return res.status(400).json({ error: 'Du kannst dir nicht selbst eine Anfrage schicken' });
+  }
+
+  // Zieluser finden
+  let target = null;
+  for (const [, u] of db.users) {
+    if (u.username.toLowerCase() === username.toLowerCase()) { target = u; break; }
+  }
+  if (!target) return res.status(404).json({ error: 'Spieler nicht gefunden' });
+
+  // Init arrays
+  if (!me.friends) me.friends = [];
+  if (!me.friendRequests) me.friendRequests = [];
+  if (!me.friendRequestsSent) me.friendRequestsSent = [];
+  if (!target.friends) target.friends = [];
+  if (!target.friendRequests) target.friendRequests = [];
+  if (!target.friendRequestsSent) target.friendRequestsSent = [];
+
+  // Schon befreundet?
+  if (me.friends.includes(target.id)) {
+    return res.status(400).json({ error: 'Ihr seid bereits Freunde' });
+  }
+
+  // Anfrage schon gesendet?
+  if (me.friendRequestsSent.includes(target.id)) {
+    return res.status(400).json({ error: 'Anfrage wurde bereits gesendet' });
+  }
+
+  // Gegenseitige Anfrage? -> Direkt befreunden
+  if (target.friendRequestsSent.includes(me.id)) {
+    me.friends.push(target.id);
+    target.friends.push(me.id);
+    target.friendRequestsSent = target.friendRequestsSent.filter(id => id !== me.id);
+    me.friendRequests = me.friendRequests.filter(id => id !== target.id);
+
+    // Echtzeit-Benachrichtigung
+    const targetSocket = [...io.sockets.sockets.values()].find(s => s.user && s.user.id === target.id);
+    if (targetSocket) targetSocket.emit('friends:accepted', { userId: me.id, username: me.username });
+
+    return res.json({ status: 'accepted', message: `${target.username} und du seid jetzt Freunde!` });
+  }
+
+  me.friendRequestsSent.push(target.id);
+  target.friendRequests.push(me.id);
+
+  // Echtzeit-Benachrichtigung
+  const targetSocket = [...io.sockets.sockets.values()].find(s => s.user && s.user.id === target.id);
+  if (targetSocket) {
+    targetSocket.emit('friends:request', { userId: me.id, username: me.username });
+  }
+
+  res.json({ status: 'sent', message: `Anfrage an ${target.username} gesendet` });
+});
+
+// Freundschaftsanfrage annehmen
+app.post('/api/friends/accept', authMiddleware, (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ error: 'userId erforderlich' });
+
+  const me = req.user;
+  if (!me.friendRequests) me.friendRequests = [];
+  if (!me.friends) me.friends = [];
+
+  if (!me.friendRequests.includes(userId)) {
+    return res.status(400).json({ error: 'Keine Anfrage von diesem Spieler' });
+  }
+
+  const sender = db.users.get(userId);
+  if (!sender) return res.status(404).json({ error: 'Spieler nicht gefunden' });
+  if (!sender.friends) sender.friends = [];
+  if (!sender.friendRequestsSent) sender.friendRequestsSent = [];
+
+  // Befreunden
+  me.friends.push(userId);
+  sender.friends.push(me.id);
+  me.friendRequests = me.friendRequests.filter(id => id !== userId);
+  sender.friendRequestsSent = sender.friendRequestsSent.filter(id => id !== me.id);
+
+  // Benachrichtigung
+  const senderSocket = [...io.sockets.sockets.values()].find(s => s.user && s.user.id === userId);
+  if (senderSocket) senderSocket.emit('friends:accepted', { userId: me.id, username: me.username });
+
+  res.json({ status: 'accepted', username: sender.username });
+});
+
+// Freundschaftsanfrage ablehnen
+app.post('/api/friends/decline', authMiddleware, (req, res) => {
+  const { userId } = req.body;
+  const me = req.user;
+  if (!me.friendRequests) me.friendRequests = [];
+
+  me.friendRequests = me.friendRequests.filter(id => id !== userId);
+
+  const sender = db.users.get(userId);
+  if (sender && sender.friendRequestsSent) {
+    sender.friendRequestsSent = sender.friendRequestsSent.filter(id => id !== me.id);
+  }
+
+  res.json({ status: 'declined' });
+});
+
+// Freund entfernen
+app.post('/api/friends/remove', authMiddleware, (req, res) => {
+  const { userId } = req.body;
+  const me = req.user;
+  if (!me.friends) me.friends = [];
+
+  me.friends = me.friends.filter(id => id !== userId);
+
+  const other = db.users.get(userId);
+  if (other && other.friends) {
+    other.friends = other.friends.filter(id => id !== me.id);
+  }
+
+  res.json({ status: 'removed' });
+});
+
+// Freundesliste abrufen (mit Online-Status)
+app.get('/api/friends', authMiddleware, (req, res) => {
+  const me = req.user;
+  if (!me.friends) me.friends = [];
+  if (!me.friendRequests) me.friendRequests = [];
+
+  const friends = me.friends.map(fId => {
+    const u = db.users.get(fId);
+    if (!u) return null;
+    const online = onlineUsers.has(fId);
+    return {
+      id: u.id,
+      username: u.username,
+      level: u.level || 1,
+      rang: getRangFromLevel(u.level || 1).label,
+      baxtCoins: u.baxtCoins || 0,
+      online,
+      lastSeen: online ? null : (onlineUsers.get(fId + '_lastSeen') || null)
+    };
+  }).filter(Boolean);
+
+  const requests = me.friendRequests.map(rId => {
+    const u = db.users.get(rId);
+    if (!u) return null;
+    return { id: u.id, username: u.username, level: u.level || 1 };
+  }).filter(Boolean);
+
+  res.json({ friends, requests });
+});
+
+// Spieler suchen (für Freund hinzufügen)
+app.get('/api/friends/search', authMiddleware, (req, res) => {
+  const q = (req.query.q || '').toLowerCase().trim();
+  if (q.length < 2) return res.json({ results: [] });
+
+  const results = [];
+  for (const [, u] of db.users) {
+    if (u.id === req.user.id) continue;
+    if (u.username.toLowerCase().includes(q)) {
+      const isFriend = (req.user.friends || []).includes(u.id);
+      const isPending = (req.user.friendRequestsSent || []).includes(u.id);
+      results.push({
+        id: u.id,
+        username: u.username,
+        level: u.level || 1,
+        isFriend,
+        isPending
+      });
+    }
+    if (results.length >= 10) break;
+  }
+
+  res.json({ results });
+});
+
+// ---------------------------------------------------------------------------
+// BAXT COINS ROUTES
+// ---------------------------------------------------------------------------
+
+// Baxt Coins Balance
+app.get('/api/baxt/balance', authMiddleware, (req, res) => {
+  res.json({
+    baxtCoins: req.user.baxtCoins || 0,
+    username: req.user.username
+  });
+});
+
+// Baxt Coins an anderen Spieler senden
+app.post('/api/baxt/transfer', authMiddleware, (req, res) => {
+  const { recipientUsername, amount } = req.body;
+  if (!recipientUsername || !amount || amount <= 0 || !Number.isInteger(amount)) {
+    return res.status(400).json({ error: 'Ungültiger Betrag oder Empfänger' });
+  }
+  if (amount < 10) {
+    return res.status(400).json({ error: 'Mindestens 10 Baxt Coins zum Senden' });
+  }
+
+  const senderCoins = req.user.baxtCoins || 0;
+  if (senderCoins < amount) {
+    return res.status(400).json({ error: 'Nicht genug Baxt Coins' });
+  }
+
+  // Empfänger finden
+  let recipient = null;
+  for (const [, user] of db.users) {
+    if (user.username.toLowerCase() === recipientUsername.toLowerCase() && user.id !== req.user.id) {
+      recipient = user;
+      break;
+    }
+  }
+  if (!recipient) {
+    return res.status(404).json({ error: 'Spieler nicht gefunden' });
+  }
+
+  // Transfer durchführen
+  req.user.baxtCoins -= amount;
+  recipient.baxtCoins = (recipient.baxtCoins || 0) + amount;
+
+  // Sender-History
+  const senderTx = {
+    id: uuidv4(), userId: req.user.id, type: 'transfer_out',
+    amount, to: recipient.username, baxtAfter: req.user.baxtCoins,
+    timestamp: new Date().toISOString()
+  };
+  if (!req.user.baxtHistory) req.user.baxtHistory = [];
+  req.user.baxtHistory.unshift(senderTx);
+
+  // Empfänger-History
+  const recipientTx = {
+    id: uuidv4(), userId: recipient.id, type: 'transfer_in',
+    amount, from: req.user.username, baxtAfter: recipient.baxtCoins,
+    timestamp: new Date().toISOString()
+  };
+  if (!recipient.baxtHistory) recipient.baxtHistory = [];
+  recipient.baxtHistory.unshift(recipientTx);
+
+  // Echtzeit-Benachrichtigung an Empfänger via Socket
+  const recipientSocket = [...io.sockets.sockets.values()].find(s => s.user?.id === recipient.id);
+  if (recipientSocket) {
+    recipientSocket.emit('baxt:received', {
+      from: req.user.username,
+      amount,
+      total: recipient.baxtCoins
+    });
+  }
+
+  res.json({
+    success: true,
+    sent: amount,
+    to: recipient.username,
+    baxtCoins: req.user.baxtCoins
+  });
+});
+
+// Baxt Coins Transaktionshistorie
+app.get('/api/baxt/history', authMiddleware, (req, res) => {
+  res.json({
+    history: (req.user.baxtHistory || []).slice(0, 50),
+    baxtCoins: req.user.baxtCoins || 0
+  });
+});
+
+// Daily Login Bonus (Baxt Coins)
+app.post('/api/baxt/daily', authMiddleware, (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
+  if (req.user.lastDailyBaxt === today) {
+    return res.status(400).json({ error: 'Heute schon abgeholt', nextReset: 'morgen 00:00' });
+  }
+
+  req.user.lastDailyBaxt = today;
+  const result = awardBaxtCoins(req.user, BAXT_REWARDS.dailyLogin, 'daily_login');
+
+  // Auch XP für Daily Login
+  const xpResult = awardXP(req.user, XP_REWARDS.dailyLogin);
+
+  res.json({
+    success: true,
+    baxtEarned: BAXT_REWARDS.dailyLogin,
+    baxtCoins: req.user.baxtCoins,
+    xpResult
+  });
+});
+
+// Baxt Coins Rangliste (Top 20)
+app.get('/api/baxt/leaderboard', (req, res) => {
+  const allUsers = [];
+  for (const [, user] of db.users) {
+    allUsers.push({
+      username: user.username,
+      baxtCoins: user.baxtCoins || 0,
+      level: user.level || 1,
+      rang: getRangFromLevel(user.level || 1).label
+    });
+  }
+  allUsers.sort((a, b) => b.baxtCoins - a.baxtCoins);
+  res.json({ leaderboard: allUsers.slice(0, 20) });
 });
 
 // ---------------------------------------------------------------------------
@@ -599,7 +962,9 @@ app.get('/api/auth/profile', authMiddleware, (req, res) => {
     chestsReady: req.user.chestsReady || [],
     inventoryCount: (req.user.inventory || []).length,
     roundsPlayed: req.user.roundsPlayed || 0,
-    handsWon: req.user.handsWon || 0
+    handsWon: req.user.handsWon || 0,
+    // Baxt Coins
+    baxtCoins: req.user.baxtCoins || 0
   });
 });
 
@@ -1120,20 +1485,30 @@ function bjDealerPlay(table) {
     else { p.payout = 0; p.status = 'lose'; }
   }
 
-  // XP vergeben für Blackjack
+  // XP + Baxt Coins vergeben für Blackjack
   for (const [pid, p] of table.players) {
     if (p.status === 'spectating' || p.status === 'betting') continue;
     const user = db.users.get(pid);
     if (user) {
       user.roundsPlayed = (user.roundsPlayed || 0) + 1;
       let xpAmount = XP_REWARDS.roundPlayed;
-      if (p.status === 'win' || p.status === 'blackjack') {
+      let baxtAmount = BAXT_REWARDS.roundPlayed;
+      if (p.status === 'blackjack') {
         xpAmount = XP_REWARDS.handWon;
+        baxtAmount = BAXT_REWARDS.blackjackBJ;
+        user.handsWon = (user.handsWon || 0) + 1;
+      } else if (p.status === 'win') {
+        xpAmount = XP_REWARDS.handWon;
+        baxtAmount = BAXT_REWARDS.blackjackWin;
         user.handsWon = (user.handsWon || 0) + 1;
       }
       const xpResult = awardXP(user, xpAmount);
+      const baxtResult = awardBaxtCoins(user, baxtAmount, p.status === 'blackjack' ? 'blackjack_bj' : p.status === 'win' ? 'blackjack_win' : 'blackjack_round');
       const pSocket = [...io.sockets.sockets.values()].find(s => s.user?.id === pid);
-      if (pSocket) pSocket.emit('xp:gained', xpResult);
+      if (pSocket) {
+        pSocket.emit('xp:gained', xpResult);
+        if (baxtResult) pSocket.emit('baxt:earned', baxtResult);
+      }
     }
   }
 
@@ -1442,7 +1817,8 @@ function pokerTableState(table, forSocket) {
       isYou, isDealer: i === table.dealerSeat, isBot: !!p.isBot,
       botStyle: p.isBot ? p.botStyle : null,
       peeking: !!p.peeking,
-      handName: table.phase === 'showdown' && !p.folded ? bestPokerHand(p.cards, table.community).name : null
+      handName: table.phase === 'showdown' && !p.folded ? bestPokerHand(p.cards, table.community).name : null,
+      avatarUrl: p.avatarUrl || null
     };
   });
   return {
@@ -1546,15 +1922,17 @@ function pokerShowdown(table) {
       hand: winner.handResult?.name || 'Gewinner'
     });
 
-    // XP für Gewinner vergeben
+    // XP + Baxt Coins für Gewinner vergeben
     if (!winner.isBot) {
       const user = db.users.get(winnerId);
       if (user) {
         user.handsWon = (user.handsWon || 0) + 1;
         const xpResult = awardXP(user, XP_REWARDS.handWon);
+        const baxtResult = awardBaxtCoins(user, BAXT_REWARDS.pokerWin, 'poker_win');
         const winnerSocket = [...io.sockets.sockets.values()].find(s => s.user?.id === winnerId);
         if (winnerSocket) {
           winnerSocket.emit('xp:gained', xpResult);
+          if (baxtResult) winnerSocket.emit('baxt:earned', baxtResult);
         }
       }
     }
@@ -1566,10 +1944,14 @@ function pokerShowdown(table) {
     const user = db.users.get(pid);
     if (user) {
       user.roundsPlayed = (user.roundsPlayed || 0) + 1;
-      if (pid !== winnerId) { // Gewinner hat schon XP bekommen
+      if (pid !== winnerId) { // Gewinner hat schon XP/Baxt bekommen
         const xpResult = awardXP(user, XP_REWARDS.roundPlayed);
+        const baxtResult = awardBaxtCoins(user, BAXT_REWARDS.roundPlayed, 'poker_round');
         const pSocket = [...io.sockets.sockets.values()].find(s => s.user?.id === pid);
-        if (pSocket) pSocket.emit('xp:gained', xpResult);
+        if (pSocket) {
+          pSocket.emit('xp:gained', xpResult);
+          if (baxtResult) pSocket.emit('baxt:earned', baxtResult);
+        }
       }
     }
   }
@@ -1582,10 +1964,14 @@ function pokerShowdown(table) {
 
 function pokerStartRound(table) {
   if (table.timer) clearTimeout(table.timer);
-  // Remove players with no chips
+  // Remove players with no chips (Bots bekommen Nachschub)
   for (const [pid, p] of table.players) {
     if (p.chips <= 0 && !p.spectator) {
-      p.spectator = true;
+      if (p.isBot) {
+        p.chips = 10000; // Bot-Reset
+      } else {
+        p.spectator = true;
+      }
     }
   }
 
@@ -1663,9 +2049,78 @@ function emitPokerState(table) {
 ['tisch-1', 'tisch-2', 'tisch-3'].forEach(id => {
   tables.blackjack.set(id, createBJTable(id));
 });
-['tisch-1', 'tisch-2'].forEach(id => {
+['tisch-1', 'tisch-2', 'embed-preview'].forEach(id => {
   tables.poker.set(id, createPokerTable(id));
 });
+
+// ===================== AUTO-BOTS (Showcase-Tisch) =====================
+// Tisch 1 bekommt automatisch Bots damit immer was los ist
+function ensureShowcaseBots() {
+  const showcaseTable = tables.poker.get('tisch-1');
+  if (!showcaseTable) return;
+
+  const realPlayers = [...showcaseTable.players.values()].filter(p => !p.isBot && !p.spectator).length;
+  const botCount = [...showcaseTable.players.values()].filter(p => p.isBot && !p.spectator).length;
+  const totalActive = [...showcaseTable.players.values()].filter(p => !p.spectator).length;
+
+  // Wenn keine echten Spieler: 3 Bots sollen spielen
+  if (realPlayers === 0 && botCount < 3) {
+    const needed = 3 - botCount;
+    for (let i = 0; i < needed; i++) {
+      // Bots einzeln hinzufügen OHNE direkt die Runde zu starten
+      const freeSeat = showcaseTable.seats.findIndex(s => !s);
+      if (freeSeat < 0) break;
+      const botId = 'bot-' + (++botIdCounter);
+      const name = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
+      const style = BOT_STYLES[Math.floor(Math.random() * BOT_STYLES.length)];
+      showcaseTable.players.set(botId, {
+        id: botId, username: name, socketId: null,
+        cards: [], chips: 10000, folded: false, roundBet: 0,
+        spectator: false, allIn: false, hasActed: false,
+        isBot: true, botStyle: style
+      });
+      showcaseTable.seats[freeSeat] = botId;
+    }
+    console.log(`🤖 Showcase: ${needed} Bot(s) zu Tisch 1 hinzugefügt`);
+    // JETZT erst Runde starten wenn genug da
+    const nowActive = [...showcaseTable.players.values()].filter(p => !p.spectator).length;
+    if (nowActive >= 2 && showcaseTable.phase === 'waiting') {
+      pokerStartRound(showcaseTable);
+    }
+  }
+
+  // Wenn ein echter Spieler da ist aber zu wenig Gegner: Bot dazu
+  if (realPlayers >= 1 && totalActive < 3 && botCount < 2) {
+    addBotToTable(showcaseTable);
+  }
+
+  // Wenn echte Spieler genug sind (3+), Bots entfernen
+  if (realPlayers >= 3) {
+    const botIds = [...showcaseTable.players.entries()].filter(([, p]) => p.isBot).map(([id]) => id);
+    botIds.forEach(id => removeBotFromTable(showcaseTable, id));
+  }
+
+  // Bots mit 0 Chips resetten
+  for (const [, p] of showcaseTable.players) {
+    if (p.isBot && (p.chips <= 0 || p.spectator)) {
+      p.chips = 10000;
+      p.spectator = false;
+    }
+  }
+
+  // Falls Runde steckengeblieben ist (waiting obwohl genug Spieler da)
+  const readyPlayers = [...showcaseTable.players.values()].filter(p => !p.spectator).length;
+  if (readyPlayers >= 2 && showcaseTable.phase === 'waiting') {
+    pokerStartRound(showcaseTable);
+  }
+}
+
+// Beim Start Bots einsetzen
+setTimeout(() => {
+  ensureShowcaseBots();
+  // Regelmäßig prüfen ob Bots gebraucht werden / Spiel läuft
+  setInterval(ensureShowcaseBots, 15000);
+}, 3000);
 
 // ===================== SOCKET EVENTS =====================
 io.on('connection', (socket) => {
@@ -1675,6 +2130,27 @@ io.on('connection', (socket) => {
   const today = getDateKey();
   if (!visitorLog.has(today)) visitorLog.set(today, new Set());
   visitorLog.get(today).add(sockIp);
+
+  // --- LIVE PREVIEW (Landingpage Spectator) ---
+  socket.on('poker:livePreview', () => {
+    // Finde den Tisch mit den meisten Spielern
+    let bestTable = null;
+    let bestCount = 0;
+    for (const [, table] of tables.poker) {
+      const count = [...table.players.values()].filter(p => !p.spectator).length;
+      if (count > bestCount) { bestCount = count; bestTable = table; }
+    }
+    if (bestTable && bestCount > 0) {
+      // Spectator-State senden (keine eigenen Karten sichtbar)
+      const state = pokerTableState(bestTable, null);
+      socket.emit('poker:livePreview', { active: true, state, tableId: bestTable.id });
+      // In den Room joinen für Live-Updates
+      socket.join('pk-' + bestTable.id);
+      socket._livePreview = bestTable.id;
+    } else {
+      socket.emit('poker:livePreview', { active: false });
+    }
+  });
 
   // --- LOBBY ---
   socket.on('lobby:tables', () => {
@@ -1781,7 +2257,19 @@ io.on('connection', (socket) => {
   });
 
   // --- POKER ---
-  socket.on('poker:join', ({ tableId, seat }) => {
+  socket.on('poker:setAvatar', ({ avatarUrl }) => {
+    if (!socket.user) return;
+    const tableId = socket._pkTable;
+    if (!tableId) return;
+    const table = tables.poker.get(tableId);
+    if (!table) return;
+    const player = table.players.get(socket.user.id);
+    if (!player) return;
+    player.avatarUrl = avatarUrl;
+    emitPokerState(table);
+  });
+
+  socket.on('poker:join', ({ tableId, seat, avatarUrl }) => {
     const table = tables.poker.get(tableId);
     if (!table) return socket.emit('error', 'Tisch nicht gefunden');
 
@@ -1805,7 +2293,8 @@ io.on('connection', (socket) => {
     if (!table.players.has(socket.user.id)) {
       table.players.set(socket.user.id, {
         id: socket.user.id, username: socket.user.username, socketId: socket.id,
-        cards: [], chips: 10000, folded: false, roundBet: 0, spectator: false, allIn: false
+        cards: [], chips: 10000, folded: false, roundBet: 0, spectator: false, allIn: false,
+        avatarUrl: avatarUrl || null
       });
     }
     table.seats[seat] = socket.user.id;
@@ -1817,6 +2306,9 @@ io.on('connection', (socket) => {
     if (table.phase === 'waiting' && [...table.players.values()].filter(p => !p.spectator).length >= 2) {
       pokerStartRound(table);
     }
+
+    // Showcase-Bots anpassen wenn echter Spieler kommt
+    if (tableId === 'tisch-1') setTimeout(ensureShowcaseBots, 500);
   });
 
   socket.on('poker:call', () => {
@@ -2015,9 +2507,116 @@ io.on('connection', (socket) => {
     }
   });
 
+  // --- FRIENDS & ONLINE STATUS ---
+  if (!socket.user.guest) {
+    onlineUsers.set(socket.user.id, { socketId: socket.id, since: Date.now() });
+    // Freunde benachrichtigen
+    const myFriends = socket.user.friends || [];
+    myFriends.forEach(fId => {
+      const fSocket = [...io.sockets.sockets.values()].find(s => s.user && s.user.id === fId);
+      if (fSocket) fSocket.emit('friends:online', { userId: socket.user.id, username: socket.user.username });
+    });
+  }
+
+  // --- VIDEO/AUDIO CALL SIGNALING ---
+  socket.on('call:initiate', ({ targetUserId, callType }) => {
+    // callType: 'video' oder 'audio'
+    if (socket.user.guest) return;
+    const me = socket.user;
+    if (!me.friends || !me.friends.includes(targetUserId)) {
+      return socket.emit('call:error', { message: 'Nur Freunde können angerufen werden' });
+    }
+
+    const targetSocket = [...io.sockets.sockets.values()].find(s => s.user && s.user.id === targetUserId);
+    if (!targetSocket) {
+      return socket.emit('call:error', { message: 'Spieler ist offline' });
+    }
+
+    const callId = `call-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    socket._activeCall = callId;
+    targetSocket._activeCall = callId;
+
+    targetSocket.emit('call:incoming', {
+      callId,
+      callType,
+      callerId: me.id,
+      callerName: me.username
+    });
+
+    socket.emit('call:ringing', { callId, targetUsername: db.users.get(targetUserId)?.username });
+  });
+
+  socket.on('call:accept', ({ callId, callerId }) => {
+    const callerSocket = [...io.sockets.sockets.values()].find(s => s.user && s.user.id === callerId);
+    if (callerSocket) {
+      // Beide in einen Call-Room stecken
+      const roomName = 'call-' + callId;
+      socket.join(roomName);
+      callerSocket.join(roomName);
+      socket._callRoom = roomName;
+      callerSocket._callRoom = roomName;
+
+      callerSocket.emit('call:accepted', { callId, peerId: socket.id });
+      socket.emit('call:connected', { callId, peerId: callerSocket.id });
+    }
+  });
+
+  socket.on('call:decline', ({ callId, callerId }) => {
+    const callerSocket = [...io.sockets.sockets.values()].find(s => s.user && s.user.id === callerId);
+    if (callerSocket) {
+      callerSocket.emit('call:declined', { callId });
+    }
+    socket._activeCall = null;
+  });
+
+  socket.on('call:end', ({ callId }) => {
+    const roomName = 'call-' + callId;
+    socket.to(roomName).emit('call:ended', { callId });
+    // Alle aus dem Room entfernen
+    const room = io.sockets.adapter.rooms.get(roomName);
+    if (room) {
+      room.forEach(sid => {
+        const s = io.sockets.sockets.get(sid);
+        if (s) { s.leave(roomName); s._activeCall = null; s._callRoom = null; }
+      });
+    }
+  });
+
+  // WebRTC Signaling für Calls
+  socket.on('call:offer', ({ peerId, offer }) => {
+    const peer = io.sockets.sockets.get(peerId);
+    if (peer) peer.emit('call:offer', { peerId: socket.id, offer });
+  });
+
+  socket.on('call:answer', ({ peerId, answer }) => {
+    const peer = io.sockets.sockets.get(peerId);
+    if (peer) peer.emit('call:answer', { peerId: socket.id, answer });
+  });
+
+  socket.on('call:ice-candidate', ({ peerId, candidate }) => {
+    const peer = io.sockets.sockets.get(peerId);
+    if (peer) peer.emit('call:ice-candidate', { peerId: socket.id, candidate });
+  });
+
   // --- DISCONNECT ---
   socket.on('disconnect', () => {
     console.log(`🔌 ${socket.user.username} disconnected`);
+
+    // Friends offline tracking
+    if (!socket.user.guest) {
+      onlineUsers.delete(socket.user.id);
+      onlineUsers.set(socket.user.id + '_lastSeen', new Date().toISOString());
+      const myFriends = socket.user.friends || [];
+      myFriends.forEach(fId => {
+        const fSocket = [...io.sockets.sockets.values()].find(s => s.user && s.user.id === fId);
+        if (fSocket) fSocket.emit('friends:offline', { userId: socket.user.id });
+      });
+    }
+
+    // Active call cleanup
+    if (socket._callRoom) {
+      socket.to(socket._callRoom).emit('call:ended', { reason: 'disconnect' });
+    }
 
     // WebRTC cleanup
     if (socket._rtcRoom) {
@@ -2043,6 +2642,8 @@ io.on('connection', (socket) => {
         table.players.delete(socket.user.id);
         io.to('pk-' + table.id).emit('poker:playerLeft', { username: socket.user.username });
         if (table.phase !== 'waiting' && pokerActivePlayers(table) <= 1) pokerShowdown(table);
+        // Showcase-Bots nachfüllen wenn Spieler geht
+        if (table.id === 'tisch-1') setTimeout(ensureShowcaseBots, 2000);
       }
     }
   });

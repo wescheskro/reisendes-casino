@@ -47,10 +47,10 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 
 /* CARDS */
 .card{
-  width:60px;height:84px;border-radius:8px;
+  width:75px;height:105px;border-radius:10px;
   background:#fff;color:#333;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  font-size:18px;font-weight:900;
+  font-size:22px;font-weight:900;
   box-shadow:0 4px 12px rgba(0,0,0,.4);
   transition:transform .3s;
   position:relative;
@@ -58,10 +58,10 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 .card.red{color:#CC0000}
 .card.hidden{
   background:linear-gradient(135deg,#1a237e,#283593);
-  color:#fff;font-size:24px;
+  color:#fff;font-size:30px;
 }
-.card .suit{font-size:14px}
-.card .rank{font-size:20px;font-weight:900;line-height:1}
+.card .suit{font-size:20px}
+.card .rank{font-size:30px;font-weight:900;line-height:1}
 
 /* SEATS */
 .seats{
@@ -75,10 +75,10 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
   cursor:pointer;
   transition:.2s;
 }
-.seat-cards{display:flex;gap:3px;justify-content:center;min-height:84px;align-items:flex-end}
-.seat-cards .card{width:48px;height:67px;font-size:14px}
-.seat-cards .card .rank{font-size:16px}
-.seat-cards .card .suit{font-size:11px}
+.seat-cards{display:flex;gap:4px;justify-content:center;min-height:100px;align-items:flex-end}
+.seat-cards .card{width:58px;height:82px;font-size:16px}
+.seat-cards .card .rank{font-size:24px}
+.seat-cards .card .suit{font-size:16px}
 .seat-name{
   font-size:11px;color:#D4AF37;margin-top:4px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -163,10 +163,10 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 
 @media(max-width:600px){
   .seat{width:clamp(55px,16vw,80px)}
-  .seat-cards .card{width:36px;height:50px;font-size:11px}
-  .seat-cards .card .rank{font-size:13px}
-  .seat-cards .card .suit{font-size:9px}
-  .card{width:50px;height:70px}
+  .seat-cards .card{width:46px;height:65px;font-size:13px}
+  .seat-cards .card .rank{font-size:20px}
+  .seat-cards .card .suit{font-size:13px}
+  .card{width:60px;height:84px}
   .seats{gap:4px}
   .chat-box{display:none}
 }
@@ -252,7 +252,7 @@ function renderState(state) {
         <div class="seat-cards">${s.cards.map(renderCard).join('')}</div>
         <div class="seat-value">${s.value || ''}</div>
         <div class="seat-name">${s.username}${s.isYou ? ' (Du)' : ''}</div>
-        <div class="seat-bet">${s.bet > 0 ? s.bet.toLocaleString('de-DE') + ' €' : ''}</div>
+        <div class="seat-bet">${s.bet > 0 ? s.bet.toLocaleString('de-DE') + ' ₿' : ''}</div>
         ${statusCls ? `<div class="seat-status ${statusCls}">${statusMap(s.status)}</div>` : ''}
       `;
     }
@@ -288,7 +288,7 @@ function renderControls(state) {
   if (state.phase === 'betting') {
     const me = state.seats.find(s => s && s.isYou);
     if (me && me.status === 'ready') {
-      ctrl.innerHTML = `<div style="color:#4d4;font-size:16px">✅ Einsatz: ${selectedBet.toLocaleString('de-DE')} € – Warten auf andere...</div>`;
+      ctrl.innerHTML = `<div style="color:#4d4;font-size:16px">✅ Einsatz: ${selectedBet.toLocaleString('de-DE')} ₿ – Warten auf andere...</div>`;
     } else {
       ctrl.innerHTML = `
         <div class="bet-controls">
@@ -296,7 +296,7 @@ function renderControls(state) {
             `<button class="btn btn-bet${selectedBet===b?' selected':''}" onclick="selectedBet=${b};renderControls(myState)">${b.toLocaleString('de-DE')}</button>`
           ).join('')}
         </div>
-        <button class="btn bet-confirm" onclick="placeBet()">Setzen: ${selectedBet.toLocaleString('de-DE')} €</button>
+        <button class="btn bet-confirm" onclick="placeBet()">Setzen: ${selectedBet.toLocaleString('de-DE')} ₿</button>
       `;
     }
   } else if (state.phase === 'playing' && state.currentSeat >= 0) {
@@ -316,7 +316,7 @@ function renderControls(state) {
   } else if (state.phase === 'payout' || state.phase === 'dealer') {
     const me = state.seats.find(s => s && s.isYou);
     if (me && me.payout > 0) {
-      ctrl.innerHTML = `<div style="color:#4d4;font-size:20px;font-weight:700">${statusMap(me.status)} +${me.payout.toLocaleString('de-DE')} €</div>`;
+      ctrl.innerHTML = `<div style="color:#4d4;font-size:20px;font-weight:700">${statusMap(me.status)} +${me.payout.toLocaleString('de-DE')} ₿</div>`;
     } else if (me) {
       ctrl.innerHTML = `<div style="color:#d44;font-size:18px">${statusMap(me.status)}</div>`;
     } else {
@@ -366,6 +366,8 @@ socket.on('error', msg => {
   showPhase(msg);
 });
 </script>
+<script src="/js/baxt-coins.js"></script>
+<script src="/js/friends.js"></script>
 <script src="/js/jukebox.js"></script>
 </body>
 </html>
