@@ -7,3 +7,36 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+
+  - type: web
+    name: avatar-api
+    runtime: node
+    buildCommand: cd avatar-api && npm install && npx prisma generate && npm run build
+    startCommand: node avatar-api/dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: avatar-db
+          property: connectionString
+      - key: JWT_SECRET
+        sync: false
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+      - key: S3_BUCKET
+        value: avatar-assets
+      - key: CORS_ORIGINS
+        value: https://reisendescasino.de,https://avatar.reisendescasino.de
+      - key: PORT
+        value: 4000
+
+databases:
+  - name: avatar-db
+    plan: free
+    databaseName: avatar_db
+    user: avatar
