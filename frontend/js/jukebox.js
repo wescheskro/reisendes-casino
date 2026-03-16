@@ -301,6 +301,28 @@ function onSearchInput(val) {
   searchTimeout = setTimeout(() => searchYouTube(val), 400);
 }
 
+// ---- Sprachsuche ----
+let jkRecognition = null;
+function voiceSearch() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) { alert('Spracherkennung wird in diesem Browser nicht unterstützt'); return; }
+  const micBtn = document.getElementById('jkMicBtn');
+  if (jkRecognition) { jkRecognition.stop(); return; }
+  jkRecognition = new SpeechRecognition();
+  jkRecognition.lang = 'de-DE';
+  jkRecognition.continuous = false;
+  jkRecognition.interimResults = false;
+  micBtn.classList.add('listening');
+  jkRecognition.onresult = (e) => {
+    const text = e.results[0][0].transcript;
+    const input = document.getElementById('jkSearchInput');
+    if (input) { input.value = text; onSearchInput(text); }
+  };
+  jkRecognition.onend = () => { micBtn.classList.remove('listening'); jkRecognition = null; };
+  jkRecognition.onerror = () => { micBtn.classList.remove('listening'); jkRecognition = null; };
+  jkRecognition.start();
+}
+
 // ---- Playlist Reset ----
 function resetPlaylist() {
   if (!confirm('Playlist auf Standard zurücksetzen?')) return;
@@ -349,8 +371,11 @@ function buildUI() {
       </div>
       <!-- YouTube Search Panel -->
       <div class="jk-search-panel" id="jkSearchPanel" style="display:none">
-        <input type="text" class="jk-search-input" id="jkSearchInput"
-          placeholder="Song suchen..." oninput="window._jk.onSearch(this.value)">
+        <div style="display:flex;gap:4px;align-items:center;">
+          <input type="text" class="jk-search-input" id="jkSearchInput" style="flex:1"
+            placeholder="Song suchen..." oninput="window._jk.onSearch(this.value)">
+          <button class="jk-mic-btn" id="jkMicBtn" onclick="window._jk.voiceSearch()" title="Sprachsuche">🎤</button>
+        </div>
         <div class="jk-search-results" id="jkSearchResults"></div>
       </div>
     </div>
@@ -531,6 +556,15 @@ function buildUI() {
     }
     .jk-search-input::placeholder{color:rgba(212,175,55,.35)}
     .jk-search-input:focus{border-color:rgba(212,175,55,.5)}
+    .jk-mic-btn{
+      width:32px;height:32px;border-radius:8px;border:1px solid rgba(212,175,55,.2);
+      background:rgba(255,255,255,.06);color:#D4AF37;font-size:14px;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      transition:all .2s;flex-shrink:0;
+    }
+    .jk-mic-btn:hover{background:rgba(212,175,55,.15);border-color:rgba(212,175,55,.4)}
+    .jk-mic-btn.listening{background:rgba(255,50,50,.25);border-color:#ff4444;animation:jk-pulse .8s infinite}
+    @keyframes jk-pulse{0%,100%{box-shadow:0 0 4px rgba(255,50,50,.3)}50%{box-shadow:0 0 12px rgba(255,50,50,.6)}}
     .jk-search-results{
       max-height:180px;overflow-y:auto;margin-top:4px;
       scrollbar-width:thin;scrollbar-color:rgba(212,175,55,.3) transparent;
@@ -985,6 +1019,7 @@ window._jk = {
   reset: resetPlaylist,
   toggleSearch,
   onSearch: onSearchInput,
+  voiceSearch,
   addFromSearch,
   // Resize
   bigger: () => resizeJk(15),
