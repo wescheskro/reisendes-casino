@@ -347,23 +347,32 @@ function buildUI() {
   style.textContent = `
     #jukebox{
       position:fixed;bottom:12px;left:12px;z-index:9998;
-      width:260px;border-radius:14px;overflow:hidden;
-      background:rgba(15,8,3,.95);border:1.5px solid rgba(212,175,55,.25);
-      box-shadow:0 8px 32px rgba(0,0,0,.6);backdrop-filter:blur(12px);
+      width:280px;border-radius:18px;overflow:hidden;
+      background:rgba(15,8,3,.97);
+      border:2px solid rgba(212,175,55,.35);
+      box-shadow:0 0 20px rgba(160,120,255,.15),0 8px 32px rgba(0,0,0,.7),inset 0 1px 0 rgba(212,175,55,.1);
       font-family:'Playfair Display',serif;color:#F0E6D3;
       transition:width .3s,height .3s;
       touch-action:none;user-select:none;
     }
+    #jukebox::before{
+      content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+      background:url('/img/jukebox-bg.jpg') center/cover no-repeat;
+      opacity:.12;pointer-events:none;z-index:0;
+      border-radius:18px;
+    }
+    #jukebox>*{position:relative;z-index:1}
     #jukebox.jk-mini .jk-body{display:none}
     #jukebox.jk-mini{width:160px}
     #jk-yt-player{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
     .jk-header{
-      display:flex;align-items:center;gap:6px;padding:8px 10px;
-      background:linear-gradient(135deg,rgba(212,175,55,.15),rgba(212,175,55,.05));
-      border-bottom:1px solid rgba(212,175,55,.12);cursor:grab;
+      display:flex;align-items:center;gap:6px;padding:10px 12px;
+      background:linear-gradient(180deg,rgba(160,120,255,.12),rgba(212,175,55,.08));
+      border-bottom:1px solid rgba(212,175,55,.2);cursor:grab;
+      border-radius:18px 18px 0 0;
     }
-    .jk-icon{font-size:16px}
-    .jk-title{font-size:11px;font-weight:700;color:#D4AF37;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .jk-icon{font-size:18px;text-shadow:0 0 8px rgba(160,120,255,.5)}
+    .jk-title{font-size:11px;font-weight:700;color:#D4AF37;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 0 6px rgba(212,175,55,.3)}
     .jk-minbtn{
       background:none;border:none;color:#D4AF37;font-size:10px;cursor:pointer;
       width:22px;height:22px;display:flex;align-items:center;justify-content:center;
@@ -383,7 +392,12 @@ function buildUI() {
       transition:.15s;
     }
     .jk-btn:active{transform:scale(.9);background:rgba(212,175,55,.2)}
-    .jk-play{width:34px;height:34px;font-size:14px;background:rgba(212,175,55,.15);border-color:rgba(212,175,55,.5)}
+    .jk-play{
+      width:36px;height:36px;font-size:14px;
+      background:linear-gradient(135deg,rgba(160,120,255,.2),rgba(212,175,55,.15));
+      border-color:rgba(160,120,255,.5);
+      box-shadow:0 0 8px rgba(160,120,255,.25);
+    }
     .jk-vol{
       flex:1;height:4px;-webkit-appearance:none;appearance:none;
       background:rgba(212,175,55,.2);border-radius:2px;outline:none;cursor:pointer;
@@ -442,11 +456,12 @@ function buildUI() {
       display:flex;gap:4px;margin-bottom:4px;
     }
     .jk-search-btn{
-      flex:1;padding:5px;border:1.5px solid rgba(212,175,55,.2);
-      background:rgba(212,175,55,.08);color:rgba(212,175,55,.7);font-size:9px;
-      border-radius:6px;cursor:pointer;font-family:inherit;transition:.15s;
+      flex:1;padding:6px;border:1.5px solid rgba(160,120,255,.2);
+      background:linear-gradient(135deg,rgba(160,120,255,.08),rgba(212,175,55,.05));
+      color:rgba(212,175,55,.7);font-size:9px;
+      border-radius:8px;cursor:pointer;font-family:inherit;transition:.2s;
     }
-    .jk-search-btn:hover{border-color:rgba(212,175,55,.4);color:#D4AF37;background:rgba(212,175,55,.15)}
+    .jk-search-btn:hover{border-color:rgba(160,120,255,.4);color:#D4AF37;background:linear-gradient(135deg,rgba(160,120,255,.15),rgba(212,175,55,.1));box-shadow:0 0 6px rgba(160,120,255,.15)}
     .jk-add{
       padding:5px 8px;border:1.5px dashed rgba(212,175,55,.2);
       background:none;color:rgba(212,175,55,.5);font-size:9px;
