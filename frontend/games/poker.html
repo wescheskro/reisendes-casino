@@ -591,23 +591,14 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .btn:active{transform:scale(.95)}
 .btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
 
-/* Chip-Slider zum Erhöhen */
-.raise-slider{
-  display:flex;align-items:center;gap:6px;
-  background:rgba(255,255,255,.04);padding:6px 12px;border-radius:10px;
-  border:1px solid rgba(212,175,55,.12);margin-top:4px;
-  flex-wrap:wrap;justify-content:center;
-  max-width:320px;margin-left:auto;margin-right:auto;
-}
-.raise-slider .raise-label{display:none}
-.raise-slider .raise-val{
-  color:#F4D03F;font-weight:900;font-size:16px;min-width:65px;text-align:center;
-  text-shadow:0 2px 6px rgba(0,0,0,.6);
+/* Reihe 2: Passen + Erhöhen + Slider in einer Zeile */
+.action-row-raise{
+  display:flex;gap:6px;align-items:center;justify-content:center;width:100%;
 }
 /* Slider-Track */
 .chip-slider{
   -webkit-appearance:none;appearance:none;
-  width:100%;max-width:200px;height:10px;
+  flex:1;min-width:60px;max-width:160px;height:10px;
   background:linear-gradient(90deg,
     rgba(46,204,113,.4) 0%,
     rgba(243,156,18,.5) 40%,
@@ -645,11 +636,11 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   border:2px solid rgba(212,175,55,.2);
 }
 @media(max-width:600px){
-  .chip-slider{max-width:140px;height:8px}
-  .chip-slider::-webkit-slider-thumb{width:28px;height:28px}
-  .chip-slider::-moz-range-thumb{width:28px;height:28px}
-  .raise-slider .raise-val{font-size:14px;min-width:55px}
-  .raise-slider{padding:5px 8px;gap:5px;max-width:240px}
+  .chip-slider{max-width:100px;height:8px}
+  .chip-slider::-webkit-slider-thumb{width:26px;height:26px}
+  .chip-slider::-moz-range-thumb{width:26px;height:26px}
+  .action-row-raise{gap:4px}
+  .action-row-raise .btn{padding:10px 12px;font-size:11px}
 }
 
 /* ============ WINNER BANNER ============ */
@@ -1084,7 +1075,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 <script>
 // iPhone: Prevent bounce scroll, double-tap zoom, pull-to-refresh
 document.addEventListener('touchmove', function(e) {
-  if (!e.target.closest('.chat-box, .video-grid, .raise-slider')) e.preventDefault();
+  if (!e.target.closest('.chat-box, .video-grid, .action-row-raise')) e.preventDefault();
 }, { passive: false });
 
 // Prevent iOS double-tap zoom on buttons
@@ -2006,38 +1997,32 @@ function renderControls(state) {
   if (raiseAmount < minRaise) raiseAmount = minRaise;
   if (raiseAmount > myChips) raiseAmount = myChips;
 
+  // Reihe 1: Mitgehen/Schieben + Alles setzen
   let html = '<div class="action-row">';
-
   if (canCheck) {
     html += `<button class="btn btn-check" onclick="doCheck()">✓ Schieben</button>`;
   } else {
     const callAmt = Math.min(toCall, myChips);
     html += `<button class="btn btn-call" onclick="doCall()">📞 Mitgehen ${callAmt.toLocaleString('de-DE')}</button>`;
   }
-
-  html += `<button class="btn btn-fold" onclick="doFold()">✕ Passen</button>`;
-
-  if (myChips > toCall) {
-    html += `<button class="btn btn-raise" onclick="doRaise()">⬆ Erhöhen</button>`;
-  }
-
   if (myChips > 0) {
-    html += `<button class="btn btn-allin" onclick="doAllIn()">🔥 Alles setzen (${myChips.toLocaleString('de-DE')})</button>`;
+    html += `<button class="btn btn-allin" onclick="doAllIn()">🔥 Alles (${myChips.toLocaleString('de-DE')})</button>`;
   }
   html += '</div>';
 
-  // Chip-Slider zum Erhöhen
+  // Reihe 2: Passen + Erhöhen + Slider — alles in einer Zeile
+  html += '<div class="action-row-raise">';
+  html += `<button class="btn btn-fold" onclick="doFold()">✕ Passen</button>`;
   if (myChips > toCall) {
     const minR = Math.max(state.currentBet * 2, 200);
     const maxR = myChips;
     if (raiseAmount < minR) raiseAmount = minR;
     if (raiseAmount > maxR) raiseAmount = maxR;
-    html += `<div class="raise-slider">
-      <span class="raise-val" id="raiseVal">${raiseAmount.toLocaleString('de-DE')}</span>
-      <input type="range" class="chip-slider" min="${minR}" max="${maxR}" step="50" value="${raiseAmount}"
-        oninput="updateRaise(this.value)">
-    </div>`;
+    html += `<button class="btn btn-raise" onclick="doRaise()">⬆ ${raiseAmount.toLocaleString('de-DE')}</button>`;
+    html += `<input type="range" class="chip-slider" min="${minR}" max="${maxR}" step="50" value="${raiseAmount}"
+      oninput="updateRaise(this.value)">`;
   }
+  html += '</div>';
 
   ctrl.innerHTML = html;
 }
@@ -2068,18 +2053,9 @@ function doCheck() { PokerSFX.check(); socket.emit('poker:check'); }
 
 function updateRaise(val) {
   raiseAmount = parseInt(val);
-  const valEl = document.getElementById('raiseVal');
-  if (valEl) valEl.textContent = raiseAmount.toLocaleString('de-DE');
-}
-
-function setRaise(val) {
-  raiseAmount = val;
-  PokerSFX.chipBet();
-  const valEl = document.getElementById('raiseVal');
-  if (valEl) valEl.textContent = val.toLocaleString('de-DE');
-  // Slider synchronisieren
-  const slider = document.querySelector('.chip-slider');
-  if (slider) slider.value = val;
+  // Erhöhen-Button Text aktualisieren
+  const raiseBtn = document.querySelector('.btn-raise');
+  if (raiseBtn) raiseBtn.textContent = '⬆ ' + raiseAmount.toLocaleString('de-DE');
 }
 function doAllIn() {
   PokerSFX.raise();
