@@ -18,8 +18,8 @@ export function createApp() {
   app.use(express.json({ limit: '10mb' }));
 
   app.get('/health', (_req, res) => res.json({ status: 'ok' }));
-  app.use('/api/avatar', avatarRouter);
   app.use('/api/avatar/parts', partsRouter);
+  app.use('/api/avatar', avatarRouter);
 
   return app;
 }
