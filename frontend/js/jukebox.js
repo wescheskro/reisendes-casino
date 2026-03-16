@@ -363,7 +363,7 @@ function buildUI() {
   const style = document.createElement('style');
   style.textContent = `
     #jukebox{
-      position:fixed;bottom:12px;left:12px;z-index:9998;
+      position:fixed;bottom:12px;left:12px;z-index:100001;
       font-family:'Playfair Display',serif;color:#F0E6D3;
       touch-action:none;user-select:none;
     }

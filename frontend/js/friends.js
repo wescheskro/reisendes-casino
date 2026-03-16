@@ -1,6 +1,9 @@
 (function() {
 'use strict';
 
+// Skip in iframes / embedded games
+if (window.location.search.includes('embed=1') || window !== window.top) return;
+
 // ═══════════════════════════════════════════════════════════════
 // FRIENDS SYSTEM – Freundesliste + Video/Audio-Telefonie
 // ═══════════════════════════════════════════════════════════════
@@ -13,16 +16,17 @@ const style = document.createElement('style');
 style.textContent = `
 /* ============ FRIENDS BADGE ============ */
 .friends-badge {
-  position: fixed; top: 14px; left: 14px; z-index: 9998;
+  position: fixed; top: 14px; left: 14px; z-index: 100001;
   width: 48px; height: 48px; border-radius: 50%;
   background: linear-gradient(135deg, #1a1a2e, #16213e);
   border: 2px solid rgba(100,200,255,0.4);
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px; cursor: pointer;
+  font-size: 22px; cursor: grab;
   box-shadow: 0 4px 16px rgba(0,0,0,0.5);
   transition: transform 0.2s, box-shadow 0.2s;
   user-select: none;
 }
+.friends-badge.dragging { cursor: grabbing; transform: scale(1.15); }
 .friends-badge:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 20px rgba(100,200,255,0.3);
@@ -36,9 +40,25 @@ style.textContent = `
 }
 .friends-badge .notif-dot.show { display: flex; }
 
+/* ============ FRIENDS RESIZE CONTROLS ============ */
+.fb-resize {
+  position: absolute; bottom: -28px; left: 50%; transform: translateX(-50%);
+  display: none; gap: 3px; background: rgba(0,0,0,.7);
+  border-radius: 6px; padding: 2px 4px; backdrop-filter: blur(6px);
+  border: 1px solid rgba(100,200,255,.2);
+}
+.friends-badge:hover .fb-resize { display: flex; }
+.fb-rz {
+  background: none; border: 1px solid rgba(100,200,255,.3);
+  color: #64c8ff; font-size: 12px; width: 22px; height: 22px;
+  border-radius: 4px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+}
+.fb-rz:hover { background: rgba(100,200,255,.15); border-color: rgba(100,200,255,.5); }
+
 /* ============ FRIENDS PANEL ============ */
 .friends-panel {
-  position: fixed; top: 0; left: -380px; z-index: 9999;
+  position: fixed; top: 0; left: -380px; z-index: 100002;
   width: 360px; max-width: 90vw; height: 100vh;
   background: linear-gradient(180deg, #0d1117, #161b22);
   border-right: 1px solid rgba(100,200,255,0.15);
@@ -328,8 +348,83 @@ let isCamOff = false;
 // ─── HTML STRUCTURE ───
 const badge = document.createElement('div');
 badge.className = 'friends-badge';
-badge.innerHTML = '👥<div class="notif-dot"></div>';
-badge.onclick = () => togglePanel();
+badge.innerHTML = `👥<div class="notif-dot"></div>
+  <div class="fb-resize">
+    <button class="fb-rz" onclick="event.stopPropagation();window._friends.smaller()" title="Kleiner">−</button>
+    <button class="fb-rz" onclick="event.stopPropagation();window._friends.bigger()" title="Größer">+</button>
+    <button class="fb-rz" onclick="event.stopPropagation();window._friends.savePos()" title="Position speichern">💾</button>
+  </div>`;
+
+// ─── DRAG & POSITION SAVE ───
+const FB_POS_KEY = 'friends_badge_pos';
+const FB_SIZE_KEY = 'friends_badge_size';
+let fbSize = parseInt(localStorage.getItem(FB_SIZE_KEY)) || 48;
+let fbDragging = false, fbDragged = false, fbStartX = 0, fbStartY = 0, fbOrigX = 0, fbOrigY = 0;
+
+// Apply saved size
+function applyFbSize() {
+  badge.style.width = fbSize + 'px';
+  badge.style.height = fbSize + 'px';
+  badge.style.fontSize = Math.max(14, Math.round(fbSize * 0.45)) + 'px';
+}
+applyFbSize();
+
+function resizeFb(delta) {
+  fbSize = Math.max(30, Math.min(90, fbSize + delta));
+  applyFbSize();
+  localStorage.setItem(FB_SIZE_KEY, fbSize);
+}
+
+function saveFbPos() {
+  localStorage.setItem(FB_POS_KEY, JSON.stringify({ top: badge.offsetTop, left: badge.offsetLeft }));
+  localStorage.setItem(FB_SIZE_KEY, fbSize);
+  badge.style.boxShadow = '0 0 20px rgba(100,200,255,0.6)';
+  setTimeout(() => { badge.style.boxShadow = ''; }, 600);
+}
+
+// Restore saved position
+const savedFbPos = JSON.parse(localStorage.getItem(FB_POS_KEY) || 'null');
+if (savedFbPos) {
+  badge.style.top = savedFbPos.top + 'px';
+  badge.style.left = savedFbPos.left + 'px';
+}
+
+function fbPointerDown(e) {
+  if (e.target.closest('.notif-dot') || e.target.closest('.fb-resize')) return;
+  fbDragging = true; fbDragged = false;
+  fbStartX = e.clientX || e.touches?.[0]?.clientX || 0;
+  fbStartY = e.clientY || e.touches?.[0]?.clientY || 0;
+  fbOrigX = badge.offsetLeft;
+  fbOrigY = badge.offsetTop;
+  badge.classList.add('dragging');
+  e.preventDefault();
+}
+function fbPointerMove(e) {
+  if (!fbDragging) return;
+  const cx = e.clientX || e.touches?.[0]?.clientX || 0;
+  const cy = e.clientY || e.touches?.[0]?.clientY || 0;
+  const dx = cx - fbStartX, dy = cy - fbStartY;
+  if (Math.abs(dx) > 3 || Math.abs(dy) > 3) fbDragged = true;
+  badge.style.left = Math.max(0, Math.min(window.innerWidth - 52, fbOrigX + dx)) + 'px';
+  badge.style.top = Math.max(0, Math.min(window.innerHeight - 52, fbOrigY + dy)) + 'px';
+}
+function fbPointerUp() {
+  if (!fbDragging) return;
+  fbDragging = false;
+  badge.classList.remove('dragging');
+  if (fbDragged) {
+    localStorage.setItem(FB_POS_KEY, JSON.stringify({ top: badge.offsetTop, left: badge.offsetLeft }));
+  }
+}
+
+badge.addEventListener('mousedown', fbPointerDown);
+badge.addEventListener('touchstart', fbPointerDown, { passive: false });
+document.addEventListener('mousemove', fbPointerMove);
+document.addEventListener('touchmove', fbPointerMove, { passive: false });
+document.addEventListener('mouseup', fbPointerUp);
+document.addEventListener('touchend', fbPointerUp);
+
+badge.addEventListener('click', (e) => { if (!fbDragged) togglePanel(); });
 
 const panel = document.createElement('div');
 panel.className = 'friends-panel';
@@ -908,7 +1003,10 @@ window._friends = {
   declineIncoming,
   endCall,
   toggleMute,
-  toggleCam
+  toggleCam,
+  bigger: () => resizeFb(8),
+  smaller: () => resizeFb(-8),
+  savePos: saveFbPos
 };
 
 })();

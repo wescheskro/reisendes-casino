@@ -1159,8 +1159,9 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 <div class="top-bar">
   <div class="logo">♠ Texas Hold'em</div>
   <div class="info" id="tableInfo">Verbinde...</div>
-  <button class="back" onclick="location.href='/'">← Lobby</button>
+  <button class="back" id="pokerLobbyBtn" onclick="location.href='/'">← Lobby</button>
 </div>
+<script>if(location.search.includes('embed=1'))document.getElementById('pokerLobbyBtn').style.display='none';</script>
 
 <!-- GEGNER auf dem Tisch -->
 <div class="seats-container" id="seatsContainer"></div>

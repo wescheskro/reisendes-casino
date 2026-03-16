@@ -1599,23 +1599,50 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
+  <!-- GAME IFRAME OVERLAY -->
+  <div id="gameOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:#0a0a12;">
+    <button id="gameBackBtn" onclick="closeGame()" style="
+      position:fixed; top:10px; left:10px; z-index:100000;
+      background:rgba(0,0,0,.7); border:2px solid #D4AF37; color:#D4AF37;
+      font-size:18px; padding:8px 16px; border-radius:8px; cursor:pointer;
+      font-family:inherit; backdrop-filter:blur(6px);
+    ">← Lobby</button>
+    <iframe id="gameFrame" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>
+  </div>
+
   <!-- SCRIPTS -->
   <script>
     // =========================================================================
-    // NAVIGATION
+    // NAVIGATION – Games open in iframe so Jukebox keeps playing
     // =========================================================================
+    function openGameInFrame(url) {
+      const overlay = document.getElementById('gameOverlay');
+      const frame = document.getElementById('gameFrame');
+      frame.src = url;
+      overlay.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeGame() {
+      const overlay = document.getElementById('gameOverlay');
+      const frame = document.getElementById('gameFrame');
+      overlay.style.display = 'none';
+      frame.src = '';
+      document.body.style.overflow = '';
+    }
+
     function playGame() {
-      window.location.href = '/games/book-of-baxt.html';
+      openGameInFrame('/games/book-of-baxt.html?embed=1');
     }
 
     function openBlackjack() {
       const table = document.getElementById('bjTableSelect').value;
-      window.location.href = '/games/blackjack.html?table=' + table;
+      openGameInFrame('/games/blackjack.html?table=' + table + '&embed=1');
     }
 
     function openPoker() {
       const table = document.getElementById('pkTableSelect').value;
-      window.location.href = '/games/poker.html?table=' + table;
+      openGameInFrame('/games/poker.html?table=' + table + '&embed=1');
     }
 
     // =========================================================================
@@ -1628,6 +1655,7 @@
 
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Escape') {
+        if (document.getElementById('gameOverlay').style.display === 'block') { closeGame(); return; }
         document.getElementById('support-modal').classList.remove('active');
         closeAuth();
       }
