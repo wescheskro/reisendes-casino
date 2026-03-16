@@ -828,6 +828,8 @@ window._jk = {
 
 // ---- Init ----
 function init() {
+  // Nicht in Embed-Iframes laden (verhindert doppelte Musik)
+  if (window.location.search.includes('embed=1') || window !== window.top) return;
   buildUI();
   loadYTApi();
   initSocket();
