@@ -164,7 +164,33 @@ function setVolume(v) {
   if (player && player.setVolume) player.setVolume(volume);
   const volSlider = document.getElementById('jk-vol');
   if (volSlider) volSlider.value = volume;
+  updateMuteBtn();
   saveState();
+}
+
+let isMuted = false;
+let volumeBeforeMute = 30;
+
+function toggleMute() {
+  if (isMuted) {
+    isMuted = false;
+    setVolume(volumeBeforeMute);
+  } else {
+    volumeBeforeMute = volume;
+    isMuted = true;
+    if (player && player.setVolume) player.setVolume(0);
+    const volSlider = document.getElementById('jk-vol');
+    if (volSlider) volSlider.value = 0;
+  }
+  updateMuteBtn();
+}
+
+function updateMuteBtn() {
+  const btn = document.getElementById('jkMuteBtn');
+  if (!btn) return;
+  if (isMuted || volume === 0) btn.textContent = '🔇';
+  else if (volume < 40) btn.textContent = '🔉';
+  else btn.textContent = '🔊';
 }
 
 // ---- Song löschen ----
@@ -360,6 +386,7 @@ function buildUI() {
         <button class="jk-btn" onclick="window._jk.prev()" title="Zurück">⏮</button>
         <button class="jk-btn jk-play" id="jkPlayBtn" onclick="window._jk.toggle()" title="Play/Pause">▶</button>
         <button class="jk-btn" onclick="window._jk.next()" title="Weiter">⏭</button>
+        <button class="jk-btn jk-mute" id="jkMuteBtn" onclick="window._jk.toggleMute()" title="Stumm">🔊</button>
         <input type="range" id="jk-vol" class="jk-vol" min="0" max="100" value="${volume}"
           oninput="window._jk.vol(this.value)" title="Lautstärke">
       </div>
@@ -1015,6 +1042,7 @@ window._jk = {
   next: nextTrack,
   prev: prevTrack,
   vol: setVolume,
+  toggleMute,
   addUrl: addCustomUrl,
   remove: removeSong,
   moveUp,
