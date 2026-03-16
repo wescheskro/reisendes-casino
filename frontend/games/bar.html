@@ -15,6 +15,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
 .bar-bg{
   position:fixed;inset:0;z-index:0;
   background:url('/games/img/bar-bg.jpg') center center / cover no-repeat;
+  background-color:#0a0a05;
 }
 .bar-bg::after{
   content:'';position:absolute;inset:0;
@@ -204,15 +205,16 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
 // ═══════════════════════════════════════════════════════════════
 
 const MAX_SEATS = 8;
+// Positionen um den runden Tisch
 const SEAT_POSITIONS = [
-  {top:'10%',left:'50%'},   // oben mitte
-  {top:'20%',left:'78%'},   // rechts oben
-  {top:'50%',left:'90%'},   // rechts mitte
-  {top:'75%',left:'78%'},   // rechts unten
-  {top:'85%',left:'50%'},   // unten mitte
-  {top:'75%',left:'22%'},   // links unten
-  {top:'50%',left:'10%'},   // links mitte
-  {top:'20%',left:'22%'},   // links oben
+  {top:'42%',left:'50%'},   // oben am Tisch
+  {top:'50%',left:'72%'},   // rechts oben
+  {top:'65%',left:'78%'},   // rechts
+  {top:'78%',left:'72%'},   // rechts unten
+  {top:'85%',left:'50%'},   // unten am Tisch
+  {top:'78%',left:'28%'},   // links unten
+  {top:'65%',left:'22%'},   // links
+  {top:'50%',left:'28%'},   // links oben
 ];
 
 let socket = null;
@@ -473,8 +475,15 @@ function initSocket() {
 }
 
 // ─── INIT ───
+const isEmbed = location.search.includes('embed=1') || window !== window.top;
 renderSeats();
-initSocket();
+if (!isEmbed) {
+  initSocket();
+} else {
+  document.getElementById('barInfo').textContent = 'Die Bar';
+  document.querySelector('.bar-controls').style.display = 'none';
+  document.querySelector('.bar-chat').style.display = 'none';
+}
 </script>
 </body>
 </html>

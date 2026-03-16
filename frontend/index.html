@@ -1456,15 +1456,30 @@
     <div class="game-divider"></div>
 
     <!-- ═══════════════════════════════════════════ -->
-    <!-- 4. BAR                                      -->
+    <!-- 4. BAR – LIVE EMBED                        -->
     <!-- ═══════════════════════════════════════════ -->
-    <button class="cta-play cta-bar" onclick="openBar()" style="
+    <div class="live-embed-wrap">
+      <div class="lp-badge" style="background:linear-gradient(135deg,rgba(139,90,43,.5),rgba(80,50,20,.7))">
+        <span class="lp-dot" style="background:#D4AF37"></span> DIE BAR
+      </div>
+      <div class="live-embed-frame embed-adjustable" id="barEmbedWrap" data-embed="bar">
+        <div class="embed-drag-handle" data-drag="barEmbedWrap"></div>
+        <div class="embed-controls">
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('barEmbedWrap', this)" title="Speichern">&#x1F4BE;</button>
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('barEmbedWrap')" title="Zur&uuml;cksetzen">&#x21BA;</button>
+        </div>
+        <iframe src="/games/bar.html?embed=1" class="live-iframe" allow="camera;microphone" loading="lazy" style="pointer-events:none;"></iframe>
+        <div class="embed-click-overlay" onclick="openBar()"></div>
+        <div class="slot-fullscreen-bar" onclick="openBar()">
+          <div class="live-overlay-text">&#127866; Bar betreten &#127866;</div>
+        </div>
+        <div class="embed-resize-handle" data-resize="barEmbedWrap"></div>
+      </div>
+    </div>
+
+    <button class="cta-play" onclick="openBar()" style="
       background:linear-gradient(135deg,rgba(139,90,43,.4),rgba(80,50,20,.6));
-      border:2px solid rgba(212,175,55,.4);margin:10px auto;display:block;
-      padding:14px 28px;border-radius:12px;color:#D4AF37;font-family:inherit;
-      font-size:16px;font-weight:700;cursor:pointer;letter-spacing:1px;
-      box-shadow:0 4px 16px rgba(0,0,0,.4);transition:all .3s;width:80%;max-width:400px;
-    ">🍺 Die Bar betreten</button>
+    ">&#127866; Die Bar betreten</button>
 
     <!-- ═══════════════════════════════════════════════════════════ -->
     <!-- BAXT COINS PROMO SECTION -->
