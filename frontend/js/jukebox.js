@@ -377,6 +377,7 @@ function buildUI() {
       <div class="jk-header" id="jkHeader">
         <span class="jk-icon">🎵</span>
         <span class="jk-title" id="jkTitle">Jukebox</span>
+        <button class="jk-maxbtn" id="jkMaxBtn" onclick="window._jk.toggleMax()" title="Maximieren">⬜</button>
         <button class="jk-minbtn" id="jkMinBtn" title="Minimieren">✕</button>
       </div>
       <div class="jk-body" id="jkBody">
@@ -469,12 +470,19 @@ function buildUI() {
     }
     .jk-icon{font-size:18px;text-shadow:0 0 8px rgba(160,120,255,.5)}
     .jk-title{font-size:11px;font-weight:700;color:#D4AF37;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 0 6px rgba(212,175,55,.3)}
-    .jk-minbtn{
+    .jk-minbtn,.jk-maxbtn{
       background:none;border:none;color:#D4AF37;font-size:10px;cursor:pointer;
       width:22px;height:22px;display:flex;align-items:center;justify-content:center;
       border-radius:50%;transition:.2s;
     }
-    .jk-minbtn:hover{background:rgba(212,175,55,.15)}
+    .jk-minbtn:hover,.jk-maxbtn:hover{background:rgba(212,175,55,.15)}
+    #jukebox.jk-maximized .jk-panel{
+      width:100vw !important;max-height:100vh !important;
+      position:fixed;top:0;left:0;bottom:0;right:0;
+      border-radius:0;z-index:100003;
+    }
+    #jukebox.jk-maximized .jk-playlist{max-height:calc(100vh - 250px)}
+    #jukebox.jk-maximized .jk-search-results{max-height:40vh}
     .jk-body{padding:8px 10px}
     .jk-track{
       font-size:10px;color:rgba(240,230,211,.6);margin-bottom:6px;
@@ -677,9 +685,20 @@ function openJukebox() {
 function closeJukebox() {
   jkMinimized = true;
   const jk = document.getElementById('jukebox');
-  jk.classList.remove('jk-open');
+  jk.classList.remove('jk-open', 'jk-maximized');
   jk.classList.add('jk-mini');
+  const maxBtn = document.getElementById('jkMaxBtn');
+  if (maxBtn) maxBtn.textContent = '⬜';
   saveState();
+}
+
+let jkMaximized = false;
+function toggleMaximize() {
+  const jk = document.getElementById('jukebox');
+  const maxBtn = document.getElementById('jkMaxBtn');
+  jkMaximized = !jkMaximized;
+  jk.classList.toggle('jk-maximized', jkMaximized);
+  if (maxBtn) maxBtn.textContent = jkMaximized ? '❐' : '⬜';
 }
 
 // ---- Position & Größe ----
@@ -1041,6 +1060,7 @@ window._jk = {
   prev: prevTrack,
   vol: setVolume,
   toggleMute,
+  toggleMax: toggleMaximize,
   addUrl: addCustomUrl,
   remove: removeSong,
   moveUp,
