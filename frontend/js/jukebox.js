@@ -105,6 +105,10 @@ function initPlayer() {
 
 function onPlayerReady() {
   player.setVolume(volume);
+  // Musik startet automatisch
+  if (playlist.length > 0 && !isPlaying) {
+    playTrack(currentIdx);
+  }
   updateUI();
 }
 
@@ -134,21 +138,16 @@ function playTrack(idx) {
 }
 
 function togglePlay() {
+  // Musik kann nicht pausiert werden — nur Mute für lokalen Ton
   if (!player) return;
-  if (isPlaying) {
-    player.pauseVideo();
-    isPlaying = false;
-    if (jkSocket) jkSocket.emit('jukebox:pause');
-  } else {
+  if (!isPlaying) {
     if (player.getVideoData && player.getVideoData().video_id) {
       player.playVideo();
     } else {
       playTrack(currentIdx);
     }
     isPlaying = true;
-    if (jkSocket) jkSocket.emit('jukebox:resume');
   }
-  updatePlayBtn();
 }
 
 function nextTrack() {
@@ -384,7 +383,6 @@ function buildUI() {
       <div class="jk-track" id="jkTrack">Wähle einen Song...</div>
       <div class="jk-controls">
         <button class="jk-btn" onclick="window._jk.prev()" title="Zurück">⏮</button>
-        <button class="jk-btn jk-play" id="jkPlayBtn" onclick="window._jk.toggle()" title="Play/Pause">▶</button>
         <button class="jk-btn" onclick="window._jk.next()" title="Weiter">⏭</button>
         <button class="jk-btn jk-mute" id="jkMuteBtn" onclick="window._jk.toggleMute()" title="Stumm">🔊</button>
         <input type="range" id="jk-vol" class="jk-vol" min="0" max="100" value="${volume}"
