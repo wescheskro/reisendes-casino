@@ -886,19 +886,22 @@ function initDrag() {
 // ---- Socket Sync ----
 function initSocket() {
   function tryConnect() {
-    if (window.io && !jkSocket) {
+    if (jkSocket && jkSocket.connected) return;
+    if (window.io) {
       if (typeof socket !== 'undefined' && socket && socket.connected) {
         jkSocket = socket;
       } else {
-        const token = localStorage.getItem('casinoToken');
+        const token = localStorage.getItem('casinoToken') || localStorage.getItem('token');
         const name = localStorage.getItem('pokerPlayerName');
         jkSocket = io({ auth: { token, username: name || undefined } });
       }
       setupSocketEvents();
+    } else {
+      // Retry bis io verfügbar ist
+      setTimeout(tryConnect, 1000);
     }
   }
-  if (window.io) tryConnect();
-  else setTimeout(tryConnect, 2000);
+  tryConnect();
 }
 
 function setupSocketEvents() {
@@ -909,6 +912,14 @@ function setupSocketEvents() {
   if (playlist.length > 0) {
     jkSocket.emit('jukebox:syncPlaylist', { playlist });
   }
+
+  // Bei Reconnect erneut dem Jukebox-Room beitreten
+  jkSocket.on('connect', () => {
+    jkSocket.emit('jukebox:join');
+    if (playlist.length > 0) {
+      jkSocket.emit('jukebox:syncPlaylist', { playlist });
+    }
+  });
 
   jkSocket.on('jukebox:sync', (data) => {
     if (data.playlist && data.playlist.length > 0) {
