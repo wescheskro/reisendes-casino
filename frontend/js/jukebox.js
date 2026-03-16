@@ -25,6 +25,9 @@ let volume = 30;
 let jkSocket = null;
 let jkMinimized = false;
 let jkDragging = false;
+let jkSize = 110; // px
+let jkPosX = null; // null = default (CSS bottom/left)
+let jkPosY = null;
 let searchOpen = false;
 let searchTimeout = null;
 let dragItem = null;
@@ -37,6 +40,9 @@ try {
     volume = saved.volume ?? 30;
     currentIdx = saved.idx ?? 0;
     jkMinimized = saved.minimized ?? false;
+    jkSize = saved.size ?? 110;
+    jkPosX = saved.posX ?? null;
+    jkPosY = saved.posY ?? null;
   }
 } catch(e) {}
 
@@ -57,7 +63,8 @@ if (currentIdx >= playlist.length) currentIdx = 0;
 function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      volume, idx: currentIdx, minimized: jkMinimized
+      volume, idx: currentIdx, minimized: jkMinimized,
+      size: jkSize, posX: jkPosX, posY: jkPosY
     }));
   } catch(e) {}
 }
@@ -311,8 +318,13 @@ function buildUI() {
   wrap.id = 'jukebox';
   wrap.className = 'jk-mini';
   wrap.innerHTML = `
-    <div class="jk-img" id="jkImg" title="Jukebox öffnen">
-      <img src="/img/jukebox-cutout.png" alt="Jukebox" draggable="false">
+    <div class="jk-img" id="jkImg">
+      <img src="/img/jukebox-cutout.png" alt="Jukebox" draggable="false" title="Jukebox öffnen">
+      <div class="jk-resize">
+        <button class="jk-rz" onclick="event.stopPropagation();window._jk.smaller()" title="Kleiner">−</button>
+        <button class="jk-rz" onclick="event.stopPropagation();window._jk.bigger()" title="Größer">+</button>
+        <button class="jk-rz jk-save" onclick="event.stopPropagation();window._jk.savePos()" title="Position speichern">💾</button>
+      </div>
     </div>
     <div class="jk-panel" id="jkPanel">
       <div class="jk-header" id="jkHeader">
@@ -368,8 +380,23 @@ function buildUI() {
       filter:drop-shadow(0 0 14px rgba(160,120,255,.5));
     }
     .jk-img img{
-      width:100%;height:100%;object-fit:cover;display:block;
+      width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;
     }
+    .jk-resize{
+      display:none;position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
+      background:rgba(15,8,3,.9);border:1px solid rgba(212,175,55,.3);
+      border-radius:12px;padding:2px 4px;gap:2px;
+      flex-direction:row;align-items:center;white-space:nowrap;
+    }
+    .jk-img:hover .jk-resize{display:flex}
+    .jk-rz{
+      width:22px;height:22px;border-radius:50%;border:1px solid rgba(212,175,55,.3);
+      background:rgba(212,175,55,.1);color:#D4AF37;font-size:12px;font-weight:700;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      transition:.15s;padding:0;font-family:inherit;
+    }
+    .jk-rz:hover{background:rgba(212,175,55,.25);border-color:rgba(212,175,55,.5)}
+    .jk-save{font-size:10px}
     /* ---- Aufgeklappt: Panel ---- */
     .jk-panel{
       display:none;width:280px;border-radius:18px;overflow:hidden;
@@ -563,13 +590,17 @@ function buildUI() {
   document.head.appendChild(style);
 
   // Events
-  document.getElementById('jkImg').onclick = () => openJukebox();
+  document.querySelector('#jkImg img').onclick = (e) => { if (!jkDragging) openJukebox(); };
   document.getElementById('jkMinBtn').onclick = () => closeJukebox();
   // Start immer als Bild (minimiert), Klick öffnet das Panel
   const jk = document.getElementById('jukebox');
   jk.className = 'jk-mini';
+  // Gespeicherte Position/Größe anwenden
+  applyJkPosition();
+  applyJkSize();
   buildPlaylist();
   initDrag();
+  initImgDrag();
   startNoteAnimation();
 }
 
@@ -587,6 +618,87 @@ function closeJukebox() {
   jk.classList.remove('jk-open');
   jk.classList.add('jk-mini');
   saveState();
+}
+
+// ---- Position & Größe ----
+function applyJkPosition() {
+  const jk = document.getElementById('jukebox');
+  if (jkPosX !== null && jkPosY !== null) {
+    jk.style.left = jkPosX + 'px';
+    jk.style.top = jkPosY + 'px';
+    jk.style.bottom = 'auto';
+    jk.style.right = 'auto';
+  }
+}
+
+function applyJkSize() {
+  const img = document.querySelector('#jkImg');
+  if (img) {
+    img.style.width = jkSize + 'px';
+    img.style.height = jkSize + 'px';
+  }
+}
+
+function resizeJk(delta) {
+  jkSize = Math.max(60, Math.min(200, jkSize + delta));
+  applyJkSize();
+  saveState();
+}
+
+function saveJkPos() {
+  const jk = document.getElementById('jukebox');
+  const r = jk.getBoundingClientRect();
+  jkPosX = Math.round(r.left);
+  jkPosY = Math.round(r.top);
+  saveState();
+  // Kurzes visuelles Feedback
+  const btn = jk.querySelector('.jk-save');
+  if (btn) { btn.style.background = 'rgba(76,175,80,.3)'; setTimeout(() => btn.style.background = '', 500); }
+}
+
+// ---- Bild-Drag (Jukebox verschieben im minimierten Zustand) ----
+function initImgDrag() {
+  const imgEl = document.getElementById('jkImg');
+  const jk = document.getElementById('jukebox');
+  if (!imgEl || !jk) return;
+
+  let dragging = false, startX, startY, origX, origY;
+
+  function start(e) {
+    if (e.target.closest('.jk-resize')) return;
+    const pos = e.touches ? e.touches[0] : e;
+    startX = pos.clientX; startY = pos.clientY;
+    const r = jk.getBoundingClientRect();
+    origX = r.left; origY = r.top;
+    dragging = true; jkDragging = false;
+  }
+  function move(e) {
+    if (!dragging) return;
+    const pos = e.touches ? e.touches[0] : e;
+    const dx = pos.clientX - startX, dy = pos.clientY - startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) jkDragging = true;
+    if (!jkDragging) return;
+    e.preventDefault();
+    const nx = Math.max(0, Math.min(window.innerWidth - 60, origX + dx));
+    const ny = Math.max(0, Math.min(window.innerHeight - 40, origY + dy));
+    jk.style.left = nx + 'px';
+    jk.style.top = ny + 'px';
+    jk.style.bottom = 'auto';
+    jk.style.right = 'auto';
+    jkPosX = Math.round(nx);
+    jkPosY = Math.round(ny);
+  }
+  function end() {
+    dragging = false;
+    setTimeout(() => jkDragging = false, 50);
+  }
+
+  imgEl.addEventListener('mousedown', start);
+  imgEl.addEventListener('touchstart', start, { passive: true });
+  window.addEventListener('mousemove', move);
+  window.addEventListener('touchmove', move, { passive: false });
+  window.addEventListener('mouseup', end);
+  window.addEventListener('touchend', end);
 }
 
 // ---- Noten-Animation ----
@@ -859,6 +971,10 @@ window._jk = {
   toggleSearch,
   onSearch: onSearchInput,
   addFromSearch,
+  // Resize
+  bigger: () => resizeJk(15),
+  smaller: () => resizeJk(-15),
+  savePos: saveJkPos,
   // Drag events
   dragStart: onDragStart,
   dragOver: onDragOver,
