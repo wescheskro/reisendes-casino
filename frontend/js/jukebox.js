@@ -228,70 +228,16 @@ async function searchYouTube(query) {
     renderSearchResults([]);
     return;
   }
-
-  // Methode 1: YouTube Data API (wenn Key vorhanden)
-  if (YT_API_KEY) {
-    try {
-      const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=8&q=${encodeURIComponent(query)}&key=${YT_API_KEY}`);
-      const data = await res.json();
-      if (data.items) {
-        const results = data.items.map(i => ({
-          id: i.id.videoId,
-          title: i.snippet.title,
-          channel: i.snippet.channelTitle,
-          thumb: i.snippet.thumbnails?.default?.url
-        }));
-        renderSearchResults(results);
-        return;
-      }
-    } catch(e) {}
-  }
-
-  // Methode 2: Invidious API (kostenlos, kein Key nötig)
-  const instances = [
-    'https://vid.puffyan.us',
-    'https://invidious.fdn.fr',
-    'https://y.com.sb',
-    'https://invidious.nerdvpn.de'
-  ];
-
-  for (const inst of instances) {
-    try {
-      const res = await fetch(`${inst}/api/v1/search?q=${encodeURIComponent(query)}&type=video&sort_by=relevance`, {
-        signal: AbortSignal.timeout(5000)
-      });
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        const results = data.slice(0, 8).map(v => ({
-          id: v.videoId,
-          title: v.title,
-          channel: v.author,
-          thumb: v.videoThumbnails?.[0]?.url || ''
-        }));
-        renderSearchResults(results);
-        return;
-      }
-    } catch(e) { continue; }
-  }
-
-  // Methode 3: Fallback – Piped API
   try {
-    const res = await fetch(`https://pipedapi.kavin.rocks/search?q=${encodeURIComponent(query)}&filter=music_songs`, {
-      signal: AbortSignal.timeout(5000)
+    const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(query)}`, {
+      signal: AbortSignal.timeout(8000)
     });
-    const data = await res.json();
-    if (data.items) {
-      const results = data.items.filter(i => i.type === 'stream').slice(0, 8).map(v => ({
-        id: v.url?.replace('/watch?v=', '') || '',
-        title: v.title,
-        channel: v.uploaderName,
-        thumb: v.thumbnail
-      }));
+    const results = await res.json();
+    if (Array.isArray(results)) {
       renderSearchResults(results);
       return;
     }
   } catch(e) {}
-
   renderSearchResults([]);
 }
 

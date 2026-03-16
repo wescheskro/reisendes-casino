@@ -2650,6 +2650,31 @@ io.on('connection', (socket) => {
 });
 
 // ---------------------------------------------------------------------------
+// YOUTUBE SEARCH (für Jukebox)
+// ---------------------------------------------------------------------------
+app.get('/api/youtube/search', async (req, res) => {
+  const q = req.query.q;
+  if (!q || q.length < 2) return res.json([]);
+  try {
+    const ytSearch = require('youtube-search-api');
+    const data = await ytSearch.GetListByKeyword(q, false, 8);
+    const results = (data.items || [])
+      .filter(i => i.type === 'video')
+      .slice(0, 8)
+      .map(v => ({
+        id: v.id,
+        title: v.title,
+        channel: v.channelTitle || '',
+        thumb: v.thumbnail?.thumbnails?.[0]?.url || ''
+      }));
+    res.json(results);
+  } catch(e) {
+    console.error('YouTube search error:', e.message);
+    res.json([]);
+  }
+});
+
+// ---------------------------------------------------------------------------
 // START
 // ---------------------------------------------------------------------------
 server.listen(PORT, () => {
