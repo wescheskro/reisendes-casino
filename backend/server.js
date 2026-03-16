@@ -1928,6 +1928,41 @@ io.on('connection', (socket) => {
     }
   });
 
+  // --- JUKEBOX (globale Musik-Sync) ---
+  socket.on('jukebox:join', () => {
+    socket.join('jukebox');
+    // Aktuellen State senden
+    if (global.jukeboxState && global.jukeboxState.videoId) {
+      socket.emit('jukebox:sync', global.jukeboxState);
+    }
+  });
+
+  socket.on('jukebox:play', (data) => {
+    global.jukeboxState = {
+      videoId: data.videoId, idx: data.idx, title: data.title,
+      playing: true, time: 0, playlist: data.playlist || global.jukeboxState?.playlist
+    };
+    socket.to('jukebox').emit('jukebox:play', data);
+  });
+
+  socket.on('jukebox:pause', () => {
+    if (global.jukeboxState) global.jukeboxState.playing = false;
+    socket.to('jukebox').emit('jukebox:pause');
+  });
+
+  socket.on('jukebox:resume', () => {
+    if (global.jukeboxState) global.jukeboxState.playing = true;
+    socket.to('jukebox').emit('jukebox:resume');
+  });
+
+  socket.on('jukebox:add', (data) => {
+    if (global.jukeboxState && global.jukeboxState.playlist) {
+      const exists = global.jukeboxState.playlist.some(s => s.id === data.videoId);
+      if (!exists) global.jukeboxState.playlist.push({ id: data.videoId, title: data.title });
+    }
+    socket.to('jukebox').emit('jukebox:add', data);
+  });
+
   // --- CHAT ---
   socket.on('chat:msg', ({ room, msg }) => {
     if (!msg || msg.length > 200) return;
