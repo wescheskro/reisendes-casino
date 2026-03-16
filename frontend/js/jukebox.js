@@ -358,14 +358,12 @@ function buildUI() {
     /* ---- Minimiert: nur das Jukebox-Bild ---- */
     .jk-img{
       width:100px;height:100px;cursor:pointer;
-      border-radius:16px;overflow:hidden;
-      border:2px solid rgba(212,175,55,.4);
-      box-shadow:0 0 20px rgba(160,120,255,.2),0 4px 16px rgba(0,0,0,.6);
-      transition:transform .2s,box-shadow .2s;
+      overflow:hidden;border:none;
+      background:transparent;
+      transition:transform .2s;
     }
     .jk-img:hover{
       transform:scale(1.05);
-      box-shadow:0 0 28px rgba(160,120,255,.35),0 6px 20px rgba(0,0,0,.7);
     }
     .jk-img img{width:100%;height:100%;object-fit:cover;display:block}
     /* ---- Aufgeklappt: Panel ---- */
