@@ -538,15 +538,17 @@ function buildUI() {
       pointer-events:none;overflow:visible;z-index:10;
     }
     .jk-note{
-      position:absolute;bottom:100%;
+      position:absolute;bottom:80%;
       color:#D4AF37;opacity:0;
       animation:jk-float-up 3s ease-out forwards;
-      text-shadow:0 0 6px rgba(160,120,255,.4);
+      text-shadow:0 0 8px rgba(160,120,255,.6),0 0 3px rgba(212,175,55,.8);
+      filter:drop-shadow(0 0 4px rgba(160,120,255,.3));
     }
     @keyframes jk-float-up{
-      0%{opacity:0.8;transform:translateY(0) rotate(0deg)}
-      50%{opacity:0.6}
-      100%{opacity:0;transform:translateY(-80px) rotate(20deg) translateX(10px)}
+      0%{opacity:0;transform:translateY(0) scale(0.5)}
+      15%{opacity:1;transform:translateY(-10px) scale(1)}
+      60%{opacity:0.7;transform:translateY(-50px) rotate(15deg) translateX(8px)}
+      100%{opacity:0;transform:translateY(-100px) rotate(25deg) translateX(15px)}
     }
 
     @media(max-width:600px){
@@ -599,16 +601,22 @@ function startNoteAnimation() {
   jk.appendChild(noteContainer);
 
   function spawnNote() {
-    if (!isPlaying) { setTimeout(spawnNote, 1500); return; }
+    // Noten nur im minimierten Zustand zeigen
+    const isMini = jk.classList.contains('jk-mini');
+    if (!isMini) { setTimeout(spawnNote, 1000); return; }
+
     const note = document.createElement('span');
     note.className = 'jk-note';
     note.textContent = notes[Math.floor(Math.random() * notes.length)];
-    note.style.left = (15 + Math.random() * 70) + '%';
-    note.style.animationDuration = (2 + Math.random() * 2) + 's';
-    note.style.fontSize = (10 + Math.random() * 8) + 'px';
+    note.style.left = (10 + Math.random() * 80) + '%';
+    note.style.animationDuration = (2.5 + Math.random() * 2) + 's';
+    note.style.fontSize = (12 + Math.random() * 10) + 'px';
     noteContainer.appendChild(note);
     note.addEventListener('animationend', () => note.remove());
-    setTimeout(spawnNote, 800 + Math.random() * 1200);
+
+    // Schneller wenn Musik spielt, langsamer wenn nicht
+    const delay = isPlaying ? (600 + Math.random() * 800) : (2000 + Math.random() * 2000);
+    setTimeout(spawnNote, delay);
   }
   setTimeout(spawnNote, 500);
 }
