@@ -1453,6 +1453,19 @@
       &#9827; Blackjack Spielen
     </button>
 
+    <div class="game-divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 4. BAR                                      -->
+    <!-- ═══════════════════════════════════════════ -->
+    <button class="cta-play cta-bar" onclick="openBar()" style="
+      background:linear-gradient(135deg,rgba(139,90,43,.4),rgba(80,50,20,.6));
+      border:2px solid rgba(212,175,55,.4);margin:10px auto;display:block;
+      padding:14px 28px;border-radius:12px;color:#D4AF37;font-family:inherit;
+      font-size:16px;font-weight:700;cursor:pointer;letter-spacing:1px;
+      box-shadow:0 4px 16px rgba(0,0,0,.4);transition:all .3s;width:80%;max-width:400px;
+    ">🍺 Die Bar betreten</button>
+
     <!-- ═══════════════════════════════════════════════════════════ -->
     <!-- BAXT COINS PROMO SECTION -->
     <!-- ═══════════════════════════════════════════════════════════ -->
@@ -1643,6 +1656,10 @@
     function openPoker() {
       const table = document.getElementById('pkTableSelect').value;
       openGameInFrame('/games/poker.html?table=' + table + '&embed=1');
+    }
+
+    function openBar() {
+      openGameInFrame('/games/bar.html?embed=1');
     }
 
     // =========================================================================

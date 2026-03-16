@@ -2507,6 +2507,63 @@ io.on('connection', (socket) => {
     }
   });
 
+  // --- BAR (Video-Chat Raum) ---
+  if (!global.barSeats) global.barSeats = Array(8).fill(null);
+
+  socket.on('bar:join', () => {
+    socket.join('bar');
+    socket.emit('bar:state', { seats: global.barSeats });
+  });
+
+  socket.on('bar:sit', (data) => {
+    if (data.idx >= 0 && data.idx < 8 && !global.barSeats[data.idx]) {
+      global.barSeats[data.idx] = { username: data.username, id: socket.id, video: false };
+      socket.to('bar').emit('bar:sit', { idx: data.idx, username: data.username, id: socket.id });
+    }
+  });
+
+  socket.on('bar:leave', (data) => {
+    if (data.idx >= 0 && data.idx < 8 && global.barSeats[data.idx]?.id === socket.id) {
+      global.barSeats[data.idx] = null;
+      socket.to('bar').emit('bar:leave', { idx: data.idx });
+    }
+  });
+
+  socket.on('bar:media', (data) => {
+    if (data.idx >= 0 && data.idx < 8 && global.barSeats[data.idx]?.id === socket.id) {
+      global.barSeats[data.idx].video = data.video;
+      socket.to('bar').emit('bar:media', { idx: data.idx, video: data.video, audio: data.audio });
+    }
+  });
+
+  socket.on('bar:chat', (data) => {
+    if (!data.msg || data.msg.length > 200) return;
+    socket.to('bar').emit('bar:chat', { username: data.username, msg: data.msg });
+  });
+
+  // WebRTC Signaling für Bar
+  socket.on('bar:offer', (data) => {
+    io.to(data.to).emit('bar:offer', { from: socket.id, offer: data.offer });
+  });
+  socket.on('bar:answer', (data) => {
+    io.to(data.to).emit('bar:answer', { from: socket.id, answer: data.answer });
+  });
+  socket.on('bar:ice', (data) => {
+    io.to(data.to).emit('bar:ice', { from: socket.id, candidate: data.candidate });
+  });
+
+  // Bar: Platz freigeben bei Disconnect
+  socket.on('disconnect', () => {
+    if (global.barSeats) {
+      global.barSeats.forEach((seat, i) => {
+        if (seat && seat.id === socket.id) {
+          global.barSeats[i] = null;
+          io.to('bar').emit('bar:leave', { idx: i });
+        }
+      });
+    }
+  });
+
   // --- CHAT ---
   socket.on('chat:msg', ({ room, msg }) => {
     if (!msg || msg.length > 200) return;
