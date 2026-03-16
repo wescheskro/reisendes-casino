@@ -309,10 +309,10 @@ function resetPlaylist() {
 function buildUI() {
   const wrap = document.createElement('div');
   wrap.id = 'jukebox';
-  wrap.className = jkMinimized ? 'jk-mini' : '';
+  wrap.className = 'jk-mini';
   wrap.innerHTML = `
     <div class="jk-img" id="jkImg" title="Jukebox öffnen">
-      <img src="/img/jukebox-bg.jpg" alt="Jukebox" draggable="false">
+      <img src="/img/jukebox-cutout.png" alt="Jukebox" draggable="false">
     </div>
     <div class="jk-panel" id="jkPanel">
       <div class="jk-header" id="jkHeader">
@@ -357,15 +357,19 @@ function buildUI() {
     }
     /* ---- Minimiert: nur das Jukebox-Bild ---- */
     .jk-img{
-      width:100px;height:100px;cursor:pointer;
-      overflow:hidden;border:none;
+      width:110px;height:110px;cursor:pointer;
+      overflow:visible;border:none;
       background:transparent;
       transition:transform .2s;
+      filter:drop-shadow(0 0 8px rgba(160,120,255,.3));
     }
     .jk-img:hover{
-      transform:scale(1.05);
+      transform:scale(1.08);
+      filter:drop-shadow(0 0 14px rgba(160,120,255,.5));
     }
-    .jk-img img{width:100%;height:100%;object-fit:cover;display:block}
+    .jk-img img{
+      width:100%;height:100%;object-fit:cover;display:block;
+    }
     /* ---- Aufgeklappt: Panel ---- */
     .jk-panel{
       display:none;width:280px;border-radius:18px;overflow:hidden;
@@ -559,9 +563,9 @@ function buildUI() {
   // Events
   document.getElementById('jkImg').onclick = () => openJukebox();
   document.getElementById('jkMinBtn').onclick = () => closeJukebox();
-  // Start in correct state
+  // Start immer als Bild (minimiert), Klick öffnet das Panel
   const jk = document.getElementById('jukebox');
-  if (!jkMinimized) jk.classList.add('jk-open');
+  jk.className = 'jk-mini';
   buildPlaylist();
   initDrag();
   startNoteAnimation();
