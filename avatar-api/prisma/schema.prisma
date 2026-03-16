@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Avatar {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  gender          String   @default("male")
+  skinColor       String   @default("#e8b98a") @map("skin_color")
+  eyeColor        String   @default("#4a3728") @map("eye_color")
+  hairColor       String   @default("#2c1810") @map("hair_color")
+  parts           Json     @default("{}")
+  customFaceMeshUrl String? @map("custom_face_mesh_url")
+  thumbnailUrl    String?  @map("thumbnail_url")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("avatars")
+}
+
+model AvatarPart {
+  id              String   @id @default(uuid())
+  category        String
+  name            String
+  glbUrl          String   @map("glb_url")
+  thumbnailUrl    String?  @map("thumbnail_url")
+  attachmentPoint String   @map("attachment_point")
+  isPremium       Boolean  @default(false) @map("is_premium")
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("avatar_parts")
+  @@index([category])
+  @@unique([category, name])
+}
