@@ -593,22 +593,21 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 
 /* Chip-Slider zum Erhöhen */
 .raise-slider{
-  display:flex;align-items:center;gap:10px;
-  background:rgba(255,255,255,.04);padding:10px 16px;border-radius:14px;
-  border:1px solid rgba(212,175,55,.12);margin-top:6px;
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.04);padding:6px 12px;border-radius:10px;
+  border:1px solid rgba(212,175,55,.12);margin-top:4px;
   flex-wrap:wrap;justify-content:center;
+  max-width:320px;margin-left:auto;margin-right:auto;
 }
-.raise-slider .raise-label{
-  font-size:11px;color:rgba(240,230,211,.4);width:100%;text-align:center;margin-bottom:2px;
-}
+.raise-slider .raise-label{display:none}
 .raise-slider .raise-val{
-  color:#F4D03F;font-weight:900;font-size:20px;min-width:80px;text-align:center;
+  color:#F4D03F;font-weight:900;font-size:16px;min-width:65px;text-align:center;
   text-shadow:0 2px 6px rgba(0,0,0,.6);
 }
 /* Slider-Track */
 .chip-slider{
   -webkit-appearance:none;appearance:none;
-  width:100%;max-width:280px;height:14px;
+  width:100%;max-width:200px;height:10px;
   background:linear-gradient(90deg,
     rgba(46,204,113,.4) 0%,
     rgba(243,156,18,.5) 40%,
@@ -621,19 +620,18 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 /* Chip als Slider-Thumb (Webkit/Chrome/Safari) */
 .chip-slider::-webkit-slider-thumb{
   -webkit-appearance:none;appearance:none;
-  width:44px;height:44px;border-radius:50%;cursor:grab;
+  width:32px;height:32px;border-radius:50%;cursor:grab;
   background:linear-gradient(145deg,#D4AF37,#F4D03F);
-  border:3px solid #b8960f;
-  box-shadow:0 3px 12px rgba(0,0,0,.5), inset 0 2px 4px rgba(255,255,255,.4);
-  position:relative;
+  border:2.5px solid #b8960f;
+  box-shadow:0 2px 8px rgba(0,0,0,.5), inset 0 1px 3px rgba(255,255,255,.4);
 }
-.chip-slider::-webkit-slider-thumb:active{cursor:grabbing;transform:scale(1.1)}
+.chip-slider::-webkit-slider-thumb:active{cursor:grabbing}
 /* Chip als Slider-Thumb (Firefox) */
 .chip-slider::-moz-range-thumb{
-  width:44px;height:44px;border-radius:50%;cursor:grab;
+  width:32px;height:32px;border-radius:50%;cursor:grab;
   background:linear-gradient(145deg,#D4AF37,#F4D03F);
-  border:3px solid #b8960f;
-  box-shadow:0 3px 12px rgba(0,0,0,.5), inset 0 2px 4px rgba(255,255,255,.4);
+  border:2.5px solid #b8960f;
+  box-shadow:0 2px 8px rgba(0,0,0,.5), inset 0 1px 3px rgba(255,255,255,.4);
 }
 .chip-slider::-moz-range-thumb:active{cursor:grabbing}
 /* Track Firefox */
@@ -646,38 +644,12 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
     rgba(231,76,60,.5) 100%);
   border:2px solid rgba(212,175,55,.2);
 }
-/* Quick-Chip Buttons unter dem Slider */
-.raise-quick{
-  display:flex;gap:5px;width:100%;justify-content:center;margin-top:4px;flex-wrap:wrap;
-}
-.qchip{
-  width:38px;height:38px;border-radius:50%;border:2px solid;cursor:pointer;
-  font-family:'Playfair Display',serif;font-weight:900;font-size:9px;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 2px 6px rgba(0,0,0,.35), inset 0 1px 3px rgba(255,255,255,.2);
-  transition:transform .12s;position:relative;
-  -webkit-tap-highlight-color:transparent;
-  text-shadow:0 1px 1px rgba(0,0,0,.3);
-}
-.qchip::before{
-  content:'';position:absolute;inset:3px;border-radius:50%;
-  border:1.5px dashed rgba(255,255,255,.25);pointer-events:none;
-}
-.qchip:active{transform:scale(.88)}
-.qc-100{background:linear-gradient(145deg,#eee,#bbb);border-color:#999;color:#333}
-.qc-500{background:linear-gradient(145deg,#e74c3c,#c0392b);border-color:#922;color:#fff}
-.qc-1k{background:linear-gradient(145deg,#8e44ad,#6c3483);border-color:#5b2c6f;color:#fff}
-.qc-2k{background:linear-gradient(145deg,#f39c12,#d68910);border-color:#b7770a;color:#fff}
-.qc-5k{background:linear-gradient(145deg,#2ecc71,#1a9c54);border-color:#148f47;color:#fff}
-.qc-10k{background:linear-gradient(145deg,#1a1a2e,#2c3e50);border-color:#111;color:#D4AF37}
-.qc-max{background:linear-gradient(145deg,#D4AF37,#F4D03F);border-color:#b8960f;color:#1a1a2e}
 @media(max-width:600px){
-  .chip-slider{max-width:220px;height:12px}
-  .chip-slider::-webkit-slider-thumb{width:38px;height:38px}
-  .chip-slider::-moz-range-thumb{width:38px;height:38px}
-  .qchip{width:34px;height:34px;font-size:8px}
-  .raise-slider .raise-val{font-size:17px}
-  .raise-slider{padding:8px 10px;gap:8px}
+  .chip-slider{max-width:140px;height:8px}
+  .chip-slider::-webkit-slider-thumb{width:28px;height:28px}
+  .chip-slider::-moz-range-thumb{width:28px;height:28px}
+  .raise-slider .raise-val{font-size:14px;min-width:55px}
+  .raise-slider{padding:5px 8px;gap:5px;max-width:240px}
 }
 
 /* ============ WINNER BANNER ============ */
@@ -2060,27 +2032,11 @@ function renderControls(state) {
     const maxR = myChips;
     if (raiseAmount < minR) raiseAmount = minR;
     if (raiseAmount > maxR) raiseAmount = maxR;
-    const quickChips = [
-      { val:100, cls:'qc-100', label:'100' },
-      { val:500, cls:'qc-500', label:'500' },
-      { val:1000, cls:'qc-1k', label:'1K' },
-      { val:2000, cls:'qc-2k', label:'2K' },
-      { val:5000, cls:'qc-5k', label:'5K' },
-      { val:10000, cls:'qc-10k', label:'10K' },
-      { val:maxR, cls:'qc-max', label:'MAX' },
-    ];
     html += `<div class="raise-slider">
-      <div class="raise-label">Einsatz wählen</div>
       <span class="raise-val" id="raiseVal">${raiseAmount.toLocaleString('de-DE')}</span>
       <input type="range" class="chip-slider" min="${minR}" max="${maxR}" step="50" value="${raiseAmount}"
         oninput="updateRaise(this.value)">
-      <div class="raise-quick">`;
-    quickChips.forEach(c => {
-      if (c.val >= minR && c.val <= maxR) {
-        html += `<button class="qchip ${c.cls}" onclick="setRaise(${c.val})">${c.label}</button>`;
-      }
-    });
-    html += `</div></div>`;
+    </div>`;
   }
 
   ctrl.innerHTML = html;
