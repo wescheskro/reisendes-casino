@@ -343,7 +343,7 @@
 
   // ── Token Helper ──
   function getToken() {
-    return localStorage.getItem('token');
+    return localStorage.getItem('casinoToken') || localStorage.getItem('token');
   }
 
   async function apiFetch(url, opts = {}) {
@@ -360,8 +360,22 @@
     return res.json();
   }
 
+  // ── Gast-Modus Helpers ──
+  function isGuest() {
+    return !getToken() && !!localStorage.getItem('casinoGuest');
+  }
+
+  function getGuestBaxt() {
+    return parseInt(localStorage.getItem('guestBaxt') || '0');
+  }
+
   // ── Balance laden ──
   async function loadBalance() {
+    if (isGuest()) {
+      baxtCoins = getGuestBaxt();
+      updateBadge();
+      return;
+    }
     try {
       const data = await apiFetch('/api/baxt/balance');
       if (data) {
@@ -482,28 +496,38 @@
     // Main View
     const today = new Date().toISOString().split('T')[0];
     const dailyClaimed = localStorage.getItem('baxt-daily') === today;
+    const guestMode = isGuest();
 
     panel.innerHTML = `
       <div class="baxt-panel-header">
         <div class="baxt-coin-icon" style="font-size:20px;width:40px;height:40px;">₿</div>
         <div>
           <div class="baxt-panel-title">${baxtCoins.toLocaleString('de-DE')} Baxt</div>
-          <div class="baxt-panel-balance">Deine Baxt Coins</div>
+          <div class="baxt-panel-balance">${guestMode ? 'Gast-Guthaben' : 'Deine Baxt Coins'}</div>
         </div>
       </div>
       <div class="baxt-panel-body">
-        <button class="baxt-action-btn baxt-btn-daily" ${dailyClaimed ? 'disabled' : ''} onclick="window._baxt.claimDaily()">
-          🎁 ${dailyClaimed ? 'Morgen wieder!' : 'Täglicher Bonus (100 Baxt)'}
-        </button>
-        <button class="baxt-action-btn baxt-btn-send" onclick="window._baxt.openTransfer()">
-          💸 Baxt Coins senden
-        </button>
-        <button class="baxt-action-btn baxt-btn-ranking" onclick="window._baxt.showRanking()">
-          🏆 Baxt Rangliste
-        </button>
-        <button class="baxt-action-btn baxt-btn-history" onclick="window._baxt.showHistory()">
-          📜 Verlauf anzeigen
-        </button>
+        ${guestMode ? `
+          <div style="text-align:center;padding:8px 0 12px;color:#aaa;font-size:13px">
+            Registriere dich fur 5.000 Bonus-Baxt!
+          </div>
+          <button class="baxt-action-btn baxt-btn-daily" onclick="window.location.href='/';" style="background:linear-gradient(135deg,#D4AF37,#F4D03F);color:#1a1a2e">
+            Jetzt registrieren
+          </button>
+        ` : `
+          <button class="baxt-action-btn baxt-btn-daily" ${dailyClaimed ? 'disabled' : ''} onclick="window._baxt.claimDaily()">
+            🎁 ${dailyClaimed ? 'Morgen wieder!' : 'Täglicher Bonus (100 Baxt)'}
+          </button>
+          <button class="baxt-action-btn baxt-btn-send" onclick="window._baxt.openTransfer()">
+            💸 Baxt Coins senden
+          </button>
+          <button class="baxt-action-btn baxt-btn-ranking" onclick="window._baxt.showRanking()">
+            🏆 Baxt Rangliste
+          </button>
+          <button class="baxt-action-btn baxt-btn-history" onclick="window._baxt.showHistory()">
+            📜 Verlauf anzeigen
+          </button>
+        `}
       </div>
     `;
   }
@@ -808,11 +832,23 @@
     if (new URLSearchParams(window.location.search).get('embed') === '1') return;
 
     const token = getToken();
-    if (!token) return; // Nicht eingeloggt → kein Widget
+    const guest = isGuest();
+    if (!token && !guest) return; // Weder eingeloggt noch Gast → kein Widget
 
     createWidget();
     loadBalance();
-    setupSocketEvents();
+    if (token) setupSocketEvents();
+
+    // Gast-Balance live tracken (localStorage Änderungen)
+    if (guest) {
+      setInterval(() => {
+        const gb = getGuestBaxt();
+        if (gb !== baxtCoins) {
+          baxtCoins = gb;
+          updateBadge();
+        }
+      }, 1000);
+    }
 
     // Click-Outside schließt Panel
     document.addEventListener('click', (e) => {
@@ -822,6 +858,12 @@
       }
     });
   }
+
+  // Globaler Update-Callback für andere Scripts
+  window.baxtUpdateBalance = function(newBalance) {
+    baxtCoins = newBalance;
+    updateBadge();
+  };
 
   // Warten bis DOM bereit ist
   if (document.readyState === 'loading') {

@@ -337,8 +337,9 @@ let micOn = false;
 let camOn = false;
 let seats = Array(MAX_SEATS).fill(null);
 let peerConnections = {};
-const username = localStorage.getItem('pokerPlayerName') || 'Gast';
-const token = localStorage.getItem('token') || localStorage.getItem('casinoToken');
+const guest = (() => { try { return JSON.parse(localStorage.getItem('casinoGuest')); } catch(e) { return null; } })();
+const username = (() => { try { const u = JSON.parse(localStorage.getItem('casinoUser')); return u?.username; } catch(e) { return null; } })() || (guest ? guest.username : null) || localStorage.getItem('pokerPlayerName') || 'Gast';
+const token = localStorage.getItem('casinoToken') || localStorage.getItem('token');
 let myAvatarUrl = null;
 
 // Server-Avatar laden
@@ -583,7 +584,19 @@ function addChatMsg(name, text) {
 
 // ─── SOCKET ───
 function initSocket() {
-  socket = io({ auth: { token, username } });
+  const guestBaxt = parseInt(localStorage.getItem('guestBaxt') || '0');
+  socket = io({ auth: { token, username, guestBaxt: !token ? guestBaxt : undefined } });
+
+  // Gast: Baxt-Updates
+  if (!token && guest) {
+    socket.on('guest:baxtUpdate', (data) => {
+      localStorage.setItem('guestBaxt', String(Math.max(0, data.baxt)));
+    });
+    socket.on('guest:broke', () => {
+      localStorage.setItem('guestBaxt', '0');
+      setTimeout(() => { window.location.href = '/'; }, 3000);
+    });
+  }
 
   socket.emit('bar:join', { room: barRoom });
 

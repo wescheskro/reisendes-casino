@@ -731,8 +731,21 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 
 const token = localStorage.getItem('casinoToken');
 const user = (() => { try { return JSON.parse(localStorage.getItem('casinoUser')); } catch(e) { return null; } })();
-const socket = io({ auth: { token } });
+const guest = (() => { try { return JSON.parse(localStorage.getItem('casinoGuest')); } catch(e) { return null; } })();
+const guestBaxt = parseInt(localStorage.getItem('guestBaxt') || '0');
+const socket = io({ auth: { token, username: (!token && guest) ? guest.username : undefined, guestBaxt: !token ? guestBaxt : undefined } });
 const tableId = new URLSearchParams(location.search).get('table') || 'tisch-1';
+
+// Gast: Baxt-Updates aus dem Spiel empfangen
+if (!token && guest) {
+  socket.on('guest:baxtUpdate', (data) => {
+    localStorage.setItem('guestBaxt', String(Math.max(0, data.baxt)));
+  });
+  socket.on('guest:broke', () => {
+    localStorage.setItem('guestBaxt', '0');
+    setTimeout(() => { window.location.href = '/'; }, 3000);
+  });
+}
 
 let myState = null;
 let mySeat = -1;

@@ -872,7 +872,8 @@ const numColor = n => n===0?'g':RED.has(n)?'r':'bk';
 
 const token = localStorage.getItem('casinoToken');
 const user = (() => { try { return JSON.parse(localStorage.getItem('casinoUser')); } catch(e) { return null; } })();
-const username = user?.username || localStorage.getItem('pokerPlayerName') || 'Gast';
+const guest = (() => { try { return JSON.parse(localStorage.getItem('casinoGuest')); } catch(e) { return null; } })();
+const username = user?.username || (guest ? guest.username : null) || localStorage.getItem('pokerPlayerName') || 'Gast';
 const tableId = new URLSearchParams(location.search).get('table') || 'tisch-1';
 const isEmbed = location.search.includes('embed=1');
 
@@ -2525,7 +2526,19 @@ async function doSendMoney(name) {
 // SOCKET.IO MULTIPLAYER
 // ═══════════════════════════════════════
 function initSocket() {
-  socket = io({ auth: { token, username } });
+  const guestBaxt = parseInt(localStorage.getItem('guestBaxt') || '0');
+  socket = io({ auth: { token, username, guestBaxt: !token ? guestBaxt : undefined } });
+
+  // Gast: Baxt-Updates
+  if (!token && guest) {
+    socket.on('guest:baxtUpdate', (data) => {
+      localStorage.setItem('guestBaxt', String(Math.max(0, data.baxt)));
+    });
+    socket.on('guest:broke', () => {
+      localStorage.setItem('guestBaxt', '0');
+      setTimeout(() => { window.location.href = '/'; }, 3000);
+    });
+  }
   socket.on('connect', () => {
     socket.emit('rl:join', { tableId, username });
     document.getElementById('tableInfo').textContent = 'Verbunden!';

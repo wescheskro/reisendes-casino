@@ -2870,11 +2870,15 @@
           return;
         }
 
+        // Gast-Daten aufräumen nach Registrierung
+        localStorage.removeItem('casinoGuest');
+        localStorage.removeItem('guestBaxt');
+
         setToken(data.token);
         setUser(data.user);
         closeAuth();
         updateAuthUI();
-        showToast('Willkommen ' + data.user.username + '! 🦔');
+        showToast('Willkommen ' + data.user.username + '! 5.000 ₿ Registrierungsbonus! 🎉');
 
         // E-Mail Verifizierung anzeigen wenn Code gesendet wurde
         if (data.emailSent) {
@@ -2898,6 +2902,10 @@
         });
         const data = await res.json();
         if (!res.ok) { showAuthError('Falsche Daten!'); return; }
+
+        // Gast-Daten aufräumen
+        localStorage.removeItem('casinoGuest');
+        localStorage.removeItem('guestBaxt');
 
         setToken(data.token);
         setUser(data.user);
@@ -3098,11 +3106,15 @@
         const data = await res.json();
         if (!res.ok) { showAuthError(data.error || 'Google-Login fehlgeschlagen'); return; }
 
+        // Gast-Daten aufräumen
+        localStorage.removeItem('casinoGuest');
+        localStorage.removeItem('guestBaxt');
+
         setToken(data.token);
         setUser(data.user);
         closeAuth();
         updateAuthUI();
-        showToast(data.isNewUser ? 'Willkommen ' + data.user.username + '! 🦔' : 'Willkommen zurück, ' + data.user.username + '! 🎰');
+        showToast(data.isNewUser ? 'Willkommen ' + data.user.username + '! 5.000 ₿ Bonus! 🎉' : 'Willkommen zurück, ' + data.user.username + '! 🎰');
       } catch(err) {
         showAuthError('Verbindungsfehler');
       }
@@ -3344,7 +3356,7 @@
       }, 3000);
     }
 
-    // Broke-Check alle 10 Sekunden (nur wenn ein Spiel läuft)
+    // Broke-Check alle 30 Sekunden
     setInterval(() => {
       const user = getUser();
       const guest = JSON.parse(localStorage.getItem('casinoGuest') || 'null');
@@ -3352,7 +3364,8 @@
       // Nur prüfen wenn kein Modal offen
       if (document.querySelector('.broke-overlay.active')) return;
       if (document.querySelector('.welcome-overlay.active')) return;
-      // Hier könnte man die Balance live vom Server holen
+      if (document.querySelector('.auth-modal-overlay.active')) return;
+      checkBroke();
     }, 30000);
 
     // =========================================================================

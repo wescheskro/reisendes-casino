@@ -2168,7 +2168,11 @@ async function serverSlotWin(amount) {
 }
 
 // ===== GAME STATE =====
-let balance = parseInt(localStorage.getItem('slotBalance')) || 10000;
+// Gast: guestBaxt nutzen, eingeloggt: Server-Balance, sonst Fallback
+const _slotGuest = (() => { try { return JSON.parse(localStorage.getItem('casinoGuest')); } catch(e) { return null; } })();
+const _slotToken = localStorage.getItem('casinoToken') || localStorage.getItem('token');
+let balance = _slotToken ? 0 : (_slotGuest ? parseInt(localStorage.getItem('guestBaxt') || '0') : parseInt(localStorage.getItem('slotBalance')) || 10000);
+let isSlotGuest = !_slotToken && !!_slotGuest;
 let betPerLine = 20;
 let lines = 10;
 let lastWin = 0;
@@ -3818,7 +3822,17 @@ function updateUI() {
   const winCg = document.getElementById('winCg');
   winCg.classList.toggle('has-win', lastWin > 0);
   // Guthaben speichern (nicht im Demo-Modus, nicht bei Server-Balance)
-  if (!demoMode && !useServerBalance) localStorage.setItem('slotBalance', balance);
+  if (!demoMode && !useServerBalance) {
+    if (isSlotGuest) {
+      localStorage.setItem('guestBaxt', String(Math.max(0, balance)));
+      // Broke-Check für Gäste
+      if (balance <= 0) {
+        setTimeout(() => { window.location.href = '/'; }, 2000);
+      }
+    } else {
+      localStorage.setItem('slotBalance', balance);
+    }
+  }
 }
 
 // ===== RESIZE HANDLER =====

@@ -1736,6 +1736,7 @@ document.addEventListener('touchstart', function(e) {
 <script>
 const token = localStorage.getItem('casinoToken');
 const user = (() => { try { return JSON.parse(localStorage.getItem('casinoUser')); } catch(e) { return null; } })();
+const guest = (() => { try { return JSON.parse(localStorage.getItem('casinoGuest')); } catch(e) { return null; } })();
 const tableId = new URLSearchParams(location.search).get('table') || 'tisch-1';
 
 let socket = null;
@@ -1743,8 +1744,21 @@ let socket = null;
 function startGame(playerName) {
   if (socket) return; // Schon verbunden
   document.getElementById('nameOverlay').classList.add('hidden');
-  socket = io({ auth: { token, username: playerName || undefined } });
+  const guestBaxt = parseInt(localStorage.getItem('guestBaxt') || '0');
+  socket = io({ auth: { token, username: playerName || undefined, guestBaxt: !token ? guestBaxt : undefined } });
   setupSocketEvents();
+
+  // Gast: Baxt-Updates aus dem Spiel empfangen
+  if (!token && guest) {
+    socket.on('guest:baxtUpdate', (data) => {
+      localStorage.setItem('guestBaxt', String(Math.max(0, data.baxt)));
+    });
+    socket.on('guest:broke', () => {
+      localStorage.setItem('guestBaxt', '0');
+      // Weiterleitung zur Hauptseite nach 3 Sek
+      setTimeout(() => { window.location.href = '/'; }, 3000);
+    });
+  }
 }
 
 window.submitName = function() {
@@ -3951,8 +3965,9 @@ if (isEmbedMode) {
   }
 
   const savedName = localStorage.getItem('pokerPlayerName');
-  if (token || savedName) {
-    startGame(savedName);
+  const guestName = guest ? guest.username : null;
+  if (token || savedName || guestName) {
+    startGame(savedName || guestName);
   } else {
     document.getElementById('nameOverlay').classList.remove('hidden');
     const inp = document.getElementById('nameInput');

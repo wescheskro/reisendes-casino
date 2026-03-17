@@ -1982,7 +1982,8 @@ io.use((socket, next) => {
   }
   // Gast-Spieler erlauben
   const guestName = socket.handshake.auth?.username;
-  socket.user = { id: 'guest-' + uuidv4().slice(0,8), username: guestName || 'Gast-' + Math.floor(Math.random()*999), guest: true };
+  const guestBaxt = parseInt(socket.handshake.auth?.guestBaxt) || BAXT_REWARDS.guestWelcome;
+  socket.user = { id: 'guest-' + uuidv4().slice(0,8), username: guestName || 'Gast-' + Math.floor(Math.random()*999), guest: true, guestBaxt };
   next();
 });
 
@@ -2201,6 +2202,20 @@ function bjDealerPlay(table) {
       if (pSocket) {
         pSocket.emit('xp:gained', xpResult);
         if (baxtResult) pSocket.emit('baxt:earned', baxtResult);
+      }
+    }
+  }
+
+  // Gäste: Baxt-Update nach Payout
+  for (const [pid, p] of table.players) {
+    if (p.isGuest && p.guestBaxt !== undefined) {
+      // Netto-Ergebnis: payout - bet (oder 0 bei bust/lose)
+      const netResult = (p.payout || 0) - p.bet;
+      p.guestBaxt = Math.max(0, p.guestBaxt + netResult);
+      const gSocket = [...io.sockets.sockets.values()].find(s => s.user?.id === pid);
+      if (gSocket) {
+        gSocket.emit('guest:baxtUpdate', { baxt: p.guestBaxt });
+        if (p.guestBaxt <= 0) gSocket.emit('guest:broke', { baxt: 0 });
       }
     }
   }
@@ -2651,6 +2666,14 @@ function pokerShowdown(table) {
     }
   }
 
+  // Gäste: Baxt-Update senden
+  for (const [pid, p] of table.players) {
+    if (p.isGuest) {
+      const gSocket = [...io.sockets.sockets.values()].find(s => s.user?.id === pid);
+      if (gSocket) gSocket.emit('guest:baxtUpdate', { baxt: p.chips });
+    }
+  }
+
   emitPokerState(table);
 
   // Nächste Runde nach 5s
@@ -2666,6 +2689,11 @@ function pokerStartRound(table) {
         p.chips = 10000; // Bot-Reset
       } else {
         p.spectator = true;
+        // Gast: Broke-Signal senden
+        if (p.isGuest) {
+          const gSocket = [...io.sockets.sockets.values()].find(s => s.user?.id === pid);
+          if (gSocket) gSocket.emit('guest:broke', { baxt: 0 });
+        }
       }
     }
   }
@@ -2904,7 +2932,9 @@ io.on('connection', (socket) => {
     if (!table.players.has(socket.user.id)) {
       table.players.set(socket.user.id, {
         id: socket.user.id, username: socket.user.username, socketId: socket.id,
-        cards: [], bet: 0, status: 'waiting', payout: 0
+        cards: [], bet: 0, status: 'waiting', payout: 0,
+        isGuest: !!socket.user.guest,
+        guestBaxt: socket.user.guest ? (socket.user.guestBaxt || BAXT_REWARDS.guestWelcome) : undefined
       });
     }
     table.seats[seat] = socket.user.id;
@@ -3046,10 +3076,17 @@ io.on('connection', (socket) => {
     }
 
     if (!table.players.has(socket.user.id)) {
+      // Gäste bekommen ihre Baxt als Chips, registrierte User bekommen serverseitige Balance oder 10000
+      let startChips = 10000;
+      if (socket.user.guest) {
+        startChips = socket.user.guestBaxt || BAXT_REWARDS.guestWelcome;
+      } else if (socket.user.baxtCoins !== undefined) {
+        startChips = Math.max(socket.user.baxtCoins, 100); // Mindestens 100
+      }
       table.players.set(socket.user.id, {
         id: socket.user.id, username: socket.user.username, socketId: socket.id,
-        cards: [], chips: 10000, folded: false, roundBet: 0, spectator: false, allIn: false,
-        avatarUrl: avatarUrl || null
+        cards: [], chips: startChips, folded: false, roundBet: 0, spectator: false, allIn: false,
+        avatarUrl: avatarUrl || null, isGuest: !!socket.user.guest
       });
     }
     table.seats[seat] = socket.user.id;
@@ -3057,6 +3094,11 @@ io.on('connection', (socket) => {
 
     io.to('pk-' + tableId).emit('poker:playerJoined', { username: socket.user.username, seat });
     emitPokerState(table);
+
+    // Gästen ihre aktuelle Chip-Zahl als Baxt-Update senden
+    if (socket.user.guest) {
+      socket.emit('guest:baxtUpdate', { baxt: table.players.get(socket.user.id).chips });
+    }
 
     if (table.phase === 'waiting' && [...table.players.values()].filter(p => !p.spectator).length >= 2) {
       pokerStartRound(table);
