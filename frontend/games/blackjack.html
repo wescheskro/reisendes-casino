@@ -644,6 +644,15 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .pm-action-icon.msg{background:rgba(230,126,34,.15);color:#e67e22}
 .pm-action-label{font-weight:600}
 .pm-action-sub{font-size:10px;color:rgba(240,230,211,.35);margin-top:1px}
+
+@media (max-height: 450px) and (orientation: landscape) {
+  .bj-table { transform: scale(0.8); transform-origin: center top; }
+  .seat-avatar { width: 42px !important; height: 42px !important; }
+  .bj-card { width: 45px !important; height: 63px !important; font-size: 11px !important; }
+  .bet-row { gap: 4px; }
+  .controls-bottom { padding: 4px 8px; }
+  body { overflow: auto; }
+}
 </style>
 </head>
 <body>

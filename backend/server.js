@@ -29,6 +29,15 @@ const { Server: SocketIO } = require('socket.io');
 const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
 
+// Stripe Payment (optional – nur wenn STRIPE_SECRET_KEY gesetzt)
+let stripe = null;
+try {
+  if (process.env.STRIPE_SECRET_KEY) {
+    stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    console.log('[STRIPE] Payment-System aktiv');
+  }
+} catch(e) { console.warn('[STRIPE] stripe Modul nicht installiert'); }
+
 const app = express();
 const server = http.createServer(app);
 const io = new SocketIO(server, { cors: { origin: '*' } });
@@ -380,6 +389,49 @@ function awardBaxtCoins(user, amount, reason) {
 // ---------------------------------------------------------------------------
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
+// Stripe Webhook braucht raw body (muss VOR json-parser kommen)
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+  if (!stripe) return res.status(503).send();
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  let event;
+  try {
+    if (webhookSecret) {
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } else {
+      event = JSON.parse(req.body);
+    }
+  } catch (e) {
+    console.error('[STRIPE] Webhook Error:', e.message);
+    return res.status(400).send('Webhook Error');
+  }
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const userId = session.metadata?.userId;
+    const packageId = session.metadata?.packageId;
+    const baxtAmount = parseInt(session.metadata?.baxt || '0');
+    const user = db.users.get(userId);
+    if (user && baxtAmount > 0) {
+      awardBaxtCoins(user, baxtAmount, 'purchase');
+      const tx = {
+        id: uuidv4(),
+        userId: user.id,
+        type: 'coin_purchase',
+        packageId,
+        orderId: session.id,
+        payerEmail: session.customer_email || '',
+        coins: baxtAmount,
+        amountEur: (session.amount_total || 0) / 100,
+        timestamp: new Date().toISOString()
+      };
+      db.transactions.set(tx.id, tx);
+      saveDB();
+      console.log(`💰 STRIPE: ${user.username} kaufte ${baxtAmount} Baxt (${packageId})`);
+    }
+  }
+  res.json({ received: true });
+});
+
 app.use(express.json());
 
 // ---------------------------------------------------------------------------
@@ -1703,12 +1755,13 @@ app.get('/api/items', (req, res) => {
 // ---------------------------------------------------------------------------
 // SHOP / MÜNZEN KAUFEN
 // ---------------------------------------------------------------------------
-const COIN_PACKAGES = {
-  small:  { coins: 10000,  price: 1.99,  name: '10.000 Münzen' },
-  medium: { coins: 60000,  price: 4.99,  name: '60.000 Münzen (inkl. Bonus)' },
-  large:  { coins: 200000, price: 9.99,  name: '200.000 Münzen (inkl. Bonus)' },
-  vip:    { coins: 700000, price: 24.99, name: '700.000 Münzen (inkl. Bonus)' }
+const BAXT_PACKAGES = {
+  starter:  { baxt: 5000,    price: 99,   priceLabel: '0,99€',  name: '5.000 Baxt',                    popular: false },
+  medium:   { baxt: 25000,   price: 399,  priceLabel: '3,99€',  name: '25.000 Baxt (+5.000 Bonus)',     popular: true  },
+  large:    { baxt: 75000,   price: 999,  priceLabel: '9,99€',  name: '75.000 Baxt (+15.000 Bonus)',    popular: false },
+  vip:      { baxt: 200000,  price: 2499, priceLabel: '24,99€', name: '200.000 Baxt (+50.000 Bonus)',   popular: false },
 };
+const COIN_PACKAGES = BAXT_PACKAGES;
 
 // Kauf bestätigen (wird nach PayPal-Zahlung aufgerufen)
 app.post('/api/shop/purchase', authMiddleware, (req, res) => {
@@ -1735,7 +1788,8 @@ app.post('/api/shop/purchase', authMiddleware, (req, res) => {
   db.transactions.set(tx.id, tx);
 
   // Münzen gutschreiben
-  req.user.balance += pkg.coins;
+  awardBaxtCoins(req.user, pkg.coins || pkg.baxt, 'purchase');
+  saveDB();
 
   console.log(`💰 KAUF: ${req.user.username} kaufte ${pkg.name} für ${pkg.price}€ (PayPal: ${orderId})`);
 
@@ -1762,6 +1816,53 @@ app.get('/api/shop/history', authMiddleware, (req, res) => {
 // Pakete anzeigen (öffentlich)
 app.get('/api/shop/packages', (req, res) => {
   res.json({ packages: COIN_PACKAGES });
+});
+
+// Stripe Checkout Session erstellen
+app.post('/api/shop/create-checkout', authMiddleware, async (req, res) => {
+  if (!stripe) return res.status(503).json({ error: 'Zahlungssystem nicht konfiguriert' });
+  const { packageId } = req.body;
+  if (!BAXT_PACKAGES[packageId]) return res.status(400).json({ error: 'Ungültiges Paket' });
+  const pkg = BAXT_PACKAGES[packageId];
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: { name: pkg.name, description: 'Baxt Coins für Reisendes Casino' },
+          unit_amount: pkg.price,
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `${req.headers.origin || 'https://reisendescasino.de'}/?purchase=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.origin || 'https://reisendescasino.de'}/?purchase=cancel`,
+      metadata: { userId: req.user.id, packageId, baxt: String(pkg.baxt) },
+      customer_email: req.user.email || undefined,
+    });
+    res.json({ url: session.url, sessionId: session.id });
+  } catch (e) {
+    console.error('[STRIPE] Checkout Error:', e.message);
+    res.status(500).json({ error: 'Zahlung konnte nicht erstellt werden' });
+  }
+});
+
+// Kauf verifizieren (nach Redirect zurück)
+app.get('/api/shop/verify-purchase', authMiddleware, async (req, res) => {
+  if (!stripe) return res.status(503).json({ error: 'Zahlungssystem nicht konfiguriert' });
+  const { session_id } = req.query;
+  if (!session_id) return res.status(400).json({ error: 'Keine Session ID' });
+  try {
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    if (session.payment_status === 'paid' && session.metadata?.userId === req.user.id) {
+      res.json({ success: true, baxt: parseInt(session.metadata.baxt || '0'), baxtCoins: req.user.baxtCoins });
+    } else {
+      res.json({ success: false });
+    }
+  } catch (e) {
+    res.status(500).json({ error: 'Verifizierung fehlgeschlagen' });
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -3390,6 +3491,31 @@ io.on('connection', (socket) => {
     if (!table.pendingBets) table.pendingBets = {};
     table.pendingBets[socket.id] = { username: socket.rlUsername, bets: data.bets || [] };
 
+    // Baxt abziehen für Wetten
+    const totalBet = (data.bets || []).reduce((sum, b) => sum + (b.amount || 0), 0);
+    if (totalBet > 0) {
+      if (!socket.user.guest) {
+        const user = db.users.get(socket.user.id);
+        if (user) {
+          if ((user.baxtCoins || 0) < totalBet) {
+            return socket.emit('rl:error', { message: 'Nicht genug Baxt Coins!' });
+          }
+          user.baxtCoins = (user.baxtCoins || 0) - totalBet;
+          awardBaxtCoins(user, 0, ''); // Just to trigger save
+          saveDB();
+          socket.emit('rl:balanceUpdate', { baxtCoins: user.baxtCoins });
+        }
+      } else {
+        // Guest tracking
+        socket._guestBaxt = (socket._guestBaxt !== undefined ? socket._guestBaxt : (socket.user.guestBaxt || 0)) - totalBet;
+        if (socket._guestBaxt < 0) socket._guestBaxt = 0;
+        socket.emit('guest:baxtUpdate', { baxt: socket._guestBaxt });
+      }
+    }
+    // Store bets on socket for payout calculation
+    socket._rlBets = data.bets || [];
+    socket._rlTotalBet = totalBet;
+
     // Bettors-Liste updaten und broadcasten
     if (!table.bettors) table.bettors = [];
     if (!table.bettors.includes(socket.rlUsername)) table.bettors.push(socket.rlUsername);
@@ -3411,6 +3537,82 @@ io.on('connection', (socket) => {
           const number = RL_NUMBERS[Math.floor(Math.random() * RL_NUMBERS.length)];
           table.history.unshift(number);
           if (table.history.length > 20) table.history.pop();
+          // Roulette Payout berechnen
+          const RED = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+          function calcRoulettePayout(bets, winNumber) {
+            let totalWin = 0;
+            for (const bet of bets) {
+              const { type, value, amount } = bet;
+              let win = 0;
+              if (type === 'straight' && parseInt(value) === winNumber) win = amount * 36;
+              else if (type === 'split') {
+                const nums = String(value).split(',').map(Number);
+                if (nums.includes(winNumber)) win = amount * 18;
+              }
+              else if (type === 'street') {
+                const nums = String(value).split(',').map(Number);
+                if (nums.includes(winNumber)) win = amount * 12;
+              }
+              else if (type === 'corner') {
+                const nums = String(value).split(',').map(Number);
+                if (nums.includes(winNumber)) win = amount * 9;
+              }
+              else if (type === 'line') {
+                const nums = String(value).split(',').map(Number);
+                if (nums.includes(winNumber)) win = amount * 6;
+              }
+              else if (type === 'column') {
+                const col = parseInt(value);
+                if (winNumber > 0 && winNumber % 3 === (col === 3 ? 0 : col)) win = amount * 3;
+              }
+              else if (type === 'dozen') {
+                const dz = parseInt(value);
+                if (winNumber > 0 && Math.ceil(winNumber / 12) === dz) win = amount * 3;
+              }
+              else if (type === 'red' && RED.has(winNumber)) win = amount * 2;
+              else if (type === 'black' && winNumber > 0 && !RED.has(winNumber)) win = amount * 2;
+              else if (type === 'even' && winNumber > 0 && winNumber % 2 === 0) win = amount * 2;
+              else if (type === 'odd' && winNumber > 0 && winNumber % 2 === 1) win = amount * 2;
+              else if (type === 'low' && winNumber >= 1 && winNumber <= 18) win = amount * 2;
+              else if (type === 'high' && winNumber >= 19 && winNumber <= 36) win = amount * 2;
+              totalWin += win;
+            }
+            return totalWin;
+          }
+
+          // Payouts für alle Spieler berechnen
+          const rlRoom = io.sockets.adapter.rooms.get('rl:' + tid);
+          if (rlRoom) {
+            for (const socketId of rlRoom) {
+              const playerSocket = io.sockets.sockets.get(socketId);
+              if (!playerSocket || !playerSocket._rlBets || playerSocket._rlBets.length === 0) continue;
+              const winAmount = calcRoulettePayout(playerSocket._rlBets, number);
+              if (winAmount > 0) {
+                if (!playerSocket.user.guest) {
+                  const user = db.users.get(playerSocket.user.id);
+                  if (user) {
+                    awardBaxtCoins(user, winAmount, 'roulette_win');
+                    saveDB();
+                    playerSocket.emit('rl:balanceUpdate', { baxtCoins: user.baxtCoins });
+                    playerSocket.emit('baxt:earned', { coins: winAmount, total: user.baxtCoins, reason: 'roulette_win' });
+                  }
+                } else {
+                  playerSocket._guestBaxt = (playerSocket._guestBaxt || 0) + winAmount;
+                  playerSocket.emit('guest:baxtUpdate', { baxt: playerSocket._guestBaxt });
+                }
+              } else {
+                // Verloren - broke check für Gäste
+                if (playerSocket.user.guest && (playerSocket._guestBaxt || 0) <= 0) {
+                  playerSocket.emit('guest:broke', { baxt: 0 });
+                }
+              }
+              playerSocket.emit('rl:payout', { won: winAmount, totalBet: playerSocket._rlTotalBet || 0, net: winAmount - (playerSocket._rlTotalBet || 0) });
+              // Reset bets
+              playerSocket._rlBets = [];
+              playerSocket._rlTotalBet = 0;
+            }
+          }
+
           io.to('rl:' + tid).emit('rl:spin', { number, bets: table.pendingBets });
           // Nach Spin: Reset (nach Animation-Zeit)
           setTimeout(() => {

@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Roulette – Reisendes Casino</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
@@ -668,6 +668,17 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
   .vc-slot{width:65px;height:48px}
   .ctrl-bar{padding:8px 0 60px;margin-top:12px}
   .btn-spin{padding:14px 50px;font-size:18px}
+}
+
+/* Landscape mode - Roulette */
+@media (max-height: 500px) and (orientation: landscape) {
+  .rl-wheel-container { max-width: 35vh; max-height: 35vh; margin: 0 auto; }
+  .rl-wheel-wrapper { transform: scale(0.6); transform-origin: center center; }
+  .rl-container { flex-direction: row; gap: 8px; padding: 4px; }
+  .bet-area { max-height: 90vh; overflow-y: auto; }
+  .rl-header { padding: 4px 8px; font-size: 12px; }
+  .total-bet { font-size: 18px; }
+  body { overflow: auto; }
 }
 </style>
 </head>
@@ -2587,6 +2598,23 @@ function initSocket() {
   socket.on('rl:answer', async data => { const pc=peerConnections[data.from]; if(pc) await pc.setRemoteDescription(data.answer); });
   socket.on('rl:ice', async data => { const pc=peerConnections[data.from]; if(pc) await pc.addIceCandidate(data.candidate); });
   socket.on('rl:chat', data => addChat(data.username, data.msg));
+  socket.on('rl:balanceUpdate', (data) => {
+    // Update Baxt widget if loaded
+    if (window.baxtUpdateBalance) window.baxtUpdateBalance(data.baxtCoins);
+  });
+  socket.on('rl:payout', (data) => {
+    if (data.won > 0) {
+      // Show win notification
+      const winEl = document.createElement('div');
+      winEl.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:rgba(0,0,0,.9);border:2px solid #D4AF37;border-radius:16px;padding:20px 30px;text-align:center;animation:fadeIn .3s ease';
+      winEl.innerHTML = '<div style="font-size:32px;margin-bottom:8px">🎉</div><div style="color:#F4D03F;font-size:24px;font-weight:800">+' + data.won.toLocaleString('de-DE') + ' ₿</div><div style="color:#aaa;font-size:12px;margin-top:4px">Roulette Gewinn!</div>';
+      document.body.appendChild(winEl);
+      setTimeout(() => winEl.remove(), 3000);
+    }
+  });
+  socket.on('rl:error', (data) => {
+    alert(data.message || 'Fehler');
+  });
   socket.on('disconnect', () => { document.getElementById('tableInfo').textContent = 'Verbindung verloren...'; });
 }
 

@@ -1896,6 +1896,96 @@
     }
     .broke-ad-btn:hover { filter:brightness(1.1); }
 
+    /* ====== SHOP MODAL ====== */
+    .shop-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.85);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    .shop-overlay.active { display: flex; }
+    .shop-modal {
+      background: linear-gradient(180deg, #1a1a2e 0%, #0d1117 100%);
+      border: 2px solid #D4AF37;
+      border-radius: 20px;
+      padding: 24px 20px;
+      width: 360px;
+      max-width: 92vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .shop-packages {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .shop-pkg {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(212,175,55,.2);
+      border-radius: 14px;
+      padding: 16px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+    }
+    .shop-pkg:hover {
+      border-color: #D4AF37;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(212,175,55,.3);
+    }
+    .shop-pkg.popular {
+      border-color: #D4AF37;
+      background: rgba(212,175,55,.08);
+    }
+    .shop-pkg-badge {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #D4AF37, #F4D03F);
+      color: #1a1a2e;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 10px;
+    }
+    .shop-pkg-coins {
+      color: #F4D03F;
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .shop-pkg-label {
+      color: #aaa;
+      font-size: 11px;
+      margin: 2px 0;
+    }
+    .shop-pkg-bonus {
+      color: #2ecc71;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .shop-pkg-price {
+      margin-top: 8px;
+      background: linear-gradient(135deg, #D4AF37, #F4D03F);
+      color: #1a1a2e;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    @media (max-width: 400px) {
+      .shop-packages { grid-template-columns: 1fr 1fr; gap: 6px; }
+      .shop-pkg { padding: 12px 6px; }
+      .shop-pkg-coins { font-size: 18px; }
+    }
+
     /* ====== FLOATING BALANCE WIDGET ====== */
     .balance-float {
       position:fixed; top:70px; right:14px; z-index:100000;
@@ -1921,6 +2011,16 @@
     .balance-float-val {
       font-size:18px; font-weight:700; text-align:center;
       text-shadow:0 0 8px rgba(212,175,55,.3);
+    }
+
+    @media (max-height: 500px) and (orientation: landscape) {
+      .hero { padding: 12px 0; }
+      .hero h1 { font-size: 20px; }
+      .hero p { font-size: 12px; display: none; }
+      .games-row { gap: 8px; }
+      .game-card { flex: 0 0 140px; }
+      .bottom-nav { padding: 4px 0; }
+      .bottom-nav .nav-item span { display: none; }
     }
 
   </style>
@@ -2531,6 +2631,45 @@
         <button class="broke-ad-btn" id="brokeAdBtn" onclick="doAdRefill()">📺 Werbung schauen → 100 ₿ sofort</button>
         <span class="auth-link" onclick="closeBroke()" style="margin-top:8px;display:block">Schließen</span>
       </div>
+    </div>
+  </div>
+
+  <!-- SHOP MODAL -->
+  <div class="shop-overlay" id="shopOverlay" onclick="if(event.target===this)closeShop()">
+    <div class="shop-modal">
+      <button class="auth-close" onclick="closeShop()">&times;</button>
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:40px">&#x1FA99;</div>
+        <h2 style="color:#D4AF37;margin:4px 0">Baxt Coins kaufen</h2>
+        <p style="color:#aaa;font-size:12px;margin:0">Einmal kaufen – für immer spielen!</p>
+      </div>
+      <div class="shop-packages" id="shopPackages">
+        <div class="shop-pkg" onclick="buyBaxt('starter')">
+          <div class="shop-pkg-coins">5.000</div>
+          <div class="shop-pkg-label">Baxt Coins</div>
+          <div class="shop-pkg-price">0,99&euro;</div>
+        </div>
+        <div class="shop-pkg popular" onclick="buyBaxt('medium')">
+          <div class="shop-pkg-badge">Beliebt</div>
+          <div class="shop-pkg-coins">25.000</div>
+          <div class="shop-pkg-label">Baxt Coins</div>
+          <div class="shop-pkg-bonus">+5.000 Bonus</div>
+          <div class="shop-pkg-price">3,99&euro;</div>
+        </div>
+        <div class="shop-pkg" onclick="buyBaxt('large')">
+          <div class="shop-pkg-coins">75.000</div>
+          <div class="shop-pkg-label">Baxt Coins</div>
+          <div class="shop-pkg-bonus">+15.000 Bonus</div>
+          <div class="shop-pkg-price">9,99&euro;</div>
+        </div>
+        <div class="shop-pkg" onclick="buyBaxt('vip')">
+          <div class="shop-pkg-coins">200.000</div>
+          <div class="shop-pkg-label">Baxt Coins</div>
+          <div class="shop-pkg-bonus">+50.000 Bonus</div>
+          <div class="shop-pkg-price">24,99&euro;</div>
+        </div>
+      </div>
+      <p style="color:#555;font-size:10px;text-align:center;margin:12px 0 0">Sichere Zahlung via Stripe. Kein Abo, kein Echtgeld-Gewinn.</p>
     </div>
   </div>
 
@@ -3367,6 +3506,68 @@
       if (document.querySelector('.auth-modal-overlay.active')) return;
       checkBroke();
     }, 30000);
+
+    // =========================================================================
+    // SHOP / STRIPE CHECKOUT
+    // =========================================================================
+    function openShop() {
+      document.getElementById('shopOverlay').classList.add('active');
+    }
+    function closeShop() {
+      document.getElementById('shopOverlay').classList.remove('active');
+    }
+
+    async function buyBaxt(packageId) {
+      const token = getToken();
+      if (!token) {
+        closeShop();
+        showAuth('register');
+        showToast('Bitte zuerst registrieren!');
+        return;
+      }
+      try {
+        const res = await fetch(API + '/api/shop/create-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ packageId })
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else if (data.error) {
+          showToast(data.error);
+        }
+      } catch (e) {
+        showToast('Verbindungsfehler');
+      }
+    }
+
+    // Nach Stripe-Redirect: Kauf verifizieren / Shop öffnen
+    (function checkPurchaseReturn() {
+      const params = new URLSearchParams(location.search);
+      if (params.get('shop') === '1') {
+        setTimeout(() => openShop(), 500);
+        window.history.replaceState({}, '', '/');
+      }
+      if (params.get('purchase') === 'success') {
+        const sessionId = params.get('session_id');
+        if (sessionId && getToken()) {
+          fetch(API + '/api/shop/verify-purchase?session_id=' + sessionId, {
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+          }).then(r => r.json()).then(data => {
+            if (data.success) {
+              showToast('+' + data.baxt.toLocaleString('de-DE') + ' Baxt gekauft!');
+              loadMyProfile();
+            }
+          }).catch(() => {});
+        }
+        // URL cleanup
+        window.history.replaceState({}, '', '/');
+      } else if (params.get('purchase') === 'cancel') {
+        showToast('Kauf abgebrochen');
+        window.history.replaceState({}, '', '/');
+      }
+    })();
 
     // =========================================================================
     // AUTH UI

@@ -219,6 +219,13 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
   .my-video{width:110px;height:82px}
 }
 
+@media (max-height: 450px) and (orientation: landscape) {
+  .bar-container { flex-direction: row; }
+  .seat-avatar { width: 56px !important; height: 56px !important; }
+  .bar-header { padding: 4px 8px; }
+  body { overflow: auto; }
+}
+
 /* ═══════ PLAYER MENU ═══════ */
 .player-menu-overlay{position:fixed;inset:0;z-index:190;display:none}
 .player-menu-overlay.open{display:block}

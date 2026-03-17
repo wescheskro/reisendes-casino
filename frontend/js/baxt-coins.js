@@ -668,26 +668,12 @@
   function topUp() {
     panelOpen = false;
     document.getElementById('baxt-panel')?.classList.remove('open');
-
-    const amounts = [1000, 5000, 10000, 50000, 100000];
-    const overlay = document.createElement('div');
-    overlay.className = 'baxt-modal-overlay';
-    overlay.id = 'baxt-topup-modal';
-    overlay.innerHTML = `
-      <div class="baxt-modal">
-        <h3>➕ Baxt Coins aufladen</h3>
-        <p style="color:#aaa;font-size:12px;margin-bottom:12px">Aktuell: <span style="color:#F4D03F;font-weight:700">${baxtCoins.toLocaleString('de-DE')} ₿</span></p>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
-          ${amounts.map(a => `<button class="baxt-action-btn" style="width:auto;padding:8px 16px;background:linear-gradient(135deg,#D4AF37,#F4D03F);color:#1a1a2e;font-size:13px;font-weight:700;border-radius:20px;min-width:80px" onclick="window._baxt.doTopUp(${a})">+${a.toLocaleString('de-DE')} ₿</button>`).join('')}
-        </div>
-        <div class="baxt-modal-error" id="baxt-topup-error"></div>
-        <div class="baxt-modal-actions" style="margin-top:12px">
-          <button class="baxt-modal-cancel" onclick="window._baxt.closeTopUp()">Schließen</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeTopUp(); });
+    // Shop öffnen (auf Hauptseite) oder Redirect
+    if (window.openShop) {
+      window.openShop();
+    } else {
+      window.location.href = '/?shop=1';
+    }
   }
 
   function closeTopUp() {
