@@ -50,21 +50,22 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
   cursor:pointer;transition:transform .2s;
 }
 .seat:hover{transform:scale(1.05)}
+.seat.dragging{opacity:.8;z-index:999;transition:none}
 .seat-avatar{
-  width:64px;height:64px;border-radius:50%;
+  width:96px;height:96px;border-radius:50%;
   border:3px solid rgba(212,175,55,.4);
   background:linear-gradient(135deg,#1a1a2e,#16213e);
   display:flex;align-items:center;justify-content:center;
-  font-size:28px;overflow:hidden;
+  font-size:40px;overflow:hidden;
   box-shadow:0 4px 16px rgba(0,0,0,.5);
 }
 .seat-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .seat-avatar.occupied{border-color:#D4AF37;box-shadow:0 0 12px rgba(212,175,55,.3)}
 .seat-avatar.video-active{border-color:#4CAF50;box-shadow:0 0 12px rgba(76,175,80,.4)}
 .seat-name{
-  font-size:10px;color:#D4AF37;margin-top:4px;
-  text-shadow:0 1px 3px rgba(0,0,0,.8);
-  max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:36px;color:#D4AF37;margin-top:6px;font-weight:700;
+  text-shadow:0 2px 6px rgba(0,0,0,.9);
+  white-space:nowrap;overflow:visible;
 }
 .seat-empty{
   font-size:9px;color:rgba(240,230,211,.4);margin-top:4px;
@@ -150,13 +151,103 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
   background:#4CAF50;margin-right:4px;vertical-align:middle;
 }
 
+/* Sprechblasen */
+.bot-bubble{
+  position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:rgba(26,26,46,.92);border:1px solid rgba(212,175,55,.35);
+  border-radius:16px;padding:14px 20px;
+  font-size:18px;color:rgba(240,230,211,.9);line-height:1.4;
+  white-space:nowrap;max-width:300px;white-space:normal;text-align:center;
+  pointer-events:none;z-index:60;
+  animation:bubble-in .3s ease;
+  box-shadow:0 4px 12px rgba(0,0,0,.5);
+}
+.bot-bubble::after{
+  content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:8px solid transparent;border-top-color:rgba(26,26,46,.92);
+}
+@keyframes bubble-in{
+  from{opacity:0;transform:translateX(-50%) translateY(6px) scale(.9)}
+  to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+}
+@keyframes bubble-out{
+  from{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+  to{opacity:0;transform:translateX(-50%) translateY(6px) scale(.9)}
+}
+
+.seat-avatar.bot{border-color:rgba(160,130,55,.5);box-shadow:0 0 8px rgba(160,130,55,.2);animation:bot-idle 3s ease-in-out infinite}
+.seat-name.bot{color:rgba(212,175,55,.6)}
+@keyframes bot-idle{
+  0%,100%{transform:translateY(0) rotate(0deg)}
+  25%{transform:translateY(-3px) rotate(1.5deg)}
+  50%{transform:translateY(0) rotate(0deg)}
+  75%{transform:translateY(-2px) rotate(-1deg)}
+}
+.seat.bot-moving{transition:top .8s ease-in-out, left .8s ease-in-out}
+.seat.bot-moving .seat-avatar{animation:bot-hop .8s ease-in-out}
+@keyframes bot-hop{
+  0%{transform:translateY(0) scale(1)}
+  30%{transform:translateY(-15px) scale(1.1)}
+  60%{transform:translateY(-5px) scale(1.05)}
+  100%{transform:translateY(0) scale(1)}
+}
+
+.bot-toggle-bar{
+  position:fixed;top:40px;left:16px;z-index:50;
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;color:rgba(240,230,211,.5);
+  background:rgba(0,0,0,.4);padding:4px 10px;border-radius:20px;
+  backdrop-filter:blur(6px);cursor:pointer;user-select:none;
+}
+.bot-toggle-bar input{display:none}
+.bot-switch-bar{
+  width:28px;height:16px;border-radius:8px;
+  background:rgba(255,255,255,.15);position:relative;transition:.2s;
+}
+.bot-switch-bar::after{
+  content:'';position:absolute;top:2px;left:2px;
+  width:12px;height:12px;border-radius:50%;background:#888;transition:.2s;
+}
+.bot-toggle-bar input:checked + .bot-switch-bar{background:rgba(76,175,80,.5)}
+.bot-toggle-bar input:checked + .bot-switch-bar::after{left:14px;background:#4caf50}
+
 @media(max-width:500px){
-  .seat-avatar{width:50px;height:50px;font-size:22px}
+  .seat-avatar{width:72px;height:72px;font-size:32px}
   .seat-video{width:100px;height:75px;top:-70px}
   .bar-btn{width:48px;height:48px;font-size:20px}
   .bar-chat{width:200px}
   .my-video{width:110px;height:82px}
 }
+
+/* ═══════ PLAYER MENU ═══════ */
+.player-menu-overlay{position:fixed;inset:0;z-index:190;display:none}
+.player-menu-overlay.open{display:block}
+.player-menu{
+  position:fixed;z-index:200;min-width:200px;
+  background:linear-gradient(165deg,rgba(30,18,8,.97),rgba(15,8,3,.98));
+  border:1.5px solid rgba(212,175,55,.3);border-radius:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,.7),0 0 16px rgba(212,175,55,.1);
+  transform:scale(.9);opacity:0;pointer-events:none;transition:.15s;
+}
+.player-menu.open{transform:scale(1);opacity:1;pointer-events:all}
+.pm-header{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(212,175,55,.12)}
+.pm-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#2c1810,#1a0f08);border:2px solid rgba(212,175,55,.4);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.pm-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.pm-name{font-size:14px;font-weight:700;color:#F4D03F;letter-spacing:.5px}
+.pm-status{font-size:10px;color:rgba(240,230,211,.4);margin-top:1px}
+.pm-actions{padding:6px 0}
+.pm-action{display:flex;align-items:center;gap:12px;padding:11px 16px;cursor:pointer;transition:.15s;color:#F0E6D3;font-size:13px;border:none;background:none;width:100%;font-family:inherit}
+.pm-action:hover{background:rgba(212,175,55,.1)}
+.pm-action:active{background:rgba(212,175,55,.18)}
+.pm-action-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.pm-action-icon.profile{background:rgba(212,175,55,.15);color:#F4D03F}
+.pm-action-icon.call{background:rgba(46,204,113,.15);color:#2ecc71}
+.pm-action-icon.video{background:rgba(52,152,219,.15);color:#3498db}
+.pm-action-icon.voice{background:rgba(155,89,182,.15);color:#9b59b6}
+.pm-action-icon.money{background:rgba(241,196,15,.15);color:#f1c40f}
+.pm-action-icon.msg{background:rgba(230,126,34,.15);color:#e67e22}
+.pm-action-label{font-weight:600}
+.pm-action-sub{font-size:10px;color:rgba(240,230,211,.35);margin-top:1px}
 </style>
 </head>
 <body>
@@ -165,13 +256,18 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
 
 <!-- TOP BAR -->
 <div class="top-bar">
-  <div class="logo">🍺 Die Bar</div>
+  <div class="logo">🍺 Die Bar · Wodding <script>document.write(new URLSearchParams(location.search).get('room')||'1')</script></div>
   <div class="info" id="barInfo">Verbinde...</div>
   <button class="back" id="barLobbyBtn" onclick="location.href='/'">← Lobby</button>
 </div>
 <script>if(location.search.includes('embed=1'))document.getElementById('barLobbyBtn').style.display='none';</script>
 
 <div class="bar-online" id="barOnline"><span class="dot"></span><span id="barCount">0</span> in der Bar</div>
+<label class="bot-toggle-bar" id="botToggleWrap">
+  <input type="checkbox" id="botToggle" checked onchange="toggleBarBots(this.checked)">
+  <span class="bot-switch-bar"></span>
+  Bots
+</label>
 
 <!-- SITZPLÄTZE -->
 <div class="seats" id="seats"></div>
@@ -196,9 +292,15 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
   <button class="bar-btn" id="btnMic" onclick="toggleMic()" title="Mikrofon">🎤</button>
   <button class="bar-btn" id="btnCam" onclick="toggleCam()" title="Kamera">📷</button>
   <button class="bar-btn" id="btnSeat" onclick="takeSeat()" title="Hinsetzen">🪑</button>
+  <button class="bar-btn" id="btnJukebox" onclick="toggleBarJukebox()" title="Jukebox">🎵</button>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
+<script>
+// Raum-Kontext für Jukebox setzen BEVOR jukebox.js lädt
+// Raum 1 = globale Jukebox (läuft auf Hauptseite), Raum 2+ = eigene Jukebox pro Raum
+window._jkRoom = new URLSearchParams(location.search).get('room') || '1';
+</script>
 <script src="/js/jukebox.js"></script>
 <script src="/js/friends.js"></script>
 <script>
@@ -207,17 +309,26 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
 // ═══════════════════════════════════════════════════════════════
 
 const MAX_SEATS = 8;
+const barRoom = new URLSearchParams(location.search).get('room') || '1';
 // Positionen um den runden Tisch
-const SEAT_POSITIONS = [
-  {top:'42%',left:'50%'},   // oben am Tisch
-  {top:'50%',left:'72%'},   // rechts oben
-  {top:'65%',left:'78%'},   // rechts
-  {top:'78%',left:'72%'},   // rechts unten
-  {top:'85%',left:'50%'},   // unten am Tisch
-  {top:'78%',left:'28%'},   // links unten
-  {top:'65%',left:'22%'},   // links
-  {top:'50%',left:'28%'},   // links oben
+const DEFAULT_SEAT_POSITIONS = [
+  {top:'36%',left:'40%'},   // hinten mitte (am Tresen)
+  {top:'40%',left:'54%'},   // rechts hinten
+  {top:'50%',left:'58%'},   // rechts mitte
+  {top:'60%',left:'52%'},   // rechts vorne
+  {top:'64%',left:'40%'},   // vorne mitte (Eingang)
+  {top:'60%',left:'28%'},   // links vorne
+  {top:'50%',left:'22%'},   // links mitte
+  {top:'40%',left:'28%'},   // links hinten
 ];
+// Gespeicherte Positionen laden oder Default
+let SEAT_POSITIONS = (() => {
+  try {
+    const saved = JSON.parse(localStorage.getItem('bar_seat_positions'));
+    if (saved && saved.length === 8) return saved;
+  } catch(e) {}
+  return DEFAULT_SEAT_POSITIONS.map(p => ({...p}));
+})();
 
 let socket = null;
 let mySeatIdx = -1;
@@ -228,6 +339,20 @@ let seats = Array(MAX_SEATS).fill(null);
 let peerConnections = {};
 const username = localStorage.getItem('pokerPlayerName') || 'Gast';
 const token = localStorage.getItem('token') || localStorage.getItem('casinoToken');
+let myAvatarUrl = null;
+
+// Server-Avatar laden
+(async function loadMyAvatar() {
+  const t = localStorage.getItem('casinoToken') || localStorage.getItem('token');
+  if (!t) return;
+  try {
+    const res = await fetch('/api/user/avatar', { headers: { 'Authorization': 'Bearer ' + t } });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.avatarUrl) { myAvatarUrl = data.avatarUrl; renderSeats(); }
+    }
+  } catch(e) {}
+})();
 
 // ─── SEATS RENDERN ───
 function renderSeats() {
@@ -237,25 +362,80 @@ function renderSeats() {
     const seat = seats[i];
     const div = document.createElement('div');
     div.className = 'seat';
+    div.dataset.seat = i;
     div.style.top = pos.top;
     div.style.left = pos.left;
     div.style.transform = 'translate(-50%,-50%)';
 
     if (seat) {
+      const botDelay = seat.isBot ? `animation-delay:${(i * 0.7) % 3}s` : '';
       div.innerHTML = `
         <div class="seat-video" id="video-${i}"><video id="rv-${i}" autoplay playsinline></video></div>
-        <div class="seat-avatar ${seat.video ? 'video-active' : 'occupied'}">${seat.avatar || seat.username.charAt(0).toUpperCase()}</div>
-        <div class="seat-name">${seat.username}</div>
+        <div class="seat-avatar ${seat.isBot ? 'bot' : (seat.video ? 'video-active' : 'occupied')}" style="${botDelay}">${seat.avatarConfig && seat.avatarConfig.emoji ? '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:'+seat.avatarConfig.color+';border-radius:50%;font-size:28px">'+seat.avatarConfig.emoji+'</div>' : '<img src="'+(seat.avatar || 'https://api.dicebear.com/9.x/toon-head/svg?seed='+encodeURIComponent(seat.username))+'">'}</div>
+        <div class="seat-name${seat.isBot ? ' bot' : ''}">${seat.username}</div>
       `;
+      div.addEventListener('click', () => { if (!div._dragMoved) openPlayerMenu(div); });
     } else {
       div.innerHTML = `
         <div class="seat-avatar" onclick="takeSeatAt(${i})">+</div>
         <div class="seat-empty">Frei</div>
       `;
     }
+    // Drag-Funktionalität für jeden Sitz
+    addSeatDrag(div, i);
     container.appendChild(div);
   });
   document.getElementById('barCount').textContent = seats.filter(s => s).length;
+}
+
+// ─── SITZPLÄTZE VERSCHIEBEN ───
+function addSeatDrag(el, idx) {
+  let dragging = false, moved = false, startX, startY, startLeft, startTop;
+  const seatsEl = document.getElementById('seats');
+
+  function onStart(e) {
+    const ev = e.touches ? e.touches[0] : e;
+    startX = ev.clientX; startY = ev.clientY;
+    const rect = seatsEl.getBoundingClientRect();
+    startLeft = parseFloat(SEAT_POSITIONS[idx].left) / 100 * rect.width;
+    startTop = parseFloat(SEAT_POSITIONS[idx].top) / 100 * rect.height;
+    dragging = true;
+    moved = false;
+  }
+
+  function onMove(e) {
+    if (!dragging) return;
+    const ev = e.touches ? e.touches[0] : e;
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+    if (!moved && Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+    moved = true;
+    e.preventDefault();
+    el.classList.add('dragging');
+    const rect = seatsEl.getBoundingClientRect();
+    const newLeft = ((startLeft + dx) / rect.width * 100).toFixed(1) + '%';
+    const newTop = ((startTop + dy) / rect.height * 100).toFixed(1) + '%';
+    el.style.left = newLeft;
+    el.style.top = newTop;
+    SEAT_POSITIONS[idx] = { top: newTop, left: newLeft };
+  }
+
+  function onEnd() {
+    el._dragMoved = moved;
+    if (dragging && moved) {
+      el.classList.remove('dragging');
+      localStorage.setItem('bar_seat_positions', JSON.stringify(SEAT_POSITIONS));
+    }
+    dragging = false;
+    setTimeout(() => { el._dragMoved = false; }, 50);
+  }
+
+  el.addEventListener('mousedown', onStart);
+  el.addEventListener('touchstart', onStart, { passive: true });
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('mouseup', onEnd);
+  window.addEventListener('touchend', onEnd);
 }
 
 // ─── PLATZ NEHMEN ───
@@ -267,8 +447,8 @@ function takeSeat() {
 function takeSeatAt(idx) {
   if (seats[idx] || mySeatIdx >= 0) return;
   mySeatIdx = idx;
-  seats[idx] = { username, id: socket.id, avatar: null, video: false };
-  socket.emit('bar:sit', { idx, username });
+  seats[idx] = { username, id: socket.id, avatar: myAvatarUrl || null, video: false };
+  socket.emit('bar:sit', { idx, username, avatar: myAvatarUrl });
   renderSeats();
   document.getElementById('btnSeat').classList.add('active');
 }
@@ -405,16 +585,25 @@ function addChatMsg(name, text) {
 function initSocket() {
   socket = io({ auth: { token, username } });
 
-  socket.emit('bar:join');
+  socket.emit('bar:join', { room: barRoom });
 
   socket.on('bar:state', (data) => {
     seats = data.seats || Array(MAX_SEATS).fill(null);
+    // Server-Bots erkennen und in barBots-Array übernehmen (für Sprechblasen)
+    barBots = [];
+    seats.forEach((s, i) => {
+      if (s && s.isBot) {
+        if (!s.avatar) s.avatar = barBotAvatar(s.username);
+        barBots.push({ name: s.username, seatIdx: i });
+      }
+    });
+    if (barBots.length > 0) startBarBotChat();
     renderSeats();
     document.getElementById('barInfo').textContent = 'Die Bar · ' + seats.filter(s=>s).length + ' Gäste';
   });
 
   socket.on('bar:sit', (data) => {
-    seats[data.idx] = { username: data.username, id: data.id, video: false };
+    seats[data.idx] = { username: data.username, id: data.id, video: false, avatar: data.avatar || null };
     renderSeats();
     addChatMsg('🍺', data.username + ' hat sich hingesetzt');
     document.getElementById('barInfo').textContent = 'Die Bar · ' + seats.filter(s=>s).length + ' Gäste';
@@ -472,20 +661,278 @@ function initSocket() {
   });
 
   socket.on('connect', () => {
-    socket.emit('bar:join');
+    socket.emit('bar:join', { room: barRoom });
   });
 }
 
+// ─── JUKEBOX TOGGLE ───
+function toggleBarJukebox() {
+  const jk = document.getElementById('jukebox');
+  if (jk) {
+    const panel = jk.querySelector('.jk-panel');
+    if (panel) {
+      panel.style.display = panel.style.display === 'none' ? 'block' : (panel.offsetParent ? 'none' : 'block');
+    }
+    // Falls die Jukebox eine toggle-Funktion hat
+    if (window.toggleJukebox) window.toggleJukebox();
+  }
+  document.getElementById('btnJukebox').classList.toggle('active');
+}
+
+// ─── BAR BOTS ───
+const BAR_BOT_NAMES = ['Lucky Lena','Max Müller','Roulette Rita','Casino Carlo','Glücks-Gabi','Poker Pete','Fortuna Finn'];
+const BAR_BOT_CHAT = [
+  'Prost!','Noch eine Runde!','Wer zahlt?','Schöner Abend!',
+  'Die Musik ist super!','Auf euer Wohl!','Ich liebe diese Bar!',
+  'Kennt jemand ein gutes Spiel?','Heute wird gefeiert!','Cheers!',
+  'Ein Bier bitte!','Wie wars beim Roulette?','Poker war wild heute!',
+  'Nächste Runde geht auf mich!','Was für eine Atmosphäre!'
+];
+// Konversationen: [Frage, Antwort] Paare für natürliche Gespräche
+const BAR_BOT_CONVOS = [
+  ['Warst du heute schon beim Poker?', 'Ja, ich hab 3 Runden gewonnen!'],
+  ['Wie läufts beim Roulette?', 'Immer auf Rot, immer!'],
+  ['Wollen wir nachher eine Runde Blackjack spielen?', 'Klar, bin dabei!'],
+  ['Hast du die neue Jukebox gehört?', 'Die Musik ist richtig gut heute!'],
+  ['Noch ein Bier?', 'Immer! Prost!'],
+  ['Kennst du den neuen Slot?', 'Stachelingo? Ja, mega!'],
+  ['Wie viel Baxt hast du noch?', 'Genug für eine lange Nacht!'],
+  ['Wer kommt heute noch?', 'Die ganze Familie ist unterwegs!'],
+  ['Das Essen hier ist super!', 'Ja, die Koberei ist die beste!'],
+  ['Hast du gewonnen?', 'Ein bisschen... okay, viel!'],
+  ['Sollen wir an einen anderen Tisch?', 'Nee, hier ist es gemütlich!'],
+  ['Weißt du wer den Jackpot geknackt hat?', 'Ich glaub das war Carlo!'],
+  ['Spielen wir nachher zu zweit Poker?', 'Nur wenn du nicht wieder bluffst!'],
+  ['Die Atmosphäre hier ist einmalig!', 'Wie bei einem richtigen Treffen!'],
+];
+
+// Sprechblase über Bot-Avatar anzeigen
+function showBotBubble(bot, text) {
+  if (bot.seatIdx < 0) return;
+  const seatEl = document.querySelector(`.seat[data-seat="${bot.seatIdx}"]`);
+  if (!seatEl) return;
+  // Alte Bubble entfernen
+  const old = seatEl.querySelector('.bot-bubble');
+  if (old) old.remove();
+  // Neue Bubble
+  const bubble = document.createElement('div');
+  bubble.className = 'bot-bubble';
+  bubble.textContent = text;
+  seatEl.style.position = seatEl.style.position || 'absolute';
+  seatEl.appendChild(bubble);
+  // Nach 4s ausblenden
+  setTimeout(() => {
+    bubble.style.animation = 'bubble-out .3s ease forwards';
+    setTimeout(() => bubble.remove(), 300);
+  }, 4000);
+}
+let barBots = [];
+let barBotsEnabled = true;
+let barBotChatInterval = null;
+let barBotSeatInterval = null;
+
+function diceBearUrl(name) {
+  return 'https://api.dicebear.com/9.x/toon-head/svg?seed=' + encodeURIComponent(name);
+}
+function barBotAvatar(name) {
+  return diceBearUrl(name);
+}
+
+function initBarBots() {
+  const count = 3; // immer 3 Bots
+  const shuffled = [...BAR_BOT_NAMES].sort(() => Math.random() - .5);
+  barBots = shuffled.slice(0, count).map(name => ({ name }));
+  placeBarBots();
+  startBarBotChat();
+}
+
+function placeBarBots() {
+  // Bots auf freie Plätze setzen
+  barBots.forEach(bot => { bot.seatIdx = -1; });
+  if (!barBotsEnabled) { renderSeats(); return; }
+  barBots.forEach(bot => {
+    const free = seats.findIndex((s, i) => !s && !barBots.some(b => b.seatIdx === i));
+    if (free >= 0) {
+      bot.seatIdx = free;
+      seats[free] = { username: bot.name, id: 'bot-' + bot.name.replace(/\s/g,''), avatar: barBotAvatar(bot.name), video: false, isBot: true };
+    }
+  });
+  renderSeats();
+}
+
+function startBarBotChat() {
+  if (barBotChatInterval) clearInterval(barBotChatInterval);
+  barBotChatInterval = setInterval(() => {
+    if (!barBotsEnabled || barBots.length < 1) return;
+    const activeBots = barBots.filter(b => b.seatIdx >= 0);
+    if (activeBots.length < 1) return;
+
+    // 50% Chance auf Konversation zwischen zwei Bots, sonst Einzelspruch
+    if (activeBots.length >= 2 && Math.random() < 0.5) {
+      const convo = BAR_BOT_CONVOS[Math.floor(Math.random() * BAR_BOT_CONVOS.length)];
+      const shuffled = [...activeBots].sort(() => Math.random() - .5);
+      const bot1 = shuffled[0], bot2 = shuffled[1];
+      // Bot 1 fragt
+      showBotBubble(bot1, convo[0]);
+      addChatMsg(bot1.name, convo[0]);
+      // Bot 2 antwortet nach 2-3s
+      setTimeout(() => {
+        showBotBubble(bot2, convo[1]);
+        addChatMsg(bot2.name, convo[1]);
+      }, 2000 + Math.random() * 1500);
+    } else {
+      const bot = activeBots[Math.floor(Math.random() * activeBots.length)];
+      const msg = BAR_BOT_CHAT[Math.floor(Math.random() * BAR_BOT_CHAT.length)];
+      showBotBubble(bot, msg);
+      addChatMsg(bot.name, msg);
+    }
+  }, 6000 + Math.random() * 8000);
+
+  // Bots wechseln gelegentlich den Platz
+  if (barBotSeatInterval) clearInterval(barBotSeatInterval);
+  barBotSeatInterval = setInterval(() => {
+    if (!barBotsEnabled || barBots.length < 1) return;
+    if (Math.random() > 0.4) return;
+    const movingBot = barBots[Math.floor(Math.random() * barBots.length)];
+    if (movingBot.seatIdx < 0) return;
+    // Freien Platz finden
+    const freeSeats = [];
+    for (let i = 0; i < MAX_SEATS; i++) {
+      if (!seats[i] && i !== movingBot.seatIdx) freeSeats.push(i);
+    }
+    if (freeSeats.length === 0) return;
+    const newIdx = freeSeats[Math.floor(Math.random() * freeSeats.length)];
+    const oldIdx = movingBot.seatIdx;
+    // Alten Platz freigeben
+    seats[oldIdx] = null;
+    // Neuen Platz belegen
+    movingBot.seatIdx = newIdx;
+    seats[newIdx] = { username: movingBot.name, id: 'bot-' + movingBot.name.replace(/\s/g,''), avatar: barBotAvatar(movingBot.name), video: false, isBot: true };
+    addChatMsg('🍺', movingBot.name + ' setzt sich um');
+    renderSeats();
+  }, 15000 + Math.random() * 20000);
+}
+
+function toggleBarBots(on) {
+  barBotsEnabled = on;
+  if (on) {
+    if (barBots.length === 0) initBarBots();
+    else placeBarBots();
+  } else {
+    barBots.forEach(bot => {
+      if (bot.seatIdx >= 0) { seats[bot.seatIdx] = null; bot.seatIdx = -1; }
+    });
+    renderSeats();
+  }
+}
+
 // ─── INIT ───
-const isEmbed = location.search.includes('embed=1') || window !== window.top;
+const isEmbed = location.search.includes('embed=1');
 renderSeats();
 if (!isEmbed) {
   initSocket();
+  // Bots kommen vom Server via bar:state
 } else {
+  // Im Embed-Modus: lokale Bots erstellen
+  initBarBots();
+}
+if (isEmbed) {
   document.getElementById('barInfo').textContent = 'Die Bar';
   document.querySelector('.bar-controls').style.display = 'none';
   document.querySelector('.bar-chat').style.display = 'none';
+  document.getElementById('botToggleWrap').style.display = 'none';
 }
 </script>
+
+<!-- PLAYER MENU -->
+<div class="player-menu-overlay" id="pmOverlay" onclick="closePlayerMenu()"></div>
+<div class="player-menu" id="playerMenu">
+  <div class="pm-header">
+    <div class="pm-avatar" id="pmAvatar">👤</div>
+    <div>
+      <div class="pm-name" id="pmName">Spieler</div>
+      <div class="pm-status">Online</div>
+    </div>
+  </div>
+  <div class="pm-actions">
+    <button class="pm-action" onclick="pmAction('profile')"><div class="pm-action-icon profile">👤</div><div><div class="pm-action-label">Profil ansehen</div><div class="pm-action-sub">Statistiken & Rang</div></div></button>
+    <button class="pm-action" onclick="pmAction('message')"><div class="pm-action-icon msg">💬</div><div><div class="pm-action-label">Nachricht</div><div class="pm-action-sub">Textnachricht senden</div></div></button>
+    <button class="pm-action" onclick="pmAction('call')"><div class="pm-action-icon call">📞</div><div><div class="pm-action-label">Anrufen</div><div class="pm-action-sub">Sprachanruf starten</div></div></button>
+    <button class="pm-action" onclick="pmAction('video')"><div class="pm-action-icon video">📹</div><div><div class="pm-action-label">Videoanruf</div><div class="pm-action-sub">Face-to-Face</div></div></button>
+    <button class="pm-action" onclick="pmAction('voicemsg')"><div class="pm-action-icon voice">🎙</div><div><div class="pm-action-label">Sprachnachricht</div><div class="pm-action-sub">Audio aufnehmen & senden</div></div></button>
+    <button class="pm-action" onclick="pmAction('money')"><div class="pm-action-icon money">💰</div><div><div class="pm-action-label">Geld senden</div><div class="pm-action-sub">Baxt Coins überweisen</div></div></button>
+  </div>
+</div>
+<script>
+let pmTarget = null;
+function openPlayerMenu(seatEl) {
+  const nameEl = seatEl.querySelector('.seat-name');
+  if (!nameEl) return;
+  pmTarget = nameEl.textContent.trim();
+  const menu = document.getElementById('playerMenu');
+  const overlay = document.getElementById('pmOverlay');
+  document.getElementById('pmName').textContent = pmTarget;
+  const avImg = seatEl.querySelector('.seat-avatar img');
+  const avatarEl = document.getElementById('pmAvatar');
+  if (avImg) avatarEl.innerHTML = `<img src="${avImg.src}" alt="${pmTarget}">`;
+  else avatarEl.innerHTML = pmTarget.charAt(0).toUpperCase();
+  const rect = seatEl.getBoundingClientRect();
+  let top = rect.bottom + 8, left = rect.left;
+  if (top + 320 > window.innerHeight) top = rect.top - 320;
+  if (top < 8) top = 8;
+  if (left + 210 > window.innerWidth) left = window.innerWidth - 218;
+  if (left < 8) left = 8;
+  menu.style.top = top + 'px';
+  menu.style.left = left + 'px';
+  overlay.classList.add('open');
+  menu.classList.add('open');
+}
+function closePlayerMenu() {
+  document.getElementById('pmOverlay').classList.remove('open');
+  document.getElementById('playerMenu').classList.remove('open');
+  pmTarget = null;
+}
+function pmAction(type) {
+  const name = pmTarget;
+  closePlayerMenu();
+  switch(type) {
+    case 'profile': openProfileModal(name); break;
+    case 'message': openMessageModal(name); break;
+    case 'call': startCallUI(name, false); break;
+    case 'video': startCallUI(name, true); break;
+    case 'voicemsg': openVoiceRecorder(name); break;
+    case 'money': openSendMoney(name); break;
+  }
+}
+function createActionModal(title, content) {
+  const old = document.getElementById('actionModal');
+  if (old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'actionModal';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center';
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:linear-gradient(165deg,rgba(30,18,8,.97),rgba(15,8,3,.98));border:1.5px solid rgba(212,175,55,.3);border-radius:16px;padding:20px;min-width:280px;max-width:90vw;box-shadow:0 12px 40px rgba(0,0,0,.7);color:#F0E6D3;font-family:Playfair Display,serif';
+  modal.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-size:16px;font-weight:700;color:#F4D03F">${title}</div><button onclick="closeActionModal()" style="background:none;border:none;color:#888;font-size:20px;cursor:pointer;padding:4px">✕</button></div>${content}`;
+  overlay.appendChild(modal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeActionModal(); });
+  document.body.appendChild(overlay);
+}
+function closeActionModal() { const m = document.getElementById('actionModal'); if (m) m.remove(); }
+function openProfileModal(name) {
+  const hash = [...name].reduce((h,c) => ((h<<5)-h)+c.charCodeAt(0), 0);
+  const level = Math.abs(hash % 20) + 1;
+  const wins = Math.abs((hash*7) % 150);
+  const games = wins + Math.abs((hash*3) % 200);
+  const winRate = games > 0 ? Math.round(wins/games*100) : 0;
+  const rank = level > 15 ? 'Diamant' : level > 10 ? 'Gold' : level > 5 ? 'Silber' : 'Bronze';
+  const rankColor = level > 15 ? '#b9f2ff' : level > 10 ? '#F4D03F' : level > 5 ? '#c0c0c0' : '#cd7f32';
+  createActionModal('👤 Spielerprofil', `<div style="text-align:center;margin-bottom:14px"><div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#2c1810,#1a0f08);border:3px solid ${rankColor};margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 16px ${rankColor}44">${name.charAt(0).toUpperCase()}</div><div style="font-size:18px;font-weight:900;color:#F4D03F">${name}</div><div style="font-size:12px;color:${rankColor};margin-top:2px">⭐ ${rank} · Level ${level}</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#F4D03F">${games}</div><div style="font-size:10px;color:rgba(240,230,211,.4)">Spiele</div></div><div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#2ecc71">${winRate}%</div><div style="font-size:10px;color:rgba(240,230,211,.4)">Gewinnrate</div></div></div>`);
+}
+function openMessageModal(name) { createActionModal('💬 Nachricht an ' + name, `<textarea placeholder="Nachricht eingeben..." style="width:100%;height:80px;background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.2);border-radius:8px;padding:10px;color:#F0E6D3;font-family:inherit;font-size:13px;resize:none"></textarea><button onclick="closeActionModal()" style="margin-top:10px;width:100%;padding:10px;background:linear-gradient(135deg,#D4AF37,#8B6914);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Senden</button>`); }
+function startCallUI(name, video) { createActionModal(video ? '📹 Videoanruf' : '📞 Sprachanruf', `<div style="text-align:center;padding:20px"><div style="font-size:36px;margin-bottom:10px">${name.charAt(0).toUpperCase()}</div><div style="font-size:16px;font-weight:700;color:#F4D03F;margin-bottom:4px">${name}</div><div style="color:rgba(240,230,211,.4);font-size:12px">Rufe an...</div><button onclick="closeActionModal()" style="margin-top:16px;padding:10px 24px;background:#e74c3c;border:none;border-radius:20px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Auflegen</button></div>`); }
+function openVoiceRecorder(name) { createActionModal('🎙 Sprachnachricht an ' + name, `<div style="text-align:center;padding:16px"><div style="font-size:48px;margin-bottom:10px">🎙</div><div style="color:rgba(240,230,211,.4);font-size:12px;margin-bottom:14px">Tippe zum Aufnehmen</div><button onclick="closeActionModal()" style="padding:10px 24px;background:linear-gradient(135deg,#D4AF37,#8B6914);border:none;border-radius:20px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Senden</button></div>`); }
+function openSendMoney(name) { createActionModal('💰 Geld senden an ' + name, `<div style="text-align:center"><input type="number" placeholder="Betrag in ₿" style="width:100%;padding:10px;background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.2);border-radius:8px;color:#F0E6D3;font-family:inherit;font-size:16px;text-align:center;margin-bottom:10px"><button onclick="closeActionModal()" style="width:100%;padding:10px;background:linear-gradient(135deg,#D4AF37,#8B6914);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Überweisen</button></div>`); }
+</script>
+<script src="/js/jackpot.js"></script>
 </body>
 </html>

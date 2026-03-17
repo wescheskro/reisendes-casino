@@ -1208,9 +1208,69 @@ body.embed-mode .bal-display .bl{font-size:6px}
 //  Reisendes Casino © 2026
 // ============================================================
 
+// ===== EMBED SOUND KILL SWITCH =====
+// Must run BEFORE any Audio/AudioContext objects are created.
+// When silent=1, we completely prevent ALL sound from ever playing (small game-card embeds).
+// Big embeds use embed=1 WITHOUT silent=1 — they get sound controlled via postMessage.
+const __EMBED_SILENT = new URLSearchParams(window.location.search).get('silent') === '1';
+if (__EMBED_SILENT) {
+  // Override Audio constructor — return a silent stub
+  const _OrigAudio = window.Audio;
+  window.Audio = function(src) {
+    const a = new _OrigAudio();
+    // Never load anything, never play
+    a.volume = 0;
+    a.muted = true;
+    a.preload = 'none';
+    const _play = a.play.bind(a);
+    a.play = () => Promise.resolve();
+    a.load = () => {};
+    Object.defineProperty(a, 'volume', { get: () => 0, set: () => {} });
+    Object.defineProperty(a, 'muted', { get: () => true, set: () => {} });
+    return a;
+  };
+  // Override AudioContext — return a dummy that does nothing
+  const DummyAudioCtx = function() {
+    this.state = 'suspended';
+    this.currentTime = 0;
+    this.sampleRate = 44100;
+    this.destination = {};
+    const noop = () => this;
+    const noopNode = () => ({
+      connect: noop, disconnect: noop,
+      start: noop, stop: noop,
+      type: 'sine', frequency: { value: 0, setValueAtTime: noop, exponentialRampToValueAtTime: noop, linearRampToValueAtTime: noop },
+      gain: { value: 0, setValueAtTime: noop, exponentialRampToValueAtTime: noop, linearRampToValueAtTime: noop },
+      Q: { value: 0 },
+      buffer: null
+    });
+    this.createOscillator = noopNode;
+    this.createGain = noopNode;
+    this.createBiquadFilter = noopNode;
+    this.createBufferSource = noopNode;
+    this.createBuffer = (ch, len, sr) => ({ getChannelData: () => new Float32Array(len || 1) });
+    this.resume = () => Promise.resolve();
+    this.suspend = () => Promise.resolve();
+    this.close = () => Promise.resolve();
+  };
+  window.AudioContext = DummyAudioCtx;
+  if (window.webkitAudioContext) window.webkitAudioContext = DummyAudioCtx;
+
+  // Also mute any <video> elements that try to play
+  const _origCreateElement = document.createElement.bind(document);
+  document.createElement = function(tag) {
+    const el = _origCreateElement(tag);
+    if (tag.toLowerCase() === 'video' || tag.toLowerCase() === 'audio') {
+      el.muted = true;
+      el.volume = 0;
+    }
+    return el;
+  };
+}
+
 // ===== SOUND ENGINE (Hybrid: Web Audio API + MP3) =====
 const SFX = {
-  muted: false,
+  muted: __EMBED_SILENT ? true : false,
   ctx: null,
   sounds: {},
   SOUND_PATH: '/games/sounds/',
@@ -1248,6 +1308,8 @@ const SFX = {
   },
 
   init() {
+    // Nur bei hartem Kill-Switch (kleine Karten) keinen Sound laden
+    if (__EMBED_SILENT) return;
     try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
     // Preload MP3s for non-synced sounds
     const files = {
@@ -1268,6 +1330,7 @@ const SFX = {
   },
 
   resume() {
+    if (this.muted) return;
     if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
   },
 
@@ -1471,6 +1534,11 @@ const SFX = {
     if (this._wheelSafetyTimeout) { clearTimeout(this._wheelSafetyTimeout); this._wheelSafetyTimeout = null; }
   }
 };
+
+// Lock SFX.muted to true in embed mode — prevent any code from unmuting
+if (__EMBED_SILENT) {
+  Object.defineProperty(SFX, 'muted', { value: true, writable: false, configurable: false });
+}
 
 // ===== PARTICLE / COIN FX ENGINE =====
 const FX = {
@@ -2040,6 +2108,65 @@ const PAYLINES = [
   [0,1,0,1,0],  // line 10: zigzag
 ];
 
+// ===== BAXT COINS SERVER INTEGRATION =====
+function getSlotToken() { return localStorage.getItem('casinoToken') || localStorage.getItem('token'); }
+let useServerBalance = false;
+
+async function loadServerBalance() {
+  const token = getSlotToken();
+  if (!token) return false;
+  try {
+    const res = await fetch('/api/baxt/balance', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    balance = data.baxtCoins || 0;
+    useServerBalance = true;
+    updateUI();
+    return true;
+  } catch(e) { return false; }
+}
+
+async function serverSlotBet(amount) {
+  if (!useServerBalance) return true;
+  const token = getSlotToken();
+  if (!token) return true;
+  try {
+    const res = await fetch('/api/baxt/slot-bet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ amount })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if (err.baxtCoins !== undefined) balance = err.baxtCoins;
+      updateUI();
+      return false;
+    }
+    const data = await res.json();
+    balance = data.baxtCoins;
+    return true;
+  } catch(e) { return true; }
+}
+
+async function serverSlotWin(amount) {
+  if (!useServerBalance || amount <= 0) return;
+  const token = getSlotToken();
+  if (!token) return;
+  try {
+    const res = await fetch('/api/baxt/slot-win', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ amount: Math.round(amount) })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      balance = data.baxtCoins;
+    }
+  } catch(e) {}
+}
+
 // ===== GAME STATE =====
 let balance = parseInt(localStorage.getItem('slotBalance')) || 10000;
 let betPerLine = 20;
@@ -2054,6 +2181,7 @@ let freeSpinNumber = 0;      // current spin number (for display)
 let freeSpinTotalCount = 0;  // total free spins awarded (incl. re-triggers)
 let lockedReels = [false, false, false, false, false]; // persistent expanded reels
 let gambleWin = 0;
+let demoMode = false;
 
 // Grid: 5 reels x 3 rows (visible)
 const grid = Array.from({length:5}, () => Array(3).fill(null));
@@ -2065,7 +2193,9 @@ const BUFFER = 80; // symbols above visible area – enough for long deceleratio
 
 // ===== INITIALIZATION =====
 function init() {
+  if (demoMode) SFX.muted = true;
   SFX.init();
+  if (demoMode && SFX.ctx) SFX.ctx.suspend();
   FX.init();
   createBackground();
   createPaylineButtons();
@@ -2328,7 +2458,13 @@ async function doSpin() {
     freeSpinNumber++;
     setInfo(`Freispiel ${freeSpinNumber} von ${freeSpinTotalCount}`, 'fs-msg');
   } else {
-    balance -= totalBet;
+    // Server-Einsatz abziehen (wenn eingeloggt)
+    if (useServerBalance && !demoMode) {
+      const ok = await serverSlotBet(totalBet);
+      if (!ok) { spinning = false; setInfo('Nicht genug Baxt Coins!'); return; }
+    } else {
+      balance -= totalBet;
+    }
   }
   // lastWin bleibt stehen bis zum nächsten Gewinn
   updateUI();
@@ -2441,6 +2577,9 @@ async function doSpin() {
     const oldBal = balance;
     lastWin = wins.totalWin;
     balance += lastWin;
+
+    // Server-Gewinn gutschreiben (wenn eingeloggt)
+    if (useServerBalance && !demoMode) serverSlotWin(lastWin);
 
     // Leaderboard melden (wenn eingeloggt)
     submitToLeaderboard(lastWin);
@@ -3088,6 +3227,8 @@ async function startFreeSpins() {
     setTimeout(resolve, 100);
   });
 
+  // Ensure video is silent in embed mode
+  if (__EMBED_SILENT) { video.muted = true; video.volume = 0; }
   video.play().catch(() => {});
 
   // Wait for video to end or max duration based on video length
@@ -3294,11 +3435,15 @@ function gamblePick(choice) {
       FX.spawnCoins(FX.canvas.width / 2, FX.canvas.height / 2, 25);
       gambleWin *= 2;
       balance += gambleWin / 2;
+      // Server: Gamble-Gewinn gutschreiben
+      if (useServerBalance && !demoMode) serverSlotWin(gambleWin / 2);
       document.getElementById('gambleStake').textContent = gambleWin;
       setInfo(`Verdoppelt! ${fmtEuro(gambleWin)}`, 'win-msg');
     } else {
       SFX.gambleLose();
       balance -= gambleWin;
+      // Server: Gamble-Verlust abziehen
+      if (useServerBalance && !demoMode) serverSlotBet(gambleWin);
       gambleWin = 0;
       lastWin = 0;
       setInfo('Verloren!');
@@ -3449,6 +3594,7 @@ function ladderClimb() {
           if (ladderPos < 0) {
             // Noch nie gestiegen → alles weg
             balance -= gambleWin;
+            if (useServerBalance && !demoMode) serverSlotBet(gambleWin);
             gambleWin = 0;
             lastWin = 0;
             ladderCurrentWin = 0;
@@ -3486,7 +3632,10 @@ function ladderCollect() {
   if (ladderCurrentWin > 0 && ladderPos >= 0) {
     // Differenz zum Original-Gewinn gutschreiben
     const bonus = ladderCurrentWin - gambleWin;
-    if (bonus > 0) balance += bonus;
+    if (bonus > 0) {
+      balance += bonus;
+      if (useServerBalance && !demoMode) serverSlotWin(bonus);
+    }
     setInfo(`${fmtEuro(ladderCurrentWin)} eingelöst!`, 'win-msg');
     FX.spawnCoins(FX.canvas.width / 2, FX.canvas.height / 2, 25);
   } else {
@@ -3668,8 +3817,8 @@ function updateUI() {
   document.getElementById('winVal').textContent = fmtEuro(lastWin);
   const winCg = document.getElementById('winCg');
   winCg.classList.toggle('has-win', lastWin > 0);
-  // Guthaben speichern
-  localStorage.setItem('slotBalance', balance);
+  // Guthaben speichern (nicht im Demo-Modus, nicht bei Server-Balance)
+  if (!demoMode && !useServerBalance) localStorage.setItem('slotBalance', balance);
 }
 
 // ===== RESIZE HANDLER =====
@@ -4008,6 +4157,7 @@ window.addEventListener('resize', () => {
 // ===== EMBED MODE =====
 if (new URLSearchParams(window.location.search).get('embed') === '1') {
   document.body.classList.add('embed-mode');
+  demoMode = true;
 }
 
 // ===== ROTATE HINT (leichter Toast) =====
@@ -4047,13 +4197,67 @@ window.matchMedia('(orientation:landscape)').addEventListener('change', e => {
 });
 
 // ===== START =====
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   fixMobileHeight();
   init();
   if (!document.body.classList.contains('embed-mode')) {
     checkFullscreenSplash();
     // Rotate-Hint nach kurzem Delay zeigen
     setTimeout(showRotateHint, 800);
+  }
+
+  // Baxt Coins Server-Balance laden (wenn eingeloggt)
+  if (!demoMode) {
+    await loadServerBalance();
+  }
+
+  // ===== DEMO MODE (Embed Auto-Spin) =====
+  if (demoMode) {
+    // Mute all sounds initially in demo
+    SFX.muted = true;
+    if (SFX.ctx) SFX.ctx.suspend();
+
+    // Mute ALL existing video/audio elements in the DOM
+    document.querySelectorAll('video, audio').forEach(el => { el.muted = true; el.volume = 0; });
+
+    // Infinite balance for demo
+    balance = 999999;
+    updateUI();
+
+    // Add DEMO badge
+    const badge = document.createElement('div');
+    badge.textContent = 'DEMO';
+    badge.style.cssText = 'position:fixed;top:8px;right:8px;z-index:9999;background:rgba(255,215,0,0.9);color:#000;font-weight:bold;font-size:14px;padding:4px 12px;border-radius:8px;letter-spacing:2px;pointer-events:none;';
+    document.body.appendChild(badge);
+
+    // Auto-spin loop
+    function demoSpin() {
+      if (!spinning) {
+        balance = 999999; // keep balance high
+        doSpin();
+      }
+      // Next spin after current one finishes + pause
+      setTimeout(demoSpin, spinning ? 1000 : 4000);
+    }
+    // Start first demo spin after short delay
+    setTimeout(demoSpin, 2000);
+
+    // Kleine Embeds (silent=1): Sound bleibt IMMER aus — kill switch aktiv.
+    // Große Embeds (nur embed=1): Sound per postMessage steuerbar.
+    if (!__EMBED_SILENT) {
+      window.addEventListener('message', (e) => {
+        if (!e.data || !e.data.type) return;
+        if (e.data.type === 'embedAudioOn') {
+          SFX.muted = false;
+          if (SFX.ctx && SFX.ctx.state === 'suspended') SFX.ctx.resume();
+          document.querySelectorAll('video, audio').forEach(el => { el.muted = false; });
+        } else if (e.data.type === 'embedAudioOff') {
+          SFX.muted = true;
+          if (SFX.ctx) SFX.ctx.suspend();
+          document.querySelectorAll('video, audio').forEach(el => { el.muted = true; el.volume = 0; });
+        }
+      });
+    }
   }
 });
 window.addEventListener('load', () => { setTimeout(onResize, 100); fixMobileHeight(); });
@@ -4062,6 +4266,7 @@ window.addEventListener('load', () => { setTimeout(onResize, 100); fixMobileHeig
 // LEADERBOARD INTEGRATION
 // =========================================================================
 function submitToLeaderboard(winAmount) {
+  if (demoMode) return;
   const token = localStorage.getItem('casinoToken');
   if (!token || !winAmount || winAmount <= 0) return;
 
@@ -4079,5 +4284,6 @@ function submitToLeaderboard(winAmount) {
 <script src="/js/baxt-coins.js"></script>
 <script src="/js/friends.js"></script>
 <script src="/js/jukebox.js"></script>
+<script src="/js/jackpot.js"></script>
 </body>
 </html>

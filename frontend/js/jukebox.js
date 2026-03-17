@@ -1,7 +1,14 @@
-// ===================== GLOBALE JUKEBOX =====================
+// ===================== JUKEBOX =====================
 // YouTube-basierter Musikplayer mit Suche, Playlist-Management & Persistenz
+// Raum 1 = globale Jukebox (Lobby-weit), Raum 2+ = eigene Jukebox pro Bar-Raum
 (function() {
 'use strict';
+
+// ---- RAUM-KONTEXT ----
+// window._jkRoom wird von bar.html gesetzt (vor dem Laden von jukebox.js)
+// '1' oder undefined = globale Jukebox, '2','3',... = eigene Raum-Jukebox
+const JK_ROOM = window._jkRoom || null;
+const IS_ROOM_JUKEBOX = JK_ROOM && JK_ROOM !== '1'; // true = eigene Raum-Jukebox
 
 // ---- CONFIG ----
 const DEFAULT_PLAYLIST = [
@@ -13,8 +20,10 @@ const DEFAULT_PLAYLIST = [
   { id: 'twqM56f_cVo', title: 'Electro Swing Mix' },
 ];
 
-const STORAGE_KEY = 'jukeboxState';
-const PLAYLIST_KEY = 'jukeboxPlaylist';
+// Raum-spezifische Storage-Keys für Räume 2+
+const ROOM_SUFFIX = IS_ROOM_JUKEBOX ? '_room' + JK_ROOM : '';
+const STORAGE_KEY = 'jukeboxState' + ROOM_SUFFIX;
+const PLAYLIST_KEY = 'jukeboxPlaylist' + ROOM_SUFFIX;
 const YT_API_KEY = ''; // Optional: YouTube Data API Key für bessere Suche
 
 let player = null;
@@ -78,17 +87,29 @@ function savePlaylist() {
 // ---- YouTube IFrame API laden ----
 function loadYTApi() {
   if (window.YT && window.YT.Player) { initPlayer(); return; }
+  // Falls API-Script schon im DOM, aber Player noch nicht ready → warten
+  if (document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+    const waitYT = setInterval(() => {
+      if (window.YT && window.YT.Player) { clearInterval(waitYT); initPlayer(); }
+    }, 200);
+    return;
+  }
   const tag = document.createElement('script');
   tag.src = 'https://www.youtube.com/iframe_api';
   document.head.appendChild(tag);
 }
 
+// Globaler Callback — YouTube API ruft das auf wenn ready
+const prevYTReady = window.onYouTubeIframeAPIReady;
 window.onYouTubeIframeAPIReady = function() {
+  if (prevYTReady) prevYTReady();
   initPlayer();
 };
 
 function initPlayer() {
   if (player) return;
+  const el = document.getElementById('jk-yt-player');
+  if (!el) { console.warn('JK: jk-yt-player div not found, retry in 500ms'); setTimeout(initPlayer, 500); return; }
   player = new YT.Player('jk-yt-player', {
     height: '0', width: '0',
     playerVars: {
@@ -105,11 +126,27 @@ function initPlayer() {
 
 function onPlayerReady() {
   player.setVolume(volume);
-  // Musik startet automatisch
+  // Musik startet automatisch — von gespeicherter Position fortsetzen
   if (playlist.length > 0 && !isPlaying) {
-    playTrack(currentIdx);
+    const savedTime = parseFloat(localStorage.getItem('jkResumeTime' + ROOM_SUFFIX) || '0');
+    if (savedTime > 2) {
+      // Von gespeicherter Position fortsetzen
+      player.loadVideoById({ videoId: playlist[currentIdx].id, startSeconds: savedTime });
+      isPlaying = true;
+    } else {
+      playTrack(currentIdx);
+    }
   }
   updateUI();
+
+  // Wiedergabeposition alle 3 Sekunden speichern
+  setInterval(() => {
+    if (player && isPlaying && player.getCurrentTime) {
+      try {
+        localStorage.setItem('jkResumeTime' + ROOM_SUFFIX, String(player.getCurrentTime()));
+      } catch(e) {}
+    }
+  }, 3000);
 }
 
 function onPlayerState(e) {
@@ -126,6 +163,8 @@ function onPlayerError() {
 function playTrack(idx) {
   if (idx < 0 || idx >= playlist.length) idx = 0;
   currentIdx = idx;
+  // Gespeicherte Resume-Zeit zurücksetzen bei Track-Wechsel
+  try { localStorage.setItem('jkResumeTime' + ROOM_SUFFIX, '0'); } catch(e) {}
   if (player && player.loadVideoById) {
     player.loadVideoById(playlist[idx].id);
     isPlaying = true;
@@ -133,7 +172,8 @@ function playTrack(idx) {
   updateUI();
   saveState();
   if (jkSocket) {
-    jkSocket.emit('jukebox:play', { videoId: playlist[idx].id, idx, title: playlist[idx].title, playlist });
+    const evtPrefix = IS_ROOM_JUKEBOX ? 'jukebox:r' + JK_ROOM + ':' : 'jukebox:';
+    jkSocket.emit(evtPrefix + 'play', { videoId: playlist[idx].id, idx, title: playlist[idx].title, playlist });
   }
 }
 
@@ -251,7 +291,10 @@ function addToPlaylist(videoId, title, autoPlay) {
   savePlaylist();
   if (autoPlay) playTrack(playlist.length - 1);
   else buildPlaylist();
-  if (jkSocket) jkSocket.emit('jukebox:add', { videoId, title });
+  if (jkSocket) {
+    const evtPrefix = IS_ROOM_JUKEBOX ? 'jukebox:r' + JK_ROOM + ':' : 'jukebox:';
+    jkSocket.emit(evtPrefix + 'add', { videoId, title });
+  }
 }
 
 // ---- YouTube Suche ----
@@ -300,7 +343,7 @@ function renderSearchResults(results) {
 }
 
 function esc(s) {
-  return String(s || '').replace(/'/g, "\\'").replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return String(s || '').replace(/&/g, '&amp;').replace(/'/g, "\\'").replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function addFromSearch(videoId, title) {
@@ -376,7 +419,7 @@ function buildUI() {
     <div class="jk-panel" id="jkPanel">
       <div class="jk-header" id="jkHeader">
         <span class="jk-icon">🎵</span>
-        <span class="jk-title" id="jkTitle">Jukebox</span>
+        <span class="jk-title" id="jkTitle">${IS_ROOM_JUKEBOX ? 'Bar ' + JK_ROOM + ' Jukebox' : 'Jukebox'}</span>
         <button class="jk-maxbtn" id="jkMaxBtn" onclick="window._jk.toggleMax()" title="Maximieren">⬜</button>
         <button class="jk-minbtn" id="jkMinBtn" title="Minimieren">✕</button>
       </div>
@@ -988,21 +1031,24 @@ function initSocket() {
 function setupSocketEvents() {
   if (!jkSocket) return;
 
-  jkSocket.emit('jukebox:join');
+  // Raum-spezifisches Prefix für Socket-Events (Raum 2+ haben eigene Kanäle)
+  const EVT = IS_ROOM_JUKEBOX ? 'jukebox:r' + JK_ROOM + ':' : 'jukebox:';
+
+  jkSocket.emit(EVT + 'join');
   // Eigene Playlist an Server senden zum Mergen
   if (playlist.length > 0) {
-    jkSocket.emit('jukebox:syncPlaylist', { playlist });
+    jkSocket.emit(EVT + 'syncPlaylist', { playlist });
   }
 
   // Bei Reconnect erneut dem Jukebox-Room beitreten
   jkSocket.on('connect', () => {
-    jkSocket.emit('jukebox:join');
+    jkSocket.emit(EVT + 'join');
     if (playlist.length > 0) {
-      jkSocket.emit('jukebox:syncPlaylist', { playlist });
+      jkSocket.emit(EVT + 'syncPlaylist', { playlist });
     }
   });
 
-  jkSocket.on('jukebox:sync', (data) => {
+  jkSocket.on(EVT + 'sync', (data) => {
     if (data.playlist && data.playlist.length > 0) {
       playlist = data.playlist;
       savePlaylist();
@@ -1017,7 +1063,7 @@ function setupSocketEvents() {
     }
   });
 
-  jkSocket.on('jukebox:play', (data) => {
+  jkSocket.on(EVT + 'play', (data) => {
     if (data.videoId && player) {
       const idx = playlist.findIndex(s => s.id === data.videoId);
       if (idx >= 0) currentIdx = idx;
@@ -1032,15 +1078,15 @@ function setupSocketEvents() {
     }
   });
 
-  jkSocket.on('jukebox:pause', () => {
+  jkSocket.on(EVT + 'pause', () => {
     if (player) { player.pauseVideo(); isPlaying = false; updatePlayBtn(); }
   });
 
-  jkSocket.on('jukebox:resume', () => {
+  jkSocket.on(EVT + 'resume', () => {
     if (player) { player.playVideo(); isPlaying = true; updatePlayBtn(); }
   });
 
-  jkSocket.on('jukebox:add', (data) => {
+  jkSocket.on(EVT + 'add', (data) => {
     if (data.videoId) {
       const exists = playlist.some(s => s.id === data.videoId);
       if (!exists) {
@@ -1084,8 +1130,22 @@ window._jk = {
 
 // ---- Init ----
 function init() {
-  // Nicht in Embed-Iframes laden (verhindert doppelte Musik)
-  if (window.location.search.includes('embed=1') || window !== window.top) return;
+  const hasEmbedParam = window.location.search.includes('embed=1');
+  const isInIframe = window !== window.top;
+
+  // Embed-Vorschau auf Landingpage: keine Jukebox (Landingpage hat schon eine)
+  if (hasEmbedParam && !IS_ROOM_JUKEBOX) return;
+
+  // Im iframe-Overlay (Spiel über Lobby geöffnet): prüfe ob Parent schon Jukebox hat
+  if (isInIframe && !IS_ROOM_JUKEBOX) {
+    try {
+      if (window.parent._jk) return; // Parent hat Jukebox → nicht doppelt laden
+    } catch(e) {} // Cross-origin → laden (direkt eingebettet von anderer Seite)
+  }
+
+  // Raum 1 in der Bar: nicht laden (nutzt die globale Jukebox)
+  if (JK_ROOM === '1' && (hasEmbedParam || isInIframe)) return;
+
   buildUI();
   loadYTApi();
   initSocket();

@@ -74,6 +74,52 @@
       opacity: .8;
     }
 
+    /* Welcome message */
+    .welcome-msg {
+      max-width: 560px;
+      margin: 0 auto 8px;
+      padding: 18px 24px;
+      background: linear-gradient(135deg, rgba(26,26,46,.85), rgba(13,17,23,.85));
+      border: 1px solid rgba(212,175,55,.25);
+      border-radius: 16px;
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+    .welcome-msg h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      color: #D4AF37;
+      margin: 0 0 8px;
+      letter-spacing: 1px;
+    }
+    .welcome-msg p {
+      font-size: 13px;
+      color: rgba(240,230,211,.8);
+      line-height: 1.6;
+      margin: 0;
+    }
+    .welcome-tts-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 6px 16px;
+      background: rgba(212,175,55,.15);
+      border: 1px solid rgba(212,175,55,.3);
+      border-radius: 20px;
+      color: #D4AF37;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: inherit;
+    }
+    .welcome-tts-btn:hover { background: rgba(212,175,55,.25); }
+    .welcome-tts-btn.speaking {
+      background: rgba(212,175,55,.3);
+      border-color: #D4AF37;
+    }
+
     .game-tagline {
       font-size: 13px;
       color: rgba(240,230,211,.6);
@@ -131,6 +177,89 @@
     .online-game { white-space: nowrap; }
     .online-game b { color: #F4D03F; }
 
+    /* ============ GAMES ROW (Laufband) ============ */
+    .games-row-wrap {
+      width: 100%;
+      overflow: hidden;
+      margin: 0 auto 20px;
+      padding: 8px 0;
+    }
+    .games-row {
+      display: flex;
+      gap: 14px;
+      width: max-content;
+      animation: games-scroll 30s linear infinite;
+    }
+    .games-row:hover { animation-play-state: paused; }
+    @keyframes games-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .game-card {
+      flex: 0 0 240px;
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(212,175,55,.3);
+      box-shadow: 0 4px 20px rgba(0,0,0,.5);
+      background: #0a0a12;
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+      aspect-ratio: 16/10;
+    }
+    .game-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(212,175,55,.25);
+      border-color: rgba(212,175,55,.6);
+    }
+    .game-card iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: calc(100% / 0.45);
+      height: calc(100% / 0.45);
+      border: none;
+      pointer-events: none;
+      transform: scale(0.45);
+      transform-origin: top left;
+    }
+    .game-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,.85));
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 8px 10px;
+      z-index: 2;
+    }
+    .game-card-title {
+      color: #D4AF37;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-shadow: 0 2px 8px rgba(0,0,0,.8);
+    }
+    .game-card-live {
+      font-size: 10px;
+      color: rgba(240,230,211,.7);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .game-card-live .gc-dot {
+      width: 6px; height: 6px;
+      background: #2ecc71;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 4px #2ecc71;
+    }
+    @media (max-width: 600px) {
+      .games-row { gap: 8px; }
+      .game-card { flex: 0 0 180px; }
+      .game-card-title { font-size: 11px; }
+    }
+
     /* ============ POKER TABLE HERO ============ */
     /* ============ LIVE EMBED ============ */
     .live-embed-wrap {
@@ -142,7 +271,7 @@
     /* ============ DRAGGABLE + RESIZABLE EMBED WINDOWS ============ */
     .embed-adjustable {
       position: relative;
-      touch-action: none;
+      touch-action: pan-y;
       user-select: none;
       -webkit-user-select: none;
     }
@@ -227,6 +356,20 @@
       border-color: rgba(46,204,113,0.5);
       color: #2ecc71;
     }
+    .embed-ctrl-btn.locked {
+      background: rgba(231,76,60,0.3);
+      border-color: rgba(231,76,60,0.5);
+      color: #e74c3c;
+    }
+    .embed-adjustable.locked .embed-drag-handle {
+      pointer-events: none;
+      cursor: default;
+      opacity: 0.3;
+    }
+    .embed-adjustable.locked .embed-resize-handle {
+      pointer-events: none;
+      display: none;
+    }
 
     .lp-badge {
       display: inline-flex;
@@ -304,6 +447,7 @@
       top: 0; left: 0; right: 0; bottom: 0;
       z-index: 4;
       cursor: pointer;
+      touch-action: pan-y;
     }
 
     .lp-badge-slot {
@@ -319,10 +463,10 @@
     }
     .live-embed-frame {
       position: relative;
-      width: 90%;
-      max-width: 360px;
+      width: 95%;
+      max-width: 600px;
       margin: 0 auto;
-      height: 520px;
+      height: 680px;
       border-radius: 14px;
       overflow: hidden;
       border: 2px solid rgba(212,175,55,0.35);
@@ -332,11 +476,11 @@
     .live-iframe {
       position: absolute;
       top: 0; left: 0;
-      width: calc(100% / 0.55);
-      height: calc(100% / 0.55);
+      width: calc(100% / 0.7);
+      height: calc(100% / 0.7);
       border: none;
       pointer-events: none;
-      transform: scale(0.55);
+      transform: scale(0.7);
       transform-origin: top left;
     }
     .live-embed-overlay {
@@ -369,11 +513,17 @@
 
     @media (max-width: 480px) {
       .live-embed-frame {
-        max-width: 320px;
-        height: 460px;
+        max-width: 95%;
+        height: 520px;
         border-radius: 10px;
       }
       .live-overlay-text { font-size: 11px; }
+      .embed-adjustable { touch-action: pan-y !important; }
+      .embed-click-overlay { touch-action: pan-y !important; }
+      .slot-fullscreen-bar { touch-action: pan-y !important; }
+      .embed-drag-handle { touch-action: pan-y !important; pointer-events: none; }
+      .embed-resize-handle { display: none; }
+      .embed-controls { display: none; }
     }
 
     .poker-table-hero {
@@ -792,7 +942,138 @@
       .bj-spot-name { font-size: 7px; }
     }
 
+    /* ============ GAME ONLINE COUNTER ============ */
+    .game-online-count {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 900;
+      color: rgba(240,230,211,.85);
+      margin-bottom: 14px;
+      letter-spacing: 2px;
+      font-family: 'Playfair Display', serif;
+    }
+    .game-online-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #4caf50;
+      box-shadow: 0 0 10px rgba(76,175,80,.6);
+      animation: onlineDotPulse 2s ease-in-out infinite;
+    }
+    @keyframes onlineDotPulse {
+      0%,100% { opacity: 1; box-shadow: 0 0 8px rgba(76,175,80,.6); }
+      50% { opacity: .6; box-shadow: 0 0 16px rgba(76,175,80,.8); }
+    }
+    .game-online-count b {
+      color: #D4AF37;
+      font-size: 26px;
+    }
+
     /* ============ CTA BUTTONS ============ */
+    /* ============ KOBEREI BANNER ============ */
+    .koberei-banner {
+      position: relative;
+      text-align: center;
+      padding: 20px 16px 14px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+    .koberei-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 80%, rgba(212,175,55,.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .koberei-ornament {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    .koberei-line {
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+    }
+    .koberei-icon {
+      font-size: 22px;
+      filter: drop-shadow(0 0 8px rgba(212,175,55,.4));
+    }
+    .koberei-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #D4AF37, #F4D03F, #D4AF37);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 4px;
+    }
+    .koberei-sub {
+      font-family: 'Playfair Display', serif;
+      font-size: 12px;
+      color: rgba(240,230,211,.5);
+      letter-spacing: 2px;
+      font-style: italic;
+    }
+    .koberei-features {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 10px;
+    }
+    .koberei-feat {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: rgba(212,175,55,.7);
+      background: rgba(0,0,0,.3);
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(212,175,55,.15);
+    }
+    .koberei-feat-icon {
+      font-size: 14px;
+    }
+
+    .wodding-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    .wodding-btn {
+      background: rgba(0,0,0,.4);
+      border: 1px solid rgba(212,175,55,.25);
+      color: rgba(240,230,211,.7);
+      font-family: 'Playfair Display', serif;
+      font-size: 12px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all .2s;
+      backdrop-filter: blur(6px);
+    }
+    .wodding-btn:hover {
+      border-color: rgba(212,175,55,.5);
+      color: #D4AF37;
+    }
+    .wodding-btn.active {
+      background: linear-gradient(135deg, rgba(212,175,55,.25), rgba(139,90,43,.3));
+      border-color: #D4AF37;
+      color: #D4AF37;
+      box-shadow: 0 0 12px rgba(212,175,55,.2);
+    }
+
     .cta-play {
       display: inline-flex;
       align-items: center;
@@ -827,6 +1108,15 @@
     }
     .cta-slot:hover {
       box-shadow: 0 8px 40px rgba(139,0,0,.6);
+    }
+
+    .cta-bar {
+      background: linear-gradient(135deg, #8B5A2B, #D4AF37, #8B5A2B);
+      color: #1a0e05;
+      box-shadow: 0 6px 30px rgba(139,90,43,.4);
+    }
+    .cta-bar:hover {
+      box-shadow: 0 8px 40px rgba(212,175,55,.5);
     }
 
     .cta-bj {
@@ -867,121 +1157,146 @@
     /* ============ BAXT COINS PROMO ============ */
     .baxt-promo {
       position: relative;
-      padding: 2.5rem 1.2rem 2rem;
+      padding: 32px 20px 28px;
       text-align: center;
+      max-width: 560px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, rgba(20,12,6,.85) 0%, rgba(30,18,8,.9) 50%, rgba(20,12,6,.85) 100%);
+      border: 1px solid rgba(212,175,55,.2);
+      border-radius: 20px;
       overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(212,175,55,.1);
     }
     .baxt-promo-glow {
       position: absolute;
       top: -60px; left: 50%; transform: translateX(-50%);
       width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(255,215,0,0.10) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(212,175,55,.1) 0%, transparent 65%);
       pointer-events: none;
       z-index: 0;
     }
     .baxt-promo > * { position: relative; z-index: 1; }
 
-    .baxt-coin-hero { margin-bottom: 0.5rem; }
+    .baxt-coin-hero { margin-bottom: 6px; }
     .baxt-coin-spin {
-      display: inline-block;
-      font-size: 4rem;
-      animation: baxtSpin 3s ease-in-out infinite;
-      text-shadow: 0 0 30px rgba(255,215,0,0.6), 0 0 60px rgba(255,215,0,0.3);
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(145deg, #D4AF37, #F4D03F);
+      border: 3px solid #b8960f;
+      font-size: 1.8rem; font-weight: 900; color: #1a1a2e;
+      box-shadow: inset 0 -3px 6px rgba(0,0,0,.3), 0 4px 20px rgba(212,175,55,.4);
+      animation: baxtFloat 3s ease-in-out infinite;
     }
-    @keyframes baxtSpin {
-      0%, 100% { transform: rotateY(0deg) scale(1); }
-      50% { transform: rotateY(180deg) scale(1.1); }
+    @keyframes baxtFloat {
+      0%, 100% { transform: translateY(0); box-shadow: inset 0 -3px 6px rgba(0,0,0,.3), 0 4px 20px rgba(212,175,55,.4); }
+      50% { transform: translateY(-6px); box-shadow: inset 0 -3px 6px rgba(0,0,0,.3), 0 8px 30px rgba(212,175,55,.5); }
     }
 
     .baxt-promo-title {
-      font-size: 2rem;
-      font-weight: 900;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 800;
       letter-spacing: 4px;
-      background: linear-gradient(135deg, #ffd700, #ffaa00, #ffd700);
+      background: linear-gradient(135deg, #D4AF37, #F4D03F, #FFD700, #D4AF37);
+      background-size: 300% 100%;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin: 0.3rem 0 0.2rem;
+      animation: goldShift 4s ease-in-out infinite;
+      margin: 0 0 4px;
+    }
+    @keyframes goldShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
     }
     .baxt-promo-subtitle {
-      color: #ccc;
-      font-size: 1rem;
-      margin: 0 0 1.2rem;
+      color: rgba(212,175,55,.5);
+      font-size: 11px;
+      margin: 0 0 16px;
       font-style: italic;
+      letter-spacing: 2px;
     }
     .baxt-promo-desc {
-      max-width: 600px;
-      margin: 0 auto 1.5rem;
-      color: #ddd;
-      font-size: 0.95rem;
+      max-width: 420px;
+      margin: 0 auto 20px;
+      color: rgba(240,230,211,.65);
+      font-size: 13px;
       line-height: 1.6;
     }
-    .baxt-promo-desc strong { color: #ffd700; }
+    .baxt-promo-desc strong { color: #D4AF37; }
 
     .baxt-features {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 1rem;
-      max-width: 700px;
-      margin: 0 auto 1.5rem;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 480px;
+      margin: 0 auto 20px;
     }
     .baxt-feature-card {
-      background: linear-gradient(145deg, rgba(255,215,0,0.08), rgba(0,0,0,0.4));
-      border: 1px solid rgba(255,215,0,0.2);
+      background: linear-gradient(145deg, rgba(40,25,12,.8), rgba(20,12,6,.9));
+      border: 1px solid rgba(212,175,55,.15);
       border-radius: 14px;
-      padding: 1.2rem 0.8rem;
-      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+      padding: 14px 8px 10px;
+      transition: all .3s ease;
     }
     .baxt-feature-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(255,215,0,0.5);
-      box-shadow: 0 8px 25px rgba(255,215,0,0.15);
+      border-color: rgba(212,175,55,.4);
+      box-shadow: 0 4px 20px rgba(212,175,55,.12);
+      transform: translateY(-2px);
     }
     .baxt-feature-icon {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
+      font-size: 1.5rem;
+      margin-bottom: 6px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.3));
     }
     .baxt-feature-card h3 {
-      color: #ffd700;
-      font-size: 0.9rem;
-      margin: 0 0 0.4rem;
+      color: #D4AF37;
+      font-size: 11px;
+      margin: 0 0 4px;
       font-weight: 700;
+      letter-spacing: 0.5px;
     }
     .baxt-feature-card p {
-      color: #bbb;
-      font-size: 0.78rem;
+      color: rgba(240,230,211,.45);
+      font-size: 10px;
       line-height: 1.4;
       margin: 0;
     }
 
-    .baxt-promo-cta { margin: 1.5rem 0 1rem; }
+    .baxt-promo-cta { margin: 16px 0 10px; }
     .baxt-start-bonus {
       display: inline-flex;
       align-items: center;
-      gap: 0.6rem;
-      background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,170,0,0.1));
-      border: 2px solid rgba(255,215,0,0.4);
-      border-radius: 50px;
-      padding: 0.9rem 1.8rem;
-      font-size: 1rem;
-      color: #fff;
-      animation: baxtPulse 2s ease-in-out infinite;
+      gap: 8px;
+      background: linear-gradient(135deg, rgba(212,175,55,.15), rgba(180,140,30,.08));
+      border: 1.5px solid rgba(212,175,55,.35);
+      border-radius: 30px;
+      padding: 10px 20px;
+      font-size: 13px;
+      color: rgba(240,230,211,.9);
+      animation: baxtPulse 3s ease-in-out infinite;
+      backdrop-filter: blur(4px);
     }
-    .baxt-start-bonus strong { color: #ffd700; }
-    .baxt-start-icon { font-size: 1.4rem; }
+    .baxt-start-bonus strong { color: #D4AF37; }
+    .baxt-start-icon { font-size: 1.2rem; }
     @keyframes baxtPulse {
-      0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.2); }
-      50% { box-shadow: 0 0 25px rgba(255,215,0,0.4); }
+      0%, 100% { box-shadow: 0 0 10px rgba(212,175,55,.15); }
+      50% { box-shadow: 0 0 25px rgba(212,175,55,.25), 0 0 50px rgba(212,175,55,.08); }
     }
 
     .baxt-promo-legal {
-      margin-top: 1rem;
-      font-size: 0.7rem;
-      color: #777;
-      max-width: 500px;
+      margin-top: 12px;
+      font-size: 9px;
+      color: rgba(240,230,211,.25);
+      max-width: 400px;
       margin-left: auto;
       margin-right: auto;
       line-height: 1.4;
+    }
+    @media (max-width: 420px) {
+      .baxt-features { grid-template-columns: repeat(2, 1fr); }
+      .baxt-promo { padding: 24px 14px 20px; }
+      .baxt-promo-title { font-size: 1.3rem; }
     }
 
     /* ============ APP INSTALL ============ */
@@ -1223,6 +1538,54 @@
       min-width: 44px; min-height: 44px;
       display: flex; align-items: center; justify-content: center;
     }
+    .auth-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 14px 0; color: rgba(240,230,211,.3); font-size: 12px;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: ''; flex: 1; height: 1px; background: rgba(212,175,55,.15);
+    }
+    .google-btn {
+      width: 100%; padding: 12px; border: 1px solid rgba(212,175,55,.3);
+      border-radius: 8px; background: rgba(255,255,255,.06);
+      color: #F0E6D3; font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: .2s; min-height: 48px;
+    }
+    .google-btn:hover { background: rgba(255,255,255,.1); border-color: rgba(212,175,55,.5); }
+    .google-btn svg { width: 20px; height: 20px; }
+    .auth-link {
+      display: block; text-align: center; margin-top: 10px;
+      color: #D4AF37; font-size: 12px; cursor: pointer; text-decoration: underline;
+      opacity: .7; transition: .2s;
+    }
+    .auth-link:hover { opacity: 1; }
+    .auth-success {
+      background: rgba(30,200,80,.15); border: 1px solid rgba(80,255,120,.3);
+      border-radius: 6px; padding: 8px 12px; font-size: 12px;
+      color: #66ff88; margin-bottom: 10px; display: none;
+    }
+    /* Verify Modal */
+    .verify-overlay {
+      display: none; position: fixed; inset: 0; z-index: 10002;
+      background: rgba(0,0,0,.75); backdrop-filter: blur(6px);
+      justify-content: center; align-items: center;
+    }
+    .verify-overlay.active { display: flex; }
+    .verify-modal {
+      background: linear-gradient(145deg,#1a1a2e,#16213e);
+      border: 2px solid #D4AF37; border-radius: 16px;
+      width: min(380px,90vw); padding: 28px 24px; text-align: center; position: relative;
+    }
+    .verify-code-inputs {
+      display: flex; gap: 8px; justify-content: center; margin: 16px 0;
+    }
+    .verify-code-inputs input {
+      width: 44px; height: 52px; text-align: center; font-size: 22px; font-weight: bold;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(212,175,55,.3);
+      border-radius: 8px; color: #D4AF37; outline: none;
+    }
+    .verify-code-inputs input:focus { border-color: #D4AF37; }
 
     /* Footer */
     .landing-footer {
@@ -1273,6 +1636,293 @@
       .game-logo { font-size: 52px; }
       .game-hero { padding-top: 60px; }
     }
+
+    /* ============ GLOBAL JACKPOT TICKER ============ */
+    .jackpot-banner {
+      width: 90%;
+      max-width: 520px;
+      margin: 12px auto 18px;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, rgba(20,12,8,.92), rgba(40,20,5,.92));
+      border: 2px solid rgba(212,175,55,.5);
+      border-radius: 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(212,175,55,.15), 0 8px 32px rgba(0,0,0,.5);
+    }
+    .jackpot-banner::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 18px;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,.3), transparent);
+      background-size: 200% 100%;
+      animation: jpShimmer 3s ease-in-out infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+    @keyframes jpShimmer {
+      0%, 100% { background-position: -200% 0; }
+      50% { background-position: 200% 0; }
+    }
+    .jackpot-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 11px;
+      color: rgba(212,175,55,.8);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 1;
+    }
+    .jackpot-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #D4AF37, #F4D03F, #FFD700, #D4AF37);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: jpGold 4s ease-in-out infinite;
+      position: relative;
+      z-index: 1;
+      line-height: 1.2;
+    }
+    @keyframes jpGold {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    .jackpot-sub {
+      font-size: 10px;
+      color: rgba(240,230,211,.4);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 2px;
+      position: relative;
+      z-index: 1;
+    }
+    @media (max-width: 480px) {
+      .jackpot-value { font-size: 28px; }
+      .jackpot-banner { padding: 10px 14px; }
+    }
+    /* ====== PROFILE MODAL ====== */
+    .profile-overlay {
+      display:none; position:fixed; inset:0; z-index:10000;
+      background:rgba(0,0,0,.75); backdrop-filter:blur(6px);
+      justify-content:center; align-items:center;
+    }
+    .profile-overlay.active { display:flex; }
+    .profile-modal {
+      background:linear-gradient(145deg,#1a1a2e,#16213e);
+      border:2px solid #D4AF37; border-radius:16px;
+      width:min(420px,92vw); max-height:88vh; overflow-y:auto;
+      padding:28px 24px; position:relative;
+      box-shadow:0 0 40px rgba(212,175,55,.15);
+    }
+    .profile-close {
+      position:absolute; top:10px; right:14px; background:none; border:none;
+      color:#D4AF37; font-size:24px; cursor:pointer;
+    }
+    .profile-avatar-wrap {
+      text-align:center; margin-bottom:18px;
+    }
+    .profile-avatar-big {
+      width:80px; height:80px; border-radius:50%;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:36px; border:3px solid #D4AF37;
+      cursor:pointer; transition:transform .2s;
+    }
+    .profile-avatar-big:hover { transform:scale(1.1); }
+    .profile-avatar-big img {
+      width:100%; height:100%; border-radius:50%; object-fit:cover;
+    }
+    .profile-username {
+      font-family:'Playfair Display',serif; color:#D4AF37;
+      font-size:22px; font-weight:700; margin:8px 0 2px;
+    }
+    .profile-rang {
+      color:rgba(240,230,211,.6); font-size:13px; font-style:italic;
+    }
+    .profile-stats {
+      display:grid; grid-template-columns:1fr 1fr; gap:10px;
+      margin:18px 0;
+    }
+    .profile-stat {
+      background:rgba(255,255,255,.04); border-radius:10px;
+      padding:12px; text-align:center;
+    }
+    .profile-stat-val {
+      color:#D4AF37; font-size:20px; font-weight:700;
+      font-family:'Playfair Display',serif;
+    }
+    .profile-stat-label {
+      color:rgba(240,230,211,.5); font-size:11px; margin-top:2px;
+    }
+    .profile-xp-bar {
+      background:rgba(255,255,255,.08); border-radius:8px;
+      height:10px; margin:10px 0 6px; overflow:hidden;
+    }
+    .profile-xp-fill {
+      height:100%; background:linear-gradient(90deg,#D4AF37,#f0c040);
+      border-radius:8px; transition:width .5s;
+    }
+    .profile-xp-text {
+      color:rgba(240,230,211,.5); font-size:11px; text-align:center;
+    }
+    .profile-btn {
+      display:block; width:100%; margin-top:14px;
+      background:linear-gradient(135deg,#D4AF37,#8B6914);
+      color:#000; font-weight:700; font-size:14px;
+      border:none; border-radius:8px; padding:10px;
+      cursor:pointer; font-family:'Playfair Display',serif;
+    }
+    .profile-btn:hover { filter:brightness(1.15); }
+
+    /* ====== AVATAR EDITOR ====== */
+    .avatar-editor-overlay {
+      display:none; position:fixed; inset:0; z-index:10001;
+      background:rgba(0,0,0,.8); backdrop-filter:blur(6px);
+      justify-content:center; align-items:center;
+    }
+    .avatar-editor-overlay.active { display:flex; }
+    .avatar-editor {
+      background:linear-gradient(145deg,#1a1a2e,#16213e);
+      border:2px solid #D4AF37; border-radius:16px;
+      width:min(380px,92vw); padding:24px; position:relative;
+    }
+    .avatar-editor h3 {
+      color:#D4AF37; font-family:'Playfair Display',serif;
+      font-size:18px; margin:0 0 16px; text-align:center;
+    }
+    .avatar-preview-area {
+      text-align:center; margin-bottom:16px;
+    }
+    .avatar-preview {
+      width:90px; height:90px; border-radius:50%;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:40px; border:3px solid #D4AF37;
+    }
+    .avatar-preview img {
+      width:100%; height:100%; border-radius:50%; object-fit:cover;
+    }
+    .avatar-section-label {
+      color:rgba(240,230,211,.6); font-size:12px;
+      margin:12px 0 6px; font-weight:600;
+    }
+    .avatar-color-grid {
+      display:flex; flex-wrap:wrap; gap:8px;
+    }
+    .avatar-color-btn {
+      width:36px; height:36px; border-radius:50%;
+      border:2px solid transparent; cursor:pointer;
+      transition:transform .15s, border-color .15s;
+    }
+    .avatar-color-btn:hover { transform:scale(1.15); }
+    .avatar-color-btn.selected { border-color:#fff; transform:scale(1.15); }
+    .avatar-emoji-grid {
+      display:flex; flex-wrap:wrap; gap:6px;
+    }
+    .avatar-emoji-btn {
+      width:40px; height:40px; border-radius:8px;
+      background:rgba(255,255,255,.06); border:2px solid transparent;
+      font-size:22px; cursor:pointer; display:flex;
+      align-items:center; justify-content:center;
+      transition:transform .15s, border-color .15s;
+    }
+    .avatar-emoji-btn:hover { transform:scale(1.12); }
+    .avatar-emoji-btn.selected { border-color:#D4AF37; background:rgba(212,175,55,.15); }
+
+    /* ====== WELCOME ONBOARDING ====== */
+    .welcome-overlay {
+      display:none; position:fixed; inset:0; z-index:10010;
+      background:rgba(0,0,0,.85); backdrop-filter:blur(8px);
+      justify-content:center; align-items:center;
+    }
+    .welcome-overlay.active { display:flex; }
+    .welcome-modal {
+      background:linear-gradient(145deg,#1a1a2e,#16213e);
+      border:2px solid #D4AF37; border-radius:20px;
+      width:min(420px,92vw); padding:32px 24px; text-align:center;
+      animation: welcomeIn .5s ease-out;
+    }
+    @keyframes welcomeIn { from { opacity:0; transform:translateY(30px) scale(.95); } to { opacity:1; transform:none; } }
+    .welcome-modal h2 { color:#D4AF37; font-family:'Playfair Display',serif; margin:0 0 4px; font-size:28px; }
+    .welcome-modal .welcome-sub { color:#aaa; font-size:13px; margin-bottom:20px; }
+    .welcome-modal .welcome-bonus {
+      font-size:36px; font-weight:bold; color:#D4AF37;
+      background:rgba(212,175,55,.08); border:1px solid rgba(212,175,55,.2);
+      border-radius:12px; padding:12px; margin:16px 0;
+      font-family:'Playfair Display',serif;
+    }
+    .welcome-step { display:none; }
+    .welcome-step.active { display:block; }
+    .welcome-avatar-grid {
+      display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:16px 0;
+    }
+    .welcome-avatar-opt {
+      width:56px; height:56px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:28px; cursor:pointer; border:3px solid transparent;
+      transition:.2s;
+    }
+    .welcome-avatar-opt:hover { transform:scale(1.1); }
+    .welcome-avatar-opt.selected { border-color:#D4AF37; box-shadow:0 0 12px rgba(212,175,55,.4); }
+
+    /* ====== BROKE MODAL ====== */
+    .broke-overlay {
+      display:none; position:fixed; inset:0; z-index:10005;
+      background:rgba(0,0,0,.8); backdrop-filter:blur(6px);
+      justify-content:center; align-items:center;
+    }
+    .broke-overlay.active { display:flex; }
+    .broke-modal {
+      background:linear-gradient(145deg,#1a1a2e,#16213e);
+      border:2px solid #D4AF37; border-radius:16px;
+      width:min(400px,92vw); padding:28px 24px; text-align:center;
+    }
+    .broke-timer {
+      font-size:42px; font-weight:bold; color:#D4AF37;
+      font-family:'Playfair Display',serif;
+      margin:16px 0;
+    }
+    .broke-ad-btn {
+      width:100%; padding:14px; margin-top:8px;
+      background:linear-gradient(135deg,#27ae60,#2ecc71);
+      color:#fff; font-size:15px; font-weight:bold;
+      border:none; border-radius:8px; cursor:pointer;
+      transition:.2s;
+    }
+    .broke-ad-btn:hover { filter:brightness(1.1); }
+
+    /* ====== FLOATING BALANCE WIDGET ====== */
+    .balance-float {
+      position:fixed; top:70px; right:14px; z-index:100000;
+      background:rgba(15,8,3,.88); border:2px solid rgba(212,175,55,.5);
+      border-radius:14px; padding:8px 16px;
+      font-family:'Playfair Display',serif;
+      color:#D4AF37; cursor:grab;
+      backdrop-filter:blur(10px);
+      box-shadow:0 4px 20px rgba(0,0,0,.5);
+      touch-action:none; user-select:none;
+      display:none;
+      transition:box-shadow .2s;
+    }
+    .balance-float:hover {
+      box-shadow:0 4px 24px rgba(212,175,55,.25);
+    }
+    .balance-float.dragging { cursor:grabbing; opacity:.85; }
+    .balance-float-label {
+      font-size:9px; color:rgba(240,230,211,.45);
+      text-transform:uppercase; letter-spacing:1px;
+      text-align:center;
+    }
+    .balance-float-val {
+      font-size:18px; font-weight:700; text-align:center;
+      text-shadow:0 0 8px rgba(212,175,55,.3);
+    }
+
   </style>
 </head>
 <body>
@@ -1293,8 +1943,8 @@
       <button class="auth-btn" onclick="showAuth('login')" id="loginBtn">Anmelden</button>
       <button class="auth-btn primary" onclick="showAuth('register')" id="registerBtn">Mitglied werden</button>
       <div class="user-info" id="userInfo" style="display:none">
-        <div class="user-avatar" id="userAvatar">?</div>
-        <div>
+        <div class="user-avatar" id="userAvatar" onclick="openProfile()" style="cursor:pointer" title="Profil öffnen">?</div>
+        <div onclick="openProfile()" style="cursor:pointer">
           <div class="user-name" id="userName">-</div>
           <div class="user-rank" id="userRank">-</div>
         </div>
@@ -1308,15 +1958,55 @@
 
     <!-- HERO -->
     <section class="game-hero">
-      <div class="game-subtitle">Reisendes Casino pr&auml;sentiert</div>
+      <div class="game-subtitle">Wir pr&auml;sentieren</div>
       <h1 class="game-logo">Reisendes Casino</h1>
       <p class="game-tagline">Put Baxt! &mdash; Latscho Diwes!</p>
     </section>
 
+    <!-- JACKPOT TICKER -->
+    <div class="jackpot-banner" id="jackpotBanner">
+      <div class="jackpot-label">&#127920; Globaler Jackpot &#127920;</div>
+      <div class="jackpot-value" id="jackpotValue">0,00 ₿</div>
+      <div class="jackpot-sub">Steigt mit jedem Spin</div>
+    </div>
+
+    <!-- WILLKOMMEN -->
+    <div class="welcome-msg">
+      <h2>Willkommen in der Community!</h2>
+      <p id="welcomeText">Das Reisendes Casino ist ein Platz zum Zusammenkommen und gemeinsam Spa&szlig; haben. Unsere Spiele sind alle Multiplayer und mit Sprach- sowie Video-Chat ausgestattet. Triff auch du einen alten Bekannten beim Pokern oder Roulette spielen &mdash; hier trifft sich die Familie!</p>
+      <button class="welcome-tts-btn" id="ttsBtn" onclick="toggleVorlesen()">&#x1F50A; Vorlesen</button>
+    </div>
+    <script>
+    function toggleVorlesen() {
+      const btn = document.getElementById('ttsBtn');
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        btn.classList.remove('speaking');
+        btn.innerHTML = '&#x1F50A; Vorlesen';
+        return;
+      }
+      const text = document.getElementById('welcomeText').textContent;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'de-DE';
+      utter.rate = 0.9;
+      utter.pitch = 1;
+      // Deutsche Stimme bevorzugen
+      const voices = window.speechSynthesis.getVoices();
+      const deVoice = voices.find(v => v.lang.startsWith('de'));
+      if (deVoice) utter.voice = deVoice;
+      utter.onend = () => { btn.classList.remove('speaking'); btn.innerHTML = '&#x1F50A; Vorlesen'; };
+      btn.classList.add('speaking');
+      btn.innerHTML = '&#x23F9; Stopp';
+      window.speechSynthesis.speak(utter);
+    }
+    // Stimmen vorladen
+    if (window.speechSynthesis) window.speechSynthesis.getVoices();
+    </script>
+
     <!-- LIVE ONLINE ANZEIGE -->
     <div class="online-bar" id="onlineBar">
       <div class="online-dot"></div>
-      <span class="online-total"><span id="onlineTotal">0</span> Spieler online</span>
+      <span class="online-total"><span id="onlineTotal">0</span> Reisende online</span>
       <div class="online-games">
         <span class="online-game">🃏 Poker: <b id="onlinePoker">0</b></span>
         <span class="online-game">🎴 Blackjack: <b id="onlineBJ">0</b></span>
@@ -1325,19 +2015,145 @@
     </div>
 
     <!-- ═══════════════════════════════════════════ -->
-    <!-- 1. POKER – LIVE EMBED                       -->
+    <!-- GAMES ROW – Laufband                         -->
     <!-- ═══════════════════════════════════════════ -->
-    <div class="live-embed-wrap">
-      <div class="lp-badge">
-        <span class="lp-dot"></span> LIVE POKER
+    <div class="games-row-wrap">
+      <div class="games-row" id="gamesRow">
+        <!-- Original 4 (sandbox blockt Audio komplett) -->
+        <div class="game-card" onclick="openPoker()">
+          <iframe src="/games/poker.html?embed=1&table=embed-preview" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
+          <div class="game-card-overlay">
+            <div class="game-card-title">Poker</div>
+            <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcPokerRow">0</b></div>
+          </div>
+        </div>
+        <div class="game-card" onclick="openBlackjack()">
+          <iframe src="/games/blackjack.html?embed=1" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
+          <div class="game-card-overlay">
+            <div class="game-card-title">Blackjack</div>
+            <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcBJRow">0</b></div>
+          </div>
+        </div>
+        <div class="game-card" onclick="openRoulette()">
+          <iframe src="/games/roulette.html?embed=1" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
+          <div class="game-card-overlay">
+            <div class="game-card-title">Roulette</div>
+            <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcRouletteRow">0</b></div>
+          </div>
+        </div>
+        <div class="game-card" onclick="playGame()">
+          <iframe src="/games/book-of-baxt.html?embed=1&silent=1" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
+          <div class="game-card-overlay">
+            <div class="game-card-title">Slots</div>
+            <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcSlotsRow">0</b></div>
+          </div>
+        </div>
+        <!-- Duplikate für nahtlose Schleife -->
+        <div class="game-card" onclick="openPoker()">
+          <iframe src="/games/poker.html?embed=1&table=embed-preview" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
+          <div class="game-card-overlay">
+            <div class="game-card-title">Poker</div>
+            <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcPokerRow">0</b></div>
+          </div>
+        </div>
+        <div class="game-card" onclick="openBlackjack()">
+          <iframe src="/games/blackjack.html?embed=1" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
+          <div class="game-card-overlay">
+            <div class="game-card-title">Blackjack</div>
+            <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcBJRow">0</b></div>
+          </div>
+        </div>
+        <div class="game-card" onclick="openRoulette()">
+          <iframe src="/games/roulette.html?embed=1" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
+          <div class="game-card-overlay">
+            <div class="game-card-title">Roulette</div>
+            <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcRouletteRow">0</b></div>
+          </div>
+        </div>
+        <div class="game-card" onclick="playGame()">
+          <iframe src="/games/book-of-baxt.html?embed=1&silent=1" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
+          <div class="game-card-overlay">
+            <div class="game-card-title">Slots</div>
+            <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcSlotsRow">0</b></div>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 1. BAR – LIVE EMBED (ganz oben)             -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="koberei-banner">
+      <div class="koberei-ornament">
+        <div class="koberei-line"></div>
+        <span class="koberei-icon">🍺</span>
+        <div class="koberei-line"></div>
+      </div>
+      <div class="koberei-title">Zur Koberei</div>
+      <div class="koberei-sub">Sprach- &amp; Video-Gruppenchat der Reisenden</div>
+      <div class="koberei-features">
+        <div class="koberei-feat"><span class="koberei-feat-icon">🎤</span> Sprache</div>
+        <div class="koberei-feat"><span class="koberei-feat-icon">📷</span> Video</div>
+        <div class="koberei-feat"><span class="koberei-feat-icon">💬</span> Chat</div>
+        <div class="koberei-feat"><span class="koberei-feat-icon">🎵</span> Eigene Musik</div>
+      </div>
+    </div>
+    <div class="live-embed-wrap">
+      <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcBar">0</b> in der Bar</div>
+      <div class="live-embed-frame embed-adjustable" id="barEmbedWrap" data-embed="bar">
+        <div class="embed-drag-handle" data-drag="barEmbedWrap"></div>
+        <div class="embed-controls">
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();toggleLockEmbed('barEmbedWrap', this)" title="Sperren">&#x1F513;</button>
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('barEmbedWrap', this)" title="Speichern">&#x1F4BE;</button>
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('barEmbedWrap')" title="Zur&uuml;cksetzen">&#x21BA;</button>
+        </div>
+        <iframe src="/games/bar.html?embed=1" class="live-iframe" allow="camera;microphone;autoplay" loading="lazy" style="pointer-events:none;"></iframe>
+        <div class="embed-click-overlay" onclick="openBar()"></div>
+        <div class="slot-fullscreen-bar" onclick="openBar()">
+          <div class="live-overlay-text">&#127866; Bar betreten &#127866;</div>
+        </div>
+        <div class="embed-resize-handle" data-resize="barEmbedWrap"></div>
+      </div>
+    </div>
+    <div class="wodding-row" id="barWoddings">
+      <button class="wodding-btn active" onclick="selectWodding(this,1)">🚐 Wodding 1</button>
+      <button class="wodding-btn" onclick="selectWodding(this,2)">🚐 Wodding 2</button>
+      <button class="wodding-btn" onclick="selectWodding(this,3)">🚐 Wodding 3</button>
+      <button class="wodding-btn" onclick="selectWodding(this,4)">🚐 Wodding 4</button>
+    </div>
+    <input type="hidden" id="barRoomSelect" value="1">
+    <button class="cta-play cta-bar" onclick="openBar()">&#127866; Koberei betreten</button>
+
+    <div class="game-divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 2. POKER – LIVE EMBED                       -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="koberei-banner">
+      <div class="koberei-ornament">
+        <div class="koberei-line"></div>
+        <span class="koberei-icon">♠</span>
+        <div class="koberei-line"></div>
+      </div>
+      <div class="koberei-title" style="background:linear-gradient(135deg,#D4AF37,#F4D03F,#D4AF37);-webkit-background-clip:text;background-clip:text;">Poker</div>
+      <div class="koberei-sub">Texas Hold'em · Live am Tisch</div>
+      <div class="koberei-features">
+        <div class="koberei-feat"><span class="koberei-feat-icon">🎤</span> Sprache</div>
+        <div class="koberei-feat"><span class="koberei-feat-icon">📷</span> Video</div>
+        <div class="koberei-feat"><span class="koberei-feat-icon">💬</span> Chat</div>
+        <div class="koberei-feat"><span class="koberei-feat-icon">👥</span> Multiplayer</div>
+      </div>
+    </div>
+    <div class="live-embed-wrap">
+      <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcPoker">0</b> am Poker</div>
       <div class="live-embed-frame embed-adjustable" id="pokerEmbedWrap" data-embed="poker">
         <div class="embed-drag-handle" data-drag="pokerEmbedWrap"></div>
         <div class="embed-controls">
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();toggleLockEmbed('pokerEmbedWrap', this)" title="Sperren">&#x1F513;</button>
           <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('pokerEmbedWrap', this)" title="Speichern">💾</button>
           <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('pokerEmbedWrap')" title="Zurücksetzen">↺</button>
         </div>
-        <iframe id="pokerEmbed" src="/games/poker.html?embed=1&table=embed-preview" class="live-iframe" allow="camera;microphone" loading="lazy" style="pointer-events:none;"></iframe>
+        <iframe id="pokerEmbed" src="/games/poker.html?embed=1&table=embed-preview" class="live-iframe" allow="camera;microphone;autoplay" loading="lazy" style="pointer-events:none;"></iframe>
         <div class="embed-click-overlay" onclick="openPoker()"></div>
         <div class="slot-fullscreen-bar" onclick="openPoker()">
           <div class="live-overlay-text">&#9824; Vollbild &ouml;ffnen &amp; mitspielen &#9824;</div>
@@ -1346,13 +2162,13 @@
       </div>
     </div>
 
-    <div class="table-select-inline">
-      <label>Tisch:</label>
-      <select id="pkTableSelect">
-        <option value="tisch-1">Tisch 1</option>
-        <option value="tisch-2">Tisch 2</option>
-      </select>
+    <div class="wodding-row" id="pokerWoddings">
+      <button class="wodding-btn active" onclick="selectPokerWodding(this,'tisch-1')">🚐 Wodding 1</button>
+      <button class="wodding-btn" onclick="selectPokerWodding(this,'tisch-2')">🚐 Wodding 2</button>
+      <button class="wodding-btn" onclick="selectPokerWodding(this,'tisch-3')">🚐 Wodding 3</button>
+      <button class="wodding-btn" onclick="selectPokerWodding(this,'tisch-4')">🚐 Wodding 4</button>
     </div>
+    <input type="hidden" id="pkTableSelect" value="tisch-1">
     <button class="cta-play" onclick="openPoker()">
       &#9824; Texas Hold'em Spielen
     </button>
@@ -1360,15 +2176,108 @@
     <div class="game-divider"></div>
 
     <!-- ═══════════════════════════════════════════ -->
-    <!-- 2. SLOT MACHINE – LIVE EMBED               -->
+    <!-- 2. BLACKJACK TABLE HERO                    -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="koberei-banner">
+      <div class="koberei-ornament">
+        <div class="koberei-line"></div>
+        <span class="koberei-icon">🃏</span>
+        <div class="koberei-line"></div>
+      </div>
+      <div class="koberei-title" style="background:linear-gradient(135deg,#D4AF37,#F4D03F,#D4AF37);-webkit-background-clip:text;background-clip:text;">Blackjack</div>
+      <div class="koberei-sub">Blackjack zahlt 3:2 · Dealer steht bei 17</div>
+      <div class="koberei-features">
+        <div class="koberei-feat"><span class="koberei-feat-icon">🃏</span> Live Karten</div>
+        <div class="koberei-feat"><span class="koberei-feat-icon">👥</span> Multiplayer</div>
+        <div class="koberei-feat"><span class="koberei-feat-icon">🤖</span> KI Gegner</div>
+        <div class="koberei-feat"><span class="koberei-feat-icon">📹</span> Video Chat</div>
+      </div>
+    </div>
+    <div class="live-embed-wrap">
+      <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcBJ">0</b> am Blackjack</div>
+      <div class="live-embed-frame embed-adjustable" id="bjEmbedWrap" data-embed="blackjack" style="height:320px;">
+        <div class="embed-drag-handle" data-drag="bjEmbedWrap"></div>
+        <div class="embed-controls">
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();toggleLockEmbed('bjEmbedWrap', this)" title="Sperren">&#x1F513;</button>
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('bjEmbedWrap', this)" title="Speichern">&#x1F4BE;</button>
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('bjEmbedWrap')" title="Zur&uuml;cksetzen">&#x21BA;</button>
+        </div>
+        <iframe src="/games/blackjack.html?embed=1" class="live-iframe" allow="autoplay" loading="lazy" style="pointer-events:none;"></iframe>
+        <div class="embed-click-overlay" onclick="openBlackjack()"></div>
+        <div class="slot-fullscreen-bar" onclick="openBlackjack()">
+          <div class="live-overlay-text">🃏 Blackjack spielen 🃏</div>
+        </div>
+        <div class="embed-resize-handle" data-resize="bjEmbedWrap"></div>
+      </div>
+    </div>
+    <div class="wodding-row" id="bjWoddings">
+      <button class="wodding-btn active" onclick="selectBJWodding(this,'tisch-1')">🚐 Wodding 1</button>
+      <button class="wodding-btn" onclick="selectBJWodding(this,'tisch-2')">🚐 Wodding 2</button>
+      <button class="wodding-btn" onclick="selectBJWodding(this,'tisch-3')">🚐 Wodding 3</button>
+    </div>
+    <input type="hidden" id="bjTableSelect" value="tisch-1">
+    <button class="cta-play cta-bj" onclick="openBlackjack()" style="background:linear-gradient(135deg,#8B6914,#D4AF37);box-shadow:0 4px 20px rgba(212,175,55,.4);">
+      &#9827; Blackjack Spielen
+    </button>
+
+    <div class="game-divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 4. ROULETTE                                 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="koberei-banner">
+      <div class="koberei-ornament">
+        <div class="koberei-line"></div>
+        <span class="koberei-icon">🎰</span>
+        <div class="koberei-line"></div>
+      </div>
+      <div class="koberei-title" style="background:linear-gradient(135deg,#0d6e30,#4caf50,#0d6e30);-webkit-background-clip:text;background-clip:text;">Roulette</div>
+      <div class="koberei-sub">Europäisches Roulette · Live am Tisch</div>
+      <div class="koberei-features">
+        <div class="koberei-feat"><span class="koberei-feat-icon">🎡</span> 3D Rad</div>
+        <div class="koberei-feat"><span class="koberei-feat-icon">💬</span> Live Chat</div>
+        <div class="koberei-feat"><span class="koberei-feat-icon">👥</span> Multiplayer</div>
+        <div class="koberei-feat"><span class="koberei-feat-icon">🏆</span> Echtzeit</div>
+      </div>
+    </div>
+    <div class="live-embed-wrap">
+      <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcRoulette">0</b> am Roulette</div>
+      <div class="live-embed-frame embed-adjustable" id="rlEmbedWrap" data-embed="roulette" style="height:520px;">
+        <div class="embed-drag-handle" data-drag="rlEmbedWrap"></div>
+        <div class="embed-controls">
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();toggleLockEmbed('rlEmbedWrap', this)" title="Sperren">&#x1F513;</button>
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('rlEmbedWrap', this)" title="Speichern">&#x1F4BE;</button>
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('rlEmbedWrap')" title="Zur&uuml;cksetzen">&#x21BA;</button>
+        </div>
+        <iframe src="/games/roulette.html?embed=1" class="live-iframe" allow="autoplay" loading="lazy" style="pointer-events:none;width:calc(100%/0.5);height:calc(100%/0.5);transform:scale(0.5);transform-origin:top left;"></iframe>
+        <div class="embed-click-overlay" onclick="openRoulette()"></div>
+        <div class="slot-fullscreen-bar" onclick="openRoulette()">
+          <div class="live-overlay-text">🎰 Roulette spielen 🎰</div>
+        </div>
+        <div class="embed-resize-handle" data-resize="rlEmbedWrap"></div>
+      </div>
+    </div>
+    <div class="wodding-row" id="rlWoddings">
+      <button class="wodding-btn active" onclick="selectRouletteWodding(this,'tisch-1')">🚐 Wodding 1</button>
+      <button class="wodding-btn" onclick="selectRouletteWodding(this,'tisch-2')">🚐 Wodding 2</button>
+      <button class="wodding-btn" onclick="selectRouletteWodding(this,'tisch-3')">🚐 Wodding 3</button>
+    </div>
+    <input type="hidden" id="rlTableSelect" value="tisch-1">
+    <button class="cta-play" onclick="openRoulette()" style="background:linear-gradient(135deg,#0d6e30,#1a8a3e);box-shadow:0 4px 20px rgba(13,110,48,.4);">
+      🎰 Roulette Spielen
+    </button>
+
+    <div class="game-divider"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 5. SLOT MACHINE – LIVE EMBED               -->
     <!-- ═══════════════════════════════════════════ -->
     <div class="live-embed-wrap">
-      <div class="lp-badge lp-badge-slot">
-        <span class="lp-dot lp-dot-slot"></span> SLOT PREVIEW
-      </div>
+      <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcSlots">0</b> an den Slots</div>
       <div class="slot-embed-frame embed-adjustable" id="slotEmbedWrap" data-embed="slot">
         <div class="embed-drag-handle" data-drag="slotEmbedWrap"></div>
         <div class="embed-controls">
+          <button class="embed-ctrl-btn" onclick="event.stopPropagation();toggleLockEmbed('slotEmbedWrap', this)" title="Sperren">&#x1F513;</button>
           <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('slotEmbedWrap', this)" title="Speichern">💾</button>
           <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('slotEmbedWrap')" title="Zurücksetzen">↺</button>
         </div>
@@ -1381,105 +2290,16 @@
       </div>
     </div>
 
+    <div class="wodding-row" id="slotWoddings">
+      <button class="wodding-btn active" onclick="selectSlotWodding(this,1)">🎰 Slot 1</button>
+      <button class="wodding-btn" onclick="selectSlotWodding(this,2)">🎰 Slot 2</button>
+      <button class="wodding-btn" onclick="selectSlotWodding(this,3)">🎰 Slot 3</button>
+    </div>
     <button class="cta-play cta-slot" onclick="playGame()">
       &#129430; Stachelingo Spielen
     </button>
 
     <div class="game-divider"></div>
-
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- 3. BLACKJACK TABLE HERO                    -->
-    <!-- ═══════════════════════════════════════════ -->
-    <div class="bj-hero" onclick="openBlackjack()">
-      <div class="bj-table">
-        <div class="bj-logo">
-          <div class="bj-logo-text">&#9827; Blackjack &#9830;</div>
-          <div class="bj-payout">Blackjack zahlt 3:2</div>
-        </div>
-
-        <div class="bj-dealer-label">Dealer</div>
-        <div class="bj-dealer-area">
-          <div class="bj-card">A<span class="bj-suit">&#9824;</span></div>
-          <div class="bj-card back"></div>
-        </div>
-
-        <div class="bj-spots">
-          <div class="bj-spot occupied">
-            <div class="bj-spot-cards">
-              <div class="bj-mini-card">K<span class="red">&#9829;</span></div>
-              <div class="bj-mini-card">Q<span class="red">&#9830;</span></div>
-            </div>
-            <div class="bj-spot-value">20</div>
-            <div class="bj-spot-name">Mira</div>
-            <div class="bj-spot-bet">&#128176; 500</div>
-          </div>
-          <div class="bj-spot">
-            <div class="bj-spot-cards">
-              <div class="bj-mini-card back"></div><div class="bj-mini-card back"></div>
-            </div>
-            <div class="bj-spot-name">Platz frei</div>
-          </div>
-          <div class="bj-spot occupied">
-            <div class="bj-spot-cards">
-              <div class="bj-mini-card">A<span class="red">&#9829;</span></div>
-              <div class="bj-mini-card">J<span>&#9824;</span></div>
-            </div>
-            <div class="bj-spot-value" style="color:#4d4">BJ!</div>
-            <div class="bj-spot-name">Romano</div>
-            <div class="bj-spot-bet">&#128176; 1.000</div>
-          </div>
-          <div class="bj-spot">
-            <div class="bj-spot-cards">
-              <div class="bj-mini-card back"></div><div class="bj-mini-card back"></div>
-            </div>
-            <div class="bj-spot-name">Platz frei</div>
-          </div>
-        </div>
-
-        <div class="bj-glow"></div>
-      </div>
-      <div class="bj-join-hint">&#9827; Nimm Platz am Tisch &#9827;</div>
-    </div>
-
-    <div class="table-select-inline">
-      <label>Tisch:</label>
-      <select id="bjTableSelect">
-        <option value="tisch-1">Tisch 1</option>
-        <option value="tisch-2">Tisch 2</option>
-        <option value="tisch-3">Tisch 3</option>
-      </select>
-    </div>
-    <button class="cta-play cta-bj" onclick="openBlackjack()">
-      &#9827; Blackjack Spielen
-    </button>
-
-    <div class="game-divider"></div>
-
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- 4. BAR – LIVE EMBED                        -->
-    <!-- ═══════════════════════════════════════════ -->
-    <div class="live-embed-wrap">
-      <div class="lp-badge" style="background:linear-gradient(135deg,rgba(139,90,43,.5),rgba(80,50,20,.7))">
-        <span class="lp-dot" style="background:#D4AF37"></span> DIE BAR
-      </div>
-      <div class="live-embed-frame embed-adjustable" id="barEmbedWrap" data-embed="bar">
-        <div class="embed-drag-handle" data-drag="barEmbedWrap"></div>
-        <div class="embed-controls">
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('barEmbedWrap', this)" title="Speichern">&#x1F4BE;</button>
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('barEmbedWrap')" title="Zur&uuml;cksetzen">&#x21BA;</button>
-        </div>
-        <iframe src="/games/bar.html?embed=1" class="live-iframe" allow="camera;microphone" loading="lazy" style="pointer-events:none;"></iframe>
-        <div class="embed-click-overlay" onclick="openBar()"></div>
-        <div class="slot-fullscreen-bar" onclick="openBar()">
-          <div class="live-overlay-text">&#127866; Bar betreten &#127866;</div>
-        </div>
-        <div class="embed-resize-handle" data-resize="barEmbedWrap"></div>
-      </div>
-    </div>
-
-    <button class="cta-play" onclick="openBar()" style="
-      background:linear-gradient(135deg,rgba(139,90,43,.4),rgba(80,50,20,.6));
-    ">&#127866; Die Bar betreten</button>
 
     <!-- ═══════════════════════════════════════════════════════════ -->
     <!-- BAXT COINS PROMO SECTION -->
@@ -1606,10 +2426,20 @@
       </div>
 
       <div class="auth-error" id="authError"></div>
+      <div class="auth-success" id="authSuccess"></div>
+
+      <!-- GOOGLE SIGN-IN -->
+      <button class="google-btn" onclick="doGoogleSignIn()" id="googleSignInBtn">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Mit Google anmelden
+      </button>
+
+      <div class="auth-divider">oder</div>
 
       <!-- REGISTER FORM -->
       <form id="registerForm" onsubmit="doRegister(event)">
         <input class="auth-input" type="text" id="regUsername" placeholder="Dein Spielername" maxlength="20" required>
+        <input class="auth-input" type="email" id="regEmail" placeholder="E-Mail (für Passwort-Reset)" required>
         <input class="auth-input" type="tel" id="regPhone" placeholder="Handy-Nummer" required>
         <input class="auth-input" type="password" id="regPin" placeholder="4-stelliger PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
         <button class="auth-submit" type="submit">&#129430; Jetzt Mitglied werden</button>
@@ -1620,8 +2450,175 @@
         <input class="auth-input" type="tel" id="loginPhone" placeholder="Handy-Nummer" required>
         <input class="auth-input" type="password" id="loginPin" placeholder="4-stelliger PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
         <button class="auth-submit" type="submit">Anmelden</button>
+        <span class="auth-link" onclick="showForgotPassword()">PIN vergessen?</span>
+      </form>
+
+      <!-- FORGOT PASSWORD FORM -->
+      <form id="forgotForm" onsubmit="doForgotPassword(event)" style="display:none">
+        <p style="color:#aaa;font-size:13px;margin-bottom:12px">Gib deine E-Mail ein. Wir senden dir einen Code zum Zurücksetzen.</p>
+        <input class="auth-input" type="email" id="forgotEmail" placeholder="Deine E-Mail" required>
+        <button class="auth-submit" type="submit">Code senden</button>
+        <span class="auth-link" onclick="switchTab('login')">← Zurück zum Login</span>
+      </form>
+
+      <!-- RESET PIN FORM -->
+      <form id="resetForm" onsubmit="doResetPin(event)" style="display:none">
+        <p style="color:#aaa;font-size:13px;margin-bottom:12px">Code aus deiner E-Mail eingeben:</p>
+        <div class="verify-code-inputs" id="resetCodeInputs">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        </div>
+        <input class="auth-input" type="password" id="resetNewPin" placeholder="Neuer 4-stelliger PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
+        <button class="auth-submit" type="submit">PIN zurücksetzen</button>
+        <span class="auth-link" onclick="switchTab('login')">← Zurück zum Login</span>
       </form>
     </div>
+  </div>
+
+  <!-- WELCOME ONBOARDING -->
+  <div class="welcome-overlay" id="welcomeOverlay">
+    <div class="welcome-modal">
+      <!-- Step 1: Willkommen -->
+      <div class="welcome-step active" id="welcomeStep1">
+        <div style="font-size:64px;margin-bottom:8px">🦔</div>
+        <h2>Willkommen!</h2>
+        <div class="welcome-sub">Beim Reisendes Casino – Put Baxt!</div>
+        <div class="welcome-bonus">500 ₿ Willkommensbonus</div>
+        <p style="color:#aaa;font-size:13px;margin-bottom:16px">Spiele Poker, Blackjack, Roulette & Slots mit deinen Freunden. Ganz ohne Echtgeld!</p>
+        <button class="auth-submit" onclick="welcomeNext(2)">Los geht's!</button>
+      </div>
+      <!-- Step 2: Name -->
+      <div class="welcome-step" id="welcomeStep2">
+        <h2>Wie heißt du?</h2>
+        <div class="welcome-sub">Wähle deinen Spielernamen</div>
+        <input class="auth-input" type="text" id="welcomeName" placeholder="Dein Name" maxlength="20" style="text-align:center;font-size:18px;margin:16px 0">
+        <button class="auth-submit" onclick="welcomeNext(3)">Weiter</button>
+      </div>
+      <!-- Step 3: Avatar -->
+      <div class="welcome-step" id="welcomeStep3">
+        <h2>Dein Avatar</h2>
+        <div class="welcome-sub">Wähle ein Emoji</div>
+        <div class="welcome-avatar-grid" id="welcomeAvatarGrid"></div>
+        <div style="margin:12px 0">
+          <div id="welcomeAvatarPreview" style="width:72px;height:72px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:36px;border:3px solid #D4AF37"></div>
+        </div>
+        <button class="auth-submit" onclick="welcomeFinish()">Spielen! 🎰</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BROKE MODAL -->
+  <div class="broke-overlay" id="brokeOverlay" onclick="if(event.target===this)closeBroke()">
+    <div class="broke-modal">
+      <div style="font-size:48px;margin-bottom:8px" id="brokeEmoji">😢</div>
+      <h3 style="color:#D4AF37;margin:0 0 8px" id="brokeTitle">Alles verspielt!</h3>
+      <p style="color:#aaa;font-size:13px" id="brokeText"></p>
+      <!-- Gast: Registrieren für 5000 -->
+      <div id="brokeGuestSection" style="display:none">
+        <div style="font-size:28px;font-weight:bold;color:#D4AF37;margin:12px 0">5.000 ₿ Registrierungsbonus!</div>
+        <button class="auth-submit" onclick="closeBroke();showAuth('register')">Jetzt registrieren</button>
+        <span class="auth-link" onclick="closeBroke()" style="margin-top:8px;display:block">Später</span>
+      </div>
+      <!-- Registriert: Cooldown Timer -->
+      <div id="brokeUserSection" style="display:none">
+        <div class="broke-timer" id="brokeTimer">--:--</div>
+        <p style="color:#aaa;font-size:12px" id="brokeRefillInfo">Nachschub in Kürze...</p>
+        <button class="auth-submit" id="brokeRefillBtn" onclick="doRefill()" style="display:none">Nachschub holen!</button>
+        <button class="broke-ad-btn" id="brokeAdBtn" onclick="doAdRefill()">📺 Werbung schauen → 100 ₿ sofort</button>
+        <span class="auth-link" onclick="closeBroke()" style="margin-top:8px;display:block">Schließen</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMAIL VERIFY MODAL -->
+  <div class="verify-overlay" id="verifyOverlay" onclick="if(event.target===this)closeVerify()">
+    <div class="verify-modal">
+      <button class="auth-close" onclick="closeVerify()">&times;</button>
+      <div style="font-size:48px;margin-bottom:8px">📧</div>
+      <h3 style="color:#D4AF37;margin:0 0 8px">E-Mail verifizieren</h3>
+      <p style="color:#aaa;font-size:13px;margin-bottom:16px" id="verifyEmailHint">Wir haben einen Code an deine E-Mail gesendet.</p>
+      <div class="auth-error" id="verifyError"></div>
+      <div class="auth-success" id="verifySuccess"></div>
+      <div class="verify-code-inputs" id="verifyCodeInputs">
+        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+      </div>
+      <button class="auth-submit" onclick="doVerifyEmail()" style="margin-top:8px">Verifizieren</button>
+      <span class="auth-link" onclick="resendVerifyCode()">Code erneut senden</span>
+      <span class="auth-link" onclick="closeVerify()" style="margin-top:4px;opacity:.5">Später verifizieren</span>
+    </div>
+  </div>
+
+  <!-- PROFILE MODAL -->
+  <div class="profile-overlay" id="profileOverlay" onclick="if(event.target===this)closeProfile()">
+    <div class="profile-modal">
+      <button class="profile-close" onclick="closeProfile()">&times;</button>
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar-big" id="profileAvatarBig" onclick="openAvatarEditor()" title="Avatar ändern"></div>
+        <div class="profile-username" id="profileUsername">-</div>
+        <div class="profile-rang" id="profileRang">-</div>
+      </div>
+      <div class="profile-xp-bar"><div class="profile-xp-fill" id="profileXpFill" style="width:0%"></div></div>
+      <div class="profile-xp-text" id="profileXpText">0 / 500 XP</div>
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <div class="profile-stat-val" id="profStatLevel">1</div>
+          <div class="profile-stat-label">Level</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-val" id="profStatBaxt">0</div>
+          <div class="profile-stat-label">Baxt Coins</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-val" id="profStatRounds">0</div>
+          <div class="profile-stat-label">Runden</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-val" id="profStatWins">0</div>
+          <div class="profile-stat-label">Gewonnen</div>
+        </div>
+      </div>
+      <button class="profile-btn" onclick="openAvatarEditor()">🎨 Avatar ändern</button>
+      <div id="profileEmailSection" style="margin-top:12px;padding:12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:13px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <span style="color:#aaa">E-Mail:</span>
+          <span id="profileEmailVal" style="color:#F0E6D3">—</span>
+          <span id="profileVerifyBadge" style="display:none;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:bold"></span>
+        </div>
+        <button class="profile-btn" id="profileVerifyBtn" onclick="openVerify()" style="display:none;font-size:12px;padding:8px 12px;margin-top:4px">📧 E-Mail verifizieren</button>
+        <button class="profile-btn" id="profileAddEmailBtn" onclick="promptAddEmail()" style="display:none;font-size:12px;padding:8px 12px;margin-top:4px">📧 E-Mail hinzufügen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AVATAR EDITOR -->
+  <div class="avatar-editor-overlay" id="avatarEditorOverlay" onclick="if(event.target===this)closeAvatarEditor()">
+    <div class="avatar-editor">
+      <button class="profile-close" onclick="closeAvatarEditor()">&times;</button>
+      <h3>Avatar erstellen</h3>
+      <div class="avatar-preview-area">
+        <div class="avatar-preview" id="avatarPreview"></div>
+      </div>
+      <div class="avatar-section-label">Farbe wählen</div>
+      <div class="avatar-color-grid" id="avatarColorGrid"></div>
+      <div class="avatar-section-label">Symbol wählen</div>
+      <div class="avatar-emoji-grid" id="avatarEmojiGrid"></div>
+      <button class="profile-btn" onclick="saveAvatar()" style="margin-top:18px">💾 Avatar speichern</button>
+    </div>
+  </div>
+
+  <!-- FLOATING BALANCE -->
+  <div class="balance-float" id="balanceFloat">
+    <div class="balance-float-label">Kontostand</div>
+    <div class="balance-float-val" id="balanceFloatVal">0 ₿</div>
   </div>
 
   <!-- TOAST -->
@@ -1660,21 +2657,59 @@
     }
 
     function playGame() {
-      openGameInFrame('/games/book-of-baxt.html?embed=1');
+      openGameInFrame('/games/book-of-baxt.html');
     }
 
     function openBlackjack() {
       const table = document.getElementById('bjTableSelect').value;
-      openGameInFrame('/games/blackjack.html?table=' + table + '&embed=1');
+      openGameInFrame('/games/blackjack.html?table=' + table);
+    }
+
+    function openRoulette() {
+      const table = document.getElementById('rlTableSelect').value;
+      openGameInFrame('/games/roulette.html?table=' + table);
+    }
+
+    function selectRouletteWodding(btn, table) {
+      btn.closest('.wodding-row').querySelectorAll('.wodding-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('rlTableSelect').value = table;
+    }
+
+    function selectBJWodding(btn, table) {
+      btn.closest('.wodding-row').querySelectorAll('.wodding-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('bjTableSelect').value = table;
     }
 
     function openPoker() {
+      // Fullscreen: ohne embed=1 damit Interaktion möglich ist
       const table = document.getElementById('pkTableSelect').value;
-      openGameInFrame('/games/poker.html?table=' + table + '&embed=1');
+      openGameInFrame('/games/poker.html?table=' + table);
+    }
+
+    function selectWodding(btn, num) {
+      btn.closest('.wodding-row').querySelectorAll('.wodding-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('barRoomSelect').value = num;
+    }
+
+    function selectPokerWodding(btn, table) {
+      btn.closest('.wodding-row').querySelectorAll('.wodding-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('pkTableSelect').value = table;
+    }
+
+    let selectedSlot = 1;
+    function selectSlotWodding(btn, num) {
+      btn.closest('.wodding-row').querySelectorAll('.wodding-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedSlot = num;
     }
 
     function openBar() {
-      openGameInFrame('/games/bar.html?embed=1');
+      const room = document.getElementById('barRoomSelect').value;
+      openGameInFrame('/games/bar.html?room=' + room);
     }
 
     // =========================================================================
@@ -1757,6 +2792,16 @@
     // =========================================================================
     const API = window.location.origin;
 
+    // Google Client ID vom Server holen
+    window.__GOOGLE_CLIENT_ID = null;
+    fetch(API + '/api/config').then(r => r.json()).then(cfg => {
+      window.__GOOGLE_CLIENT_ID = cfg.googleClientId;
+      if (!cfg.googleClientId) {
+        const gBtn = document.getElementById('googleSignInBtn');
+        if (gBtn) gBtn.style.display = 'none';
+      }
+    }).catch(() => {});
+
     function getToken() { return localStorage.getItem('casinoToken'); }
     function setToken(t) { localStorage.setItem('casinoToken', t); }
     function getUser() {
@@ -1778,12 +2823,22 @@
 
     function switchTab(tab) {
       const isReg = tab === 'register';
+      const isLogin = tab === 'login';
+      const isForgot = tab === 'forgot';
+      const isReset = tab === 'reset';
       document.getElementById('tabRegister').classList.toggle('active', isReg);
-      document.getElementById('tabLogin').classList.toggle('active', !isReg);
+      document.getElementById('tabLogin').classList.toggle('active', isLogin);
       document.getElementById('registerForm').style.display = isReg ? 'block' : 'none';
-      document.getElementById('loginForm').style.display = isReg ? 'none' : 'block';
-      document.getElementById('authTitle').textContent = isReg ? 'Mitglied werden' : 'Anmelden';
+      document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+      document.getElementById('forgotForm').style.display = isForgot ? 'block' : 'none';
+      document.getElementById('resetForm').style.display = isReset ? 'block' : 'none';
+      document.getElementById('authTitle').textContent = isReg ? 'Mitglied werden' : isForgot ? 'PIN vergessen' : isReset ? 'PIN zurücksetzen' : 'Anmelden';
       document.getElementById('authError').style.display = 'none';
+      document.getElementById('authSuccess').style.display = 'none';
+      // Tabs nur bei register/login zeigen
+      document.querySelector('.auth-tabs').style.display = (isReg || isLogin) ? 'flex' : 'none';
+      document.getElementById('googleSignInBtn').style.display = (isReg || isLogin) ? 'flex' : 'none';
+      document.querySelector('.auth-divider').style.display = (isReg || isLogin) ? 'flex' : 'none';
     }
 
     function showAuthError(msg) {
@@ -1795,6 +2850,7 @@
     async function doRegister(e) {
       e.preventDefault();
       const username = document.getElementById('regUsername').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
       const phone = document.getElementById('regPhone').value.trim();
       const pin = document.getElementById('regPin').value;
 
@@ -1805,18 +2861,27 @@
         const res = await fetch(API + '/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, phone, pin })
+          body: JSON.stringify({ username, email, phone, pin })
         });
         const data = await res.json();
-        if (!res.ok) { showAuthError(data.error === 'Phone already registered' ? 'Nummer bereits registriert!' : (data.error || 'Fehler')); return; }
+        if (!res.ok) {
+          const errMap = { 'Phone already registered': 'Nummer bereits registriert!', 'Email already registered': 'E-Mail bereits registriert!' };
+          showAuthError(errMap[data.error] || data.error || 'Fehler');
+          return;
+        }
 
         setToken(data.token);
         setUser(data.user);
         closeAuth();
         updateAuthUI();
-        showToast('Willkommen ' + data.user.username + '! &#129430;');
+        showToast('Willkommen ' + data.user.username + '! 🦔');
+
+        // E-Mail Verifizierung anzeigen wenn Code gesendet wurde
+        if (data.emailSent) {
+          setTimeout(() => openVerify(), 800);
+        }
       } catch(err) {
-        showAuthError('Verbindungsfehler &ndash; Server l&auml;uft?');
+        showAuthError('Verbindungsfehler – Server läuft?');
       }
     }
 
@@ -1851,19 +2916,483 @@
       showToast('Abgemeldet');
     }
 
+    // =========================================================================
+    // FORGOT PASSWORD / PIN RESET
+    // =========================================================================
+    let resetEmail = '';
+
+    function showForgotPassword() {
+      switchTab('forgot');
+    }
+
+    async function doForgotPassword(e) {
+      e.preventDefault();
+      resetEmail = document.getElementById('forgotEmail').value.trim();
+      try {
+        const res = await fetch(API + '/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: resetEmail })
+        });
+        const data = await res.json();
+        showAuthSuccess('Falls ein Konto mit dieser E-Mail existiert, wurde ein Code gesendet!');
+        switchTab('reset');
+      } catch(err) {
+        showAuthError('Verbindungsfehler');
+      }
+    }
+
+    async function doResetPin(e) {
+      e.preventDefault();
+      const codeInputs = document.querySelectorAll('#resetCodeInputs input');
+      const code = Array.from(codeInputs).map(i => i.value).join('');
+      const newPin = document.getElementById('resetNewPin').value;
+
+      if (code.length !== 6) { showAuthError('Bitte alle 6 Ziffern eingeben'); return; }
+      if (newPin.length !== 4) { showAuthError('PIN muss 4 Ziffern haben'); return; }
+
+      try {
+        const res = await fetch(API + '/api/auth/reset-pin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: resetEmail, code, newPin })
+        });
+        const data = await res.json();
+        if (!res.ok) { showAuthError(data.error || 'Fehler'); return; }
+        showAuthSuccess('PIN wurde zurückgesetzt! Du kannst dich jetzt anmelden.');
+        setTimeout(() => switchTab('login'), 1500);
+      } catch(err) {
+        showAuthError('Verbindungsfehler');
+      }
+    }
+
+    function showAuthSuccess(msg) {
+      const el = document.getElementById('authSuccess');
+      el.textContent = msg; el.style.display = 'block';
+      document.getElementById('authError').style.display = 'none';
+    }
+
+    // =========================================================================
+    // E-MAIL VERIFIZIERUNG
+    // =========================================================================
+    function openVerify() {
+      const user = getUser();
+      if (user && user.email) {
+        document.getElementById('verifyEmailHint').textContent = 'Code gesendet an: ' + user.email;
+      }
+      document.getElementById('verifyOverlay').classList.add('active');
+      document.getElementById('verifyError').style.display = 'none';
+      document.getElementById('verifySuccess').style.display = 'none';
+      // Auto-focus erstes Feld
+      const firstInput = document.querySelector('#verifyCodeInputs input');
+      if (firstInput) firstInput.focus();
+    }
+
+    function closeVerify() {
+      document.getElementById('verifyOverlay').classList.remove('active');
+    }
+
+    async function doVerifyEmail() {
+      const codeInputs = document.querySelectorAll('#verifyCodeInputs input');
+      const code = Array.from(codeInputs).map(i => i.value).join('');
+      if (code.length !== 6) {
+        document.getElementById('verifyError').textContent = 'Bitte alle 6 Ziffern eingeben';
+        document.getElementById('verifyError').style.display = 'block';
+        return;
+      }
+
+      try {
+        const res = await fetch(API + '/api/auth/verify-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+          body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          document.getElementById('verifyError').textContent = data.error || 'Fehler';
+          document.getElementById('verifyError').style.display = 'block';
+          return;
+        }
+        document.getElementById('verifySuccess').textContent = 'E-Mail verifiziert! ✓';
+        document.getElementById('verifySuccess').style.display = 'block';
+        document.getElementById('verifyError').style.display = 'none';
+        showToast('E-Mail verifiziert! ✓');
+        setTimeout(() => closeVerify(), 1500);
+      } catch(err) {
+        document.getElementById('verifyError').textContent = 'Verbindungsfehler';
+        document.getElementById('verifyError').style.display = 'block';
+      }
+    }
+
+    async function resendVerifyCode() {
+      try {
+        const res = await fetch(API + '/api/auth/send-code', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
+        const data = await res.json();
+        showToast(data.success ? 'Code erneut gesendet!' : 'Fehler beim Senden');
+      } catch(e) {
+        showToast('Verbindungsfehler');
+      }
+    }
+
+    async function promptAddEmail() {
+      const email = prompt('E-Mail-Adresse eingeben:');
+      if (!email || !email.includes('@')) return;
+      try {
+        const res = await fetch(API + '/api/auth/email', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (!res.ok) { showToast(data.error || 'Fehler'); return; }
+        const user = getUser();
+        if (user) { user.email = email; setUser(user); }
+        showToast('E-Mail gespeichert!');
+        if (data.codeSent) setTimeout(() => openVerify(), 500);
+        loadMyProfile();
+      } catch(e) {
+        showToast('Verbindungsfehler');
+      }
+    }
+
+    // =========================================================================
+    // GOOGLE SIGN-IN
+    // =========================================================================
+    async function doGoogleSignIn() {
+      // Google Identity Services (GSI) – dynamisch laden
+      if (!window.google || !window.google.accounts) {
+        showAuthError('Google Sign-In wird geladen...');
+        const script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.onload = () => initGoogleSignIn();
+        document.head.appendChild(script);
+        return;
+      }
+      initGoogleSignIn();
+    }
+
+    function initGoogleSignIn() {
+      // Google Client ID wird vom Server geholt oder ist hardcoded
+      const clientId = window.__GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        showAuthError('Google Sign-In nicht konfiguriert');
+        return;
+      }
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleResponse
+      });
+      google.accounts.id.prompt(); // One-Tap anzeigen
+    }
+
+    async function handleGoogleResponse(response) {
+      try {
+        const res = await fetch(API + '/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential: response.credential })
+        });
+        const data = await res.json();
+        if (!res.ok) { showAuthError(data.error || 'Google-Login fehlgeschlagen'); return; }
+
+        setToken(data.token);
+        setUser(data.user);
+        closeAuth();
+        updateAuthUI();
+        showToast(data.isNewUser ? 'Willkommen ' + data.user.username + '! 🦔' : 'Willkommen zurück, ' + data.user.username + '! 🎰');
+      } catch(err) {
+        showAuthError('Verbindungsfehler');
+      }
+    }
+
+    // Code-Input Auto-Jump für alle Verify-Code-Inputs
+    document.querySelectorAll('.verify-code-inputs').forEach(container => {
+      const inputs = container.querySelectorAll('input');
+      inputs.forEach((input, i) => {
+        input.addEventListener('input', () => {
+          if (input.value.length === 1 && i < inputs.length - 1) inputs[i+1].focus();
+        });
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !input.value && i > 0) inputs[i-1].focus();
+        });
+        // Paste support
+        input.addEventListener('paste', (e) => {
+          e.preventDefault();
+          const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+          for (let j = 0; j < Math.min(paste.length, inputs.length); j++) {
+            inputs[j].value = paste[j];
+          }
+          if (paste.length >= inputs.length) inputs[inputs.length - 1].focus();
+        });
+      });
+    });
+
+    // =========================================================================
+    // WILLKOMMEN-ONBOARDING (Gast-Flow)
+    // =========================================================================
+    const WELCOME_EMOJIS = ['🐻','🦊','🐺','🦁','🐴','🐶','🐱','🦅','🐍','🦔','🐘','🦄','🐙','🐬','🦋','🌹','⭐','🔥','💎','🎭','🎪','🎠','🚐','🎸','🎵'];
+    const WELCOME_COLORS = ['#F39C12','#E74C3C','#3498DB','#2ECC71','#9B59B6','#1ABC9C','#E67E22','#34495E','#C0392B','#2980B9'];
+    let welcomeAvatar = { emoji: '🦔', color: '#F39C12' };
+
+    function checkFirstVisit() {
+      if (getToken()) return; // Eingeloggt → kein Onboarding
+      if (localStorage.getItem('casinoGuest')) return; // Schon Gast gewesen
+      document.getElementById('welcomeOverlay').classList.add('active');
+      // Avatar-Grid füllen
+      const grid = document.getElementById('welcomeAvatarGrid');
+      grid.innerHTML = '';
+      WELCOME_EMOJIS.forEach(em => {
+        const colorIdx = WELCOME_EMOJIS.indexOf(em) % WELCOME_COLORS.length;
+        const btn = document.createElement('div');
+        btn.className = 'welcome-avatar-opt' + (em === welcomeAvatar.emoji ? ' selected' : '');
+        btn.style.background = WELCOME_COLORS[colorIdx];
+        btn.textContent = em;
+        btn.onclick = () => {
+          welcomeAvatar.emoji = em;
+          welcomeAvatar.color = WELCOME_COLORS[colorIdx];
+          grid.querySelectorAll('.welcome-avatar-opt').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          updateWelcomePreview();
+        };
+        grid.appendChild(btn);
+      });
+      updateWelcomePreview();
+    }
+
+    function updateWelcomePreview() {
+      const p = document.getElementById('welcomeAvatarPreview');
+      p.style.background = welcomeAvatar.color;
+      p.textContent = welcomeAvatar.emoji;
+    }
+
+    function welcomeNext(step) {
+      if (step === 3) {
+        const name = document.getElementById('welcomeName').value.trim();
+        if (name.length < 2) { document.getElementById('welcomeName').style.borderColor = '#E74C3C'; return; }
+      }
+      document.querySelectorAll('.welcome-step').forEach(s => s.classList.remove('active'));
+      document.getElementById('welcomeStep' + step).classList.add('active');
+      if (step === 2) setTimeout(() => document.getElementById('welcomeName').focus(), 200);
+    }
+
+    function welcomeFinish() {
+      const name = document.getElementById('welcomeName').value.trim();
+      const guest = {
+        id: 'guest-' + Date.now(),
+        username: name,
+        baxtCoins: 500,
+        avatarConfig: welcomeAvatar,
+        isGuest: true
+      };
+      localStorage.setItem('casinoGuest', JSON.stringify(guest));
+      localStorage.setItem('guestBaxt', '500');
+      document.getElementById('welcomeOverlay').classList.remove('active');
+      updateAuthUI();
+      showToast('Willkommen ' + name + '! 500 ₿ Startguthaben! 🦔');
+    }
+
+    function getGuestBaxt() {
+      return parseInt(localStorage.getItem('guestBaxt') || '0');
+    }
+
+    function setGuestBaxt(val) {
+      localStorage.setItem('guestBaxt', String(Math.max(0, val)));
+    }
+
+    // =========================================================================
+    // PLEITE-MODAL (Broke Detection + Refill)
+    // =========================================================================
+    let brokeTimerInterval = null;
+
+    function checkBroke() {
+      const user = getUser();
+      const token = getToken();
+
+      if (user && token) {
+        // Registrierter User → Server fragen
+        fetch(API + '/api/baxt/refill-status', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        }).then(r => r.json()).then(data => {
+          if (data.baxtCoins === 0) showBrokeUser(data);
+        }).catch(() => {});
+      } else {
+        // Gast
+        const guest = JSON.parse(localStorage.getItem('casinoGuest') || 'null');
+        if (guest && getGuestBaxt() <= 0) {
+          showBrokeGuest();
+        }
+      }
+    }
+
+    function showBrokeGuest() {
+      document.getElementById('brokeEmoji').textContent = '💰';
+      document.getElementById('brokeTitle').textContent = 'Alles verspielt!';
+      document.getElementById('brokeText').textContent = 'Registriere dich jetzt und erhalte 5.000 Baxt Coins geschenkt!';
+      document.getElementById('brokeGuestSection').style.display = 'block';
+      document.getElementById('brokeUserSection').style.display = 'none';
+      document.getElementById('brokeOverlay').classList.add('active');
+    }
+
+    function showBrokeUser(data) {
+      document.getElementById('brokeEmoji').textContent = '😢';
+      document.getElementById('brokeTitle').textContent = 'Kein Guthaben mehr!';
+      document.getElementById('brokeGuestSection').style.display = 'none';
+      document.getElementById('brokeUserSection').style.display = 'block';
+
+      if (data.canRefill) {
+        // Sofort Nachschub möglich
+        document.getElementById('brokeTimer').textContent = 'Jetzt!';
+        document.getElementById('brokeRefillInfo').textContent = data.amount + ' ₿ Nachschub verfügbar';
+        document.getElementById('brokeRefillBtn').style.display = 'block';
+        document.getElementById('brokeAdBtn').style.display = 'none';
+        document.getElementById('brokeText').textContent = '';
+      } else if (data.remaining > 0) {
+        // Timer läuft
+        document.getElementById('brokeRefillBtn').style.display = 'none';
+        document.getElementById('brokeAdBtn').style.display = 'block';
+        document.getElementById('brokeText').textContent = 'Nachschub: ' + data.amount + ' ₿';
+        startBrokeTimer(data.remaining, data.amount);
+      }
+
+      document.getElementById('brokeOverlay').classList.add('active');
+    }
+
+    function startBrokeTimer(remainingMs, amount) {
+      if (brokeTimerInterval) clearInterval(brokeTimerInterval);
+      let remaining = Math.ceil(remainingMs / 1000);
+      const timerEl = document.getElementById('brokeTimer');
+      const infoEl = document.getElementById('brokeRefillInfo');
+      const refillBtn = document.getElementById('brokeRefillBtn');
+      const adBtn = document.getElementById('brokeAdBtn');
+
+      function update() {
+        if (remaining <= 0) {
+          clearInterval(brokeTimerInterval);
+          timerEl.textContent = 'Jetzt!';
+          infoEl.textContent = amount + ' ₿ Nachschub bereit!';
+          refillBtn.style.display = 'block';
+          adBtn.style.display = 'none';
+          return;
+        }
+        const min = Math.floor(remaining / 60);
+        const sec = remaining % 60;
+        timerEl.textContent = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+        infoEl.textContent = 'Nachschub in ' + (min > 0 ? min + ' Min ' : '') + sec + ' Sek';
+        remaining--;
+      }
+      update();
+      brokeTimerInterval = setInterval(update, 1000);
+    }
+
+    function closeBroke() {
+      document.getElementById('brokeOverlay').classList.remove('active');
+      if (brokeTimerInterval) clearInterval(brokeTimerInterval);
+    }
+
+    async function doRefill() {
+      try {
+        const res = await fetch(API + '/api/baxt/refill', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeBroke();
+          showToast('+' + data.amount + ' ₿ Nachschub! 🎉');
+          document.getElementById('balanceFloatVal').textContent = data.baxtCoins.toLocaleString('de-DE') + ' ₿';
+          // Baxt-Widget aktualisieren
+          if (window.baxtUpdateBalance) window.baxtUpdateBalance(data.baxtCoins);
+        } else {
+          showToast(data.error || 'Fehler');
+        }
+      } catch(e) {
+        showToast('Verbindungsfehler');
+      }
+    }
+
+    async function doAdRefill() {
+      // Hier würde echte Werbung laufen (z.B. Google AdMob)
+      // Für jetzt: simulierte Werbung (3 Sek warten)
+      const btn = document.getElementById('brokeAdBtn');
+      btn.disabled = true;
+      btn.textContent = '📺 Werbung läuft...';
+      setTimeout(async () => {
+        try {
+          const res = await fetch(API + '/api/baxt/ad-refill', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+          });
+          const data = await res.json();
+          if (data.success) {
+            closeBroke();
+            showToast('+' + data.amount + ' ₿ für Werbung! 🎬');
+            document.getElementById('balanceFloatVal').textContent = data.baxtCoins.toLocaleString('de-DE') + ' ₿';
+            if (window.baxtUpdateBalance) window.baxtUpdateBalance(data.baxtCoins);
+          } else {
+            showToast(data.error || 'Fehler');
+            btn.disabled = false;
+            btn.textContent = '📺 Werbung schauen → 100 ₿ sofort';
+          }
+        } catch(e) {
+          showToast('Verbindungsfehler');
+          btn.disabled = false;
+          btn.textContent = '📺 Werbung schauen → 100 ₿ sofort';
+        }
+      }, 3000);
+    }
+
+    // Broke-Check alle 10 Sekunden (nur wenn ein Spiel läuft)
+    setInterval(() => {
+      const user = getUser();
+      const guest = JSON.parse(localStorage.getItem('casinoGuest') || 'null');
+      if (!user && !guest) return;
+      // Nur prüfen wenn kein Modal offen
+      if (document.querySelector('.broke-overlay.active')) return;
+      if (document.querySelector('.welcome-overlay.active')) return;
+      // Hier könnte man die Balance live vom Server holen
+    }, 30000);
+
+    // =========================================================================
+    // AUTH UI
+    // =========================================================================
     function updateAuthUI() {
       const user = getUser();
       const token = getToken();
       const loggedIn = !!(user && token);
+      const guest = JSON.parse(localStorage.getItem('casinoGuest') || 'null');
+      const isGuest = !loggedIn && !!guest;
 
-      document.getElementById('loginBtn').style.display = loggedIn ? 'none' : '';
+      document.getElementById('loginBtn').style.display = (loggedIn || isGuest) ? 'none' : '';
       document.getElementById('registerBtn').style.display = loggedIn ? 'none' : '';
-      document.getElementById('userInfo').style.display = loggedIn ? 'flex' : 'none';
+      document.getElementById('userInfo').style.display = (loggedIn || isGuest) ? 'flex' : 'none';
+      document.getElementById('balanceFloat').style.display = (loggedIn || isGuest) ? 'block' : 'none';
 
       if (loggedIn) {
         document.getElementById('userName').textContent = user.username;
-        document.getElementById('userAvatar').textContent = user.username.charAt(0).toUpperCase();
+        // Restore avatar from saved config or DiceBear
+        const savedCfg = user.avatarConfig;
+        const hdrAvatar = document.getElementById('userAvatar');
+        if (savedCfg && savedCfg.emoji) {
+          hdrAvatar.textContent = savedCfg.emoji;
+          hdrAvatar.style.background = savedCfg.color || '';
+          currentAvatarConfig = savedCfg;
+        } else {
+          hdrAvatar.innerHTML = '<img src="https://api.dicebear.com/9.x/toon-head/svg?seed=' + encodeURIComponent(user.username) + '" style="width:100%;height:100%;border-radius:50%">';
+        }
         loadMyProfile();
+      } else if (isGuest) {
+        document.getElementById('userName').textContent = guest.username;
+        const hdrAvatar = document.getElementById('userAvatar');
+        if (guest.avatarConfig && guest.avatarConfig.emoji) {
+          hdrAvatar.textContent = guest.avatarConfig.emoji;
+          hdrAvatar.style.background = guest.avatarConfig.color || '';
+          currentAvatarConfig = guest.avatarConfig;
+        }
+        document.getElementById('userRank').textContent = 'Gast';
+        document.getElementById('balanceFloatVal').textContent = getGuestBaxt().toLocaleString('de-DE') + ' ₿';
       }
     }
 
@@ -1871,13 +3400,32 @@
       const token = getToken();
       if (!token) return;
       try {
-        const res = await fetch(API + '/api/profile', {
+        const res = await fetch(API + '/api/auth/profile', {
           headers: { 'Authorization': 'Bearer ' + token }
         });
         if (res.ok) {
           const data = await res.json();
           const rankEl = document.getElementById('userRank');
           rankEl.textContent = data.rang + ' \u00B7 Level ' + data.level;
+          document.getElementById('balanceFloatVal').textContent = (data.baxtCoins || 0).toLocaleString('de-DE') + ' ₿';
+        }
+        // Fetch avatar config from server and sync locally
+        const avRes = await fetch(API + '/api/user/avatar', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (avRes.ok) {
+          const av = await avRes.json();
+          if (av.avatarConfig && av.avatarConfig.emoji) {
+            currentAvatarConfig = av.avatarConfig;
+            const hdr = document.getElementById('userAvatar');
+            hdr.textContent = av.avatarConfig.emoji;
+            hdr.style.background = av.avatarConfig.color || '';
+            const user = getUser();
+            if (user) {
+              user.avatarConfig = av.avatarConfig;
+              localStorage.setItem('casinoUser', JSON.stringify(user));
+            }
+          }
         }
       } catch(e) {}
     }
@@ -1905,6 +3453,17 @@
           document.getElementById('onlinePoker').textContent = d.poker || 0;
           document.getElementById('onlineBJ').textContent = d.blackjack || 0;
           document.getElementById('onlineSlots').textContent = d.slots || 0;
+          // Game counters über jedem Fenster
+          document.getElementById('gcBar').textContent = d.bar || 0;
+          document.getElementById('gcPoker').textContent = d.poker || 0;
+          document.getElementById('gcSlots').textContent = d.slots || 0;
+          document.getElementById('gcBJ').textContent = d.blackjack || 0;
+          document.getElementById('gcRoulette').textContent = d.roulette || 0;
+          // Games Row counters (class-based wegen Duplikaten)
+          document.querySelectorAll('.gcPokerRow').forEach(el => el.textContent = d.poker || 0);
+          document.querySelectorAll('.gcBJRow').forEach(el => el.textContent = d.blackjack || 0);
+          document.querySelectorAll('.gcRouletteRow').forEach(el => el.textContent = d.roulette || 0);
+          document.querySelectorAll('.gcSlotsRow').forEach(el => el.textContent = d.slots || 0);
         })
         .catch(() => {});
     }
@@ -1965,6 +3524,30 @@
         localStorage.setItem('embedPositions', JSON.stringify(savedPositions));
       };
 
+      // LOCK
+      const lockedEmbeds = JSON.parse(localStorage.getItem('embedLocked') || '{}');
+      window.toggleLockEmbed = function(id, btn) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const isLocked = el.classList.toggle('locked');
+        lockedEmbeds[id] = isLocked;
+        localStorage.setItem('embedLocked', JSON.stringify(lockedEmbeds));
+        if (btn) {
+          btn.classList.toggle('locked', isLocked);
+          btn.innerHTML = isLocked ? '&#x1F512;' : '&#x1F513;';
+          btn.title = isLocked ? 'Entsperren' : 'Sperren';
+        }
+      };
+      // Restore locked state on load
+      Object.entries(lockedEmbeds).forEach(([id, locked]) => {
+        if (!locked) return;
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.add('locked');
+        const btn = el.querySelector('.embed-ctrl-btn[onclick*="toggleLockEmbed"]');
+        if (btn) { btn.classList.add('locked'); btn.innerHTML = '&#x1F512;'; btn.title = 'Entsperren'; }
+      });
+
       // DRAG
       document.querySelectorAll('.embed-drag-handle').forEach(handle => {
         const targetId = handle.dataset.drag;
@@ -1972,7 +3555,7 @@
 
         function onStart(e) {
           const el = document.getElementById(targetId);
-          if (!el) return;
+          if (!el || el.classList.contains('locked')) return;
           e.preventDefault();
           isDragging = true;
           el.classList.add('dragging');
@@ -2020,7 +3603,7 @@
 
         function onStart(e) {
           const el = document.getElementById(targetId);
-          if (!el) return;
+          if (!el || el.classList.contains('locked')) return;
           e.preventDefault();
           e.stopPropagation();
           isResizing = true;
@@ -2063,14 +3646,307 @@
       });
 
       // Gespeicherte Positionen wiederherstellen
+      applyStored('barEmbedWrap');
       applyStored('pokerEmbedWrap');
       applyStored('slotEmbedWrap');
+      applyStored('bjEmbedWrap');
+      applyStored('rlEmbedWrap');
     })();
+
+    // =========================================================================
+    // EMBED AUDIO — Sound nur für große Embeds (NICHT Slots), nur wenn sichtbar
+    // =========================================================================
+    (() => {
+      // Große Embeds die Sound bekommen dürfen (wenn im Bild)
+      const audioEmbeds = ['barEmbedWrap', 'pokerEmbedWrap', 'bjEmbedWrap', 'rlEmbedWrap', 'slotEmbedWrap'];
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const iframe = entry.target.querySelector('iframe');
+          if (!iframe) return;
+          try {
+            iframe.contentWindow.postMessage(
+              { type: entry.isIntersecting ? 'embedAudioOn' : 'embedAudioOff' }, '*'
+            );
+          } catch(e) {}
+        });
+      }, { threshold: 0.3 });
+      audioEmbeds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+    })();
+
+    // =========================================================================
+    // GLOBAL JACKPOT TICKER
+    // =========================================================================
+    (() => {
+      const JACKPOT_EPOCH = 1742169600000; // 2025-03-17T00:00:00Z
+      const BASE_VALUE = 8437.62;
+      const RATE_PER_SEC = 0.083; // ~300 B/Stunde
+
+      function getJackpotValue() {
+        const elapsed = (Date.now() - JACKPOT_EPOCH) / 1000;
+        return BASE_VALUE + (elapsed * RATE_PER_SEC);
+      }
+
+      const el = document.getElementById('jackpotValue');
+      if (el) {
+        let displayed = getJackpotValue();
+        function fmt(v) {
+          return v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' \u20BF';
+        }
+        el.textContent = fmt(displayed);
+
+        setInterval(() => {
+          const target = getJackpotValue() + (Math.random() * 0.4);
+          const step = (target - displayed) / 12;
+          let i = 0;
+          const tick = setInterval(() => {
+            displayed += step;
+            el.textContent = fmt(displayed);
+            if (++i >= 12) clearInterval(tick);
+          }, 80);
+        }, 2500 + Math.random() * 2000);
+      }
+    })();
+
+    // =========================================================================
+    // FLOATING BALANCE WIDGET (draggable)
+    // =========================================================================
+    (function() {
+      const bal = document.getElementById('balanceFloat');
+      let dragging = false, wasDragged = false, startX, startY, origX, origY, pointerDown = false;
+      const THRESHOLD = 6;
+
+      // Restore position
+      const saved = JSON.parse(localStorage.getItem('balance-widget-pos') || 'null');
+      if (saved) { bal.style.top = saved.top + 'px'; bal.style.right = 'auto'; bal.style.left = saved.left + 'px'; }
+
+      function onStart(e) {
+        pointerDown = true; dragging = false; wasDragged = false;
+        const t = e.touches ? e.touches[0] : e;
+        startX = t.clientX; startY = t.clientY;
+        const rect = bal.getBoundingClientRect();
+        origX = rect.left; origY = rect.top;
+        e.preventDefault();
+      }
+      function onMove(e) {
+        if (!pointerDown) return;
+        const t = e.touches ? e.touches[0] : e;
+        const dx = t.clientX - startX, dy = t.clientY - startY;
+        if (!dragging) {
+          if (Math.abs(dx) < THRESHOLD && Math.abs(dy) < THRESHOLD) return;
+          dragging = true; wasDragged = true; bal.classList.add('dragging');
+        }
+        if (e.cancelable) e.preventDefault();
+        bal.style.right = 'auto';
+        bal.style.left = Math.max(0, Math.min(window.innerWidth - bal.offsetWidth, origX + dx)) + 'px';
+        bal.style.top = Math.max(0, Math.min(window.innerHeight - bal.offsetHeight, origY + dy)) + 'px';
+      }
+      function onEnd(e) {
+        if (!pointerDown) return; pointerDown = false;
+        if (dragging) {
+          dragging = false; bal.classList.remove('dragging');
+          localStorage.setItem('balance-widget-pos', JSON.stringify({
+            top: parseInt(bal.style.top), left: parseInt(bal.style.left)
+          }));
+        }
+        if (!wasDragged) {
+          openProfile();
+        }
+      }
+      bal.addEventListener('mousedown', onStart);
+      bal.addEventListener('touchstart', onStart, { passive: false });
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('mouseup', onEnd);
+      window.addEventListener('touchend', onEnd);
+    })();
+
+    // =========================================================================
+    // PROFILE & AVATAR EDITOR
+    // =========================================================================
+    const AVATAR_COLORS = [
+      '#D4AF37','#8B6914','#C0392B','#E74C3C','#8E44AD','#9B59B6',
+      '#2980B9','#3498DB','#1ABC9C','#27AE60','#F39C12','#E67E22',
+      '#2C3E50','#7F8C8D','#E91E63','#00BCD4'
+    ];
+    const AVATAR_EMOJIS = [
+      '🦔','🎪','🔮','🎻','🐎','🥊','🌹','👑','🎲','🃏',
+      '♠','♥','♦','♣','🎰','🎯','🐻','🦊','🐺','🦅',
+      '🔥','⭐','💎','🌙','☀','🍀','⚡','🎵'
+    ];
+
+    let currentAvatarConfig = { color: AVATAR_COLORS[0], emoji: '🦔' };
+
+    function openProfile() {
+      const token = getToken();
+      if (!token) return showAuth('login');
+      document.getElementById('profileOverlay').classList.add('active');
+      loadProfileData();
+    }
+
+    function closeProfile() {
+      document.getElementById('profileOverlay').classList.remove('active');
+    }
+
+    async function loadProfileData() {
+      const token = getToken();
+      if (!token) return;
+      try {
+        const res = await fetch(API + '/api/auth/profile', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) return;
+        const d = await res.json();
+        document.getElementById('profileUsername').textContent = d.username;
+        document.getElementById('profileRang').textContent = (d.rangLabel || d.rang) + ' · Level ' + d.level;
+        document.getElementById('profStatLevel').textContent = d.level;
+        document.getElementById('profStatBaxt').textContent = d.baxtCoins;
+        document.getElementById('profStatRounds').textContent = d.roundsPlayed || 0;
+        document.getElementById('profStatWins').textContent = d.handsWon || 0;
+        const xpInLevel = 500 - (d.xpToNext || 0);
+        const pct = Math.max(0, Math.min(100, (xpInLevel / 500) * 100));
+        document.getElementById('profileXpFill').style.width = pct + '%';
+        document.getElementById('profileXpText').textContent = xpInLevel + ' / 500 XP bis Level ' + (d.level + 1);
+
+        // E-Mail Status im Profil
+        const emailVal = document.getElementById('profileEmailVal');
+        const verifyBadge = document.getElementById('profileVerifyBadge');
+        const verifyBtn = document.getElementById('profileVerifyBtn');
+        const addEmailBtn = document.getElementById('profileAddEmailBtn');
+        if (d.email) {
+          emailVal.textContent = d.email;
+          verifyBadge.style.display = 'inline';
+          if (d.emailVerified) {
+            verifyBadge.textContent = '✓ Verifiziert';
+            verifyBadge.style.background = 'rgba(30,200,80,.2)';
+            verifyBadge.style.color = '#66ff88';
+            verifyBtn.style.display = 'none';
+          } else {
+            verifyBadge.textContent = 'Nicht verifiziert';
+            verifyBadge.style.background = 'rgba(200,150,30,.2)';
+            verifyBadge.style.color = '#D4AF37';
+            verifyBtn.style.display = 'block';
+          }
+          addEmailBtn.style.display = 'none';
+        } else {
+          emailVal.textContent = '—';
+          verifyBadge.style.display = 'none';
+          verifyBtn.style.display = 'none';
+          addEmailBtn.style.display = 'block';
+        }
+
+        // Load avatar
+        const avRes = await fetch(API + '/api/user/avatar', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (avRes.ok) {
+          const av = await avRes.json();
+          if (av.avatarConfig) {
+            currentAvatarConfig = av.avatarConfig;
+          }
+        }
+        renderProfileAvatar();
+      } catch(e) { console.error('Profile load error', e); }
+    }
+
+    function renderProfileAvatar() {
+      const cfg = currentAvatarConfig;
+      const big = document.getElementById('profileAvatarBig');
+      const hdr = document.getElementById('userAvatar');
+      const username = getUser()?.username || 'Spieler';
+      const diceBearSrc = 'https://api.dicebear.com/9.x/toon-head/svg?seed=' + encodeURIComponent(username);
+
+      if (cfg.emoji) {
+        big.style.background = cfg.color || AVATAR_COLORS[0];
+        big.innerHTML = cfg.emoji;
+        hdr.style.background = cfg.color || '';
+        hdr.textContent = cfg.emoji;
+      } else {
+        big.style.background = 'transparent';
+        big.innerHTML = '<img src="' + diceBearSrc + '" style="width:100%;height:100%;border-radius:50%">';
+        hdr.style.background = 'transparent';
+        hdr.innerHTML = '<img src="' + diceBearSrc + '" style="width:100%;height:100%;border-radius:50%">';
+      }
+    }
+
+    function openAvatarEditor() {
+      document.getElementById('avatarEditorOverlay').classList.add('active');
+      renderAvatarColorGrid();
+      renderAvatarEmojiGrid();
+      updateAvatarPreview();
+    }
+
+    function closeAvatarEditor() {
+      document.getElementById('avatarEditorOverlay').classList.remove('active');
+    }
+
+    function renderAvatarColorGrid() {
+      const grid = document.getElementById('avatarColorGrid');
+      grid.innerHTML = AVATAR_COLORS.map(c =>
+        `<button class="avatar-color-btn${currentAvatarConfig.color===c?' selected':''}"
+          style="background:${c}" onclick="pickAvatarColor('${c}',this)"></button>`
+      ).join('');
+    }
+
+    function renderAvatarEmojiGrid() {
+      const grid = document.getElementById('avatarEmojiGrid');
+      grid.innerHTML = AVATAR_EMOJIS.map(e =>
+        `<button class="avatar-emoji-btn${currentAvatarConfig.emoji===e?' selected':''}"
+          onclick="pickAvatarEmoji('${e}',this)">${e}</button>`
+      ).join('');
+    }
+
+    function pickAvatarColor(color, btn) {
+      currentAvatarConfig.color = color;
+      document.querySelectorAll('.avatar-color-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      updateAvatarPreview();
+    }
+
+    function pickAvatarEmoji(emoji, btn) {
+      currentAvatarConfig.emoji = emoji;
+      document.querySelectorAll('.avatar-emoji-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      updateAvatarPreview();
+    }
+
+    function updateAvatarPreview() {
+      const preview = document.getElementById('avatarPreview');
+      preview.style.background = currentAvatarConfig.color || AVATAR_COLORS[0];
+      preview.textContent = currentAvatarConfig.emoji || '?';
+    }
+
+    async function saveAvatar() {
+      const token = getToken();
+      if (!token) return;
+      try {
+        const res = await fetch(API + '/api/user/avatar', {
+          method: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ avatarConfig: currentAvatarConfig })
+        });
+        if (res.ok) {
+          renderProfileAvatar();
+          closeAvatarEditor();
+          showToast('Avatar gespeichert!');
+          // Save locally too
+          const user = getUser();
+          if (user) {
+            user.avatarConfig = currentAvatarConfig;
+            localStorage.setItem('casinoUser', JSON.stringify(user));
+          }
+        }
+      } catch(e) { showToast('Fehler beim Speichern'); }
+    }
 
     // =========================================================================
     // INIT
     // =========================================================================
     updateAuthUI();
+    // Onboarding für neue Besucher
+    setTimeout(() => checkFirstVisit(), 500);
   </script>
 
 <script src="/socket.io/socket.io.js"></script>

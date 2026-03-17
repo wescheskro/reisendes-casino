@@ -165,7 +165,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 }
 .seat{
   position:absolute;pointer-events:all;
-  width:clamp(70px,15vw,105px);
+  width:clamp(90px,18vw,130px);
   text-align:center;cursor:grab;
   transform:translate(-50%,-50%);
   touch-action:none;
@@ -182,20 +182,17 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .seat.you{display:none!important}
 
 .seat-inner{
-  background:rgba(20,10,5,.85);border-radius:8px;padding:4px 3px 5px;
-  border:2px solid rgba(212,175,55,.12);transition:.3s;
-  backdrop-filter:blur(4px);
+  background:none;border-radius:8px;padding:4px 3px 5px;
+  border:none;transition:.3s;
 }
 .seat.active .seat-inner{
-  border-color:#F4D03F;
-  box-shadow:0 0 16px rgba(244,208,63,.35),0 0 6px rgba(244,208,63,.2) inset;
-  animation:pulse-glow 1.5s ease-in-out infinite;
+  animation:none;
 }
 @keyframes pulse-glow{
   0%,100%{box-shadow:0 0 16px rgba(244,208,63,.35)}
   50%{box-shadow:0 0 28px rgba(244,208,63,.5)}
 }
-.seat.folded .seat-inner{opacity:.3;filter:grayscale(.5)}
+.seat.folded .seat-inner{opacity:.4;filter:grayscale(.5)}
 
 .seat-cards{display:flex;gap:0;justify-content:center;min-height:36px;align-items:center;position:relative}
 .seat-cards .card{
@@ -242,11 +239,16 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .seat-cards .card::before{inset:1px;border-radius:3px}
 
 .seat-name{
-  font-size:9px;color:#D4AF37;margin-top:2px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  max-width:100%;line-height:1.1;
+  font-size:28px;color:#D4AF37;margin-top:4px;font-weight:700;
+  white-space:nowrap;overflow:visible;
+  line-height:1.1;
+  text-shadow:0 2px 6px rgba(0,0,0,.9);
 }
 .seat.you .seat-name{color:#F4D03F;font-weight:700}
+.seat-rang{
+  font-size:14px;color:rgba(212,175,55,.6);margin-top:1px;
+  font-style:italic;
+}
 .seat-chips{font-size:8px;color:rgba(240,230,211,.55)}
 .seat-bet-bubble{
   font-size:8px;color:#F4D03F;
@@ -267,17 +269,16 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 
 /* ============ AVATARE (3D-Style Premium) ============ */
 .seat-avatar{
-  width:50px;height:50px;
+  width:80px;height:80px;
   margin:0 auto 2px;position:relative;
   border-radius:50%;overflow:hidden;
-  border:2.5px solid rgba(212,175,55,.35);
+  border:3px solid rgba(212,175,55,.4);
   background:radial-gradient(circle at 30% 30%, rgba(60,50,40,.6), rgba(15,10,8,.8));
   box-shadow:
     0 4px 12px rgba(0,0,0,.6),
     0 1px 3px rgba(0,0,0,.4),
     inset 0 -2px 6px rgba(0,0,0,.3),
     inset 0 2px 4px rgba(255,255,255,.05);
-  transform:perspective(200px) rotateX(2deg);
 }
 .seat-avatar img{
   width:100%;height:100%;object-fit:cover;
@@ -717,6 +718,33 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 }
 .phase-info.show{opacity:1}
 
+/* ============ SPEECH BUBBLES ============ */
+.speech-bubble{
+  position:absolute;bottom:calc(100% + 6px);left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,.82);color:#F0E6D3;
+  padding:5px 10px;border-radius:10px;font-size:11px;
+  white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;
+  border:1px solid rgba(212,175,55,.3);
+  box-shadow:0 2px 8px rgba(0,0,0,.5);
+  animation:bubble-in .3s ease-out;
+  pointer-events:none;z-index:50;
+  backdrop-filter:blur(4px);
+}
+.speech-bubble::after{
+  content:'';position:absolute;top:100%;left:50%;
+  transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:rgba(0,0,0,.82);
+}
+@keyframes bubble-in{
+  0%{opacity:0;transform:translateX(-50%) translateY(6px) scale(.8)}
+  100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+}
+@keyframes bubble-out{
+  0%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+  100%{opacity:0;transform:translateX(-50%) translateY(-4px) scale(.9)}
+}
+
 /* ============ CHAT ============ */
 .chat-toggle{
   position:fixed;bottom:130px;right:10px;z-index:30;
@@ -758,11 +786,29 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   pointer-events:none;z-index:0;
 }
 
-/* ============ BOT CONTROLS ============ */
+/* ============ BOT TOGGLE ============ */
 .bot-controls{
-  position:fixed;bottom:130px;left:10px;z-index:30;
+  position:fixed;top:56px;left:12px;z-index:100;
   display:flex;flex-direction:column;gap:5px;
 }
+.bot-toggle{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;color:rgba(240,230,211,.6);
+  cursor:pointer;user-select:none;
+}
+.bot-toggle input{display:none}
+.bot-switch{
+  width:32px;height:18px;border-radius:9px;
+  background:rgba(255,255,255,.15);
+  position:relative;transition:.2s;flex-shrink:0;
+}
+.bot-switch::after{
+  content:'';position:absolute;top:2px;left:2px;
+  width:14px;height:14px;border-radius:50%;
+  background:#888;transition:.2s;
+}
+.bot-toggle input:checked + .bot-switch{background:rgba(76,175,80,.5)}
+.bot-toggle input:checked + .bot-switch::after{left:16px;background:#4caf50}
 .bot-btn{
   background:rgba(20,10,5,.8);border:1px solid rgba(212,175,55,.25);
   color:#D4AF37;padding:7px 12px;border-radius:8px;cursor:pointer;
@@ -774,13 +820,13 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .bot-btn.remove{color:#e74c3c;border-color:rgba(231,76,60,.25)}
 .bot-btn.remove:hover{background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.5)}
 .bot-badge{
-  display:inline-block;font-size:8px;padding:1px 5px;border-radius:4px;
+  display:inline-block;font-size:14px;padding:2px 8px;border-radius:6px;
   background:rgba(212,175,55,.15);color:#D4AF37;border:1px solid rgba(212,175,55,.2);
-  margin-left:2px;
+  margin-left:4px;vertical-align:middle;
 }
 .bot-style-tag{
-  font-size:8px;padding:1px 4px;border-radius:3px;
-  display:inline-block;margin-top:1px;
+  font-size:14px;padding:2px 6px;border-radius:5px;
+  display:inline-block;margin-top:2px;
 }
 .bot-style-tag.vorsichtig{background:rgba(52,152,219,.2);color:#5dade2}
 .bot-style-tag.normal{background:rgba(46,204,113,.2);color:#2ecc71}
@@ -1069,7 +1115,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   .top-bar .back{padding:6px 12px;font-size:11px;min-height:36px}
 
   /* Seat Details */
-  .seat-name{font-size:10px}
+  .seat-name{font-size:22px}
   .seat-chips{font-size:9px}
   .seat-bet-bubble{font-size:9px;padding:2px 6px}
   .dealer-chip{width:20px;height:20px;font-size:9px;top:-6px;right:-6px}
@@ -1105,7 +1151,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   .btn{padding:10px 12px;font-size:12px}
   .pot-display{font-size:13px;padding:5px 16px}
   .pot-display .amount{font-size:22px}
-  .seat-name{font-size:8px}
+  .seat-name{font-size:18px}
   .seat-chips{font-size:7px}
   .seat-inner{padding:4px 3px 5px;border-radius:10px}
   .community-area{top:50%}
@@ -1144,6 +1190,36 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   .seat[data-pos="3"]{top:22%;left:74%}
   .seat[data-pos="4"]{top:30%;left:92%}
 }
+
+/* ═══════ PLAYER MENU ═══════ */
+.player-menu-overlay{position:fixed;inset:0;z-index:190;display:none}
+.player-menu-overlay.open{display:block}
+.player-menu{
+  position:fixed;z-index:200;min-width:200px;
+  background:linear-gradient(165deg,rgba(30,18,8,.97),rgba(15,8,3,.98));
+  border:1.5px solid rgba(212,175,55,.3);border-radius:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,.7),0 0 16px rgba(212,175,55,.1);
+  transform:scale(.9);opacity:0;pointer-events:none;transition:.15s;
+}
+.player-menu.open{transform:scale(1);opacity:1;pointer-events:all}
+.pm-header{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(212,175,55,.12)}
+.pm-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#2c1810,#1a0f08);border:2px solid rgba(212,175,55,.4);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.pm-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.pm-name{font-size:14px;font-weight:700;color:#F4D03F;letter-spacing:.5px}
+.pm-status{font-size:10px;color:rgba(240,230,211,.4);margin-top:1px}
+.pm-actions{padding:6px 0}
+.pm-action{display:flex;align-items:center;gap:12px;padding:11px 16px;cursor:pointer;transition:.15s;color:#F0E6D3;font-size:13px;border:none;background:none;width:100%;font-family:inherit}
+.pm-action:hover{background:rgba(212,175,55,.1)}
+.pm-action:active{background:rgba(212,175,55,.18)}
+.pm-action-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.pm-action-icon.profile{background:rgba(212,175,55,.15);color:#F4D03F}
+.pm-action-icon.call{background:rgba(46,204,113,.15);color:#2ecc71}
+.pm-action-icon.video{background:rgba(52,152,219,.15);color:#3498db}
+.pm-action-icon.voice{background:rgba(155,89,182,.15);color:#9b59b6}
+.pm-action-icon.money{background:rgba(241,196,15,.15);color:#f1c40f}
+.pm-action-icon.msg{background:rgba(230,126,34,.15);color:#e67e22}
+.pm-action-label{font-weight:600}
+.pm-action-sub{font-size:10px;color:rgba(240,230,211,.35);margin-top:1px}
 </style>
 </head>
 <body>
@@ -1226,8 +1302,11 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 
 <!-- BOT CONTROLS -->
 <div class="bot-controls" id="botControls">
-  <button class="bot-btn" onclick="addBot()">🤖 + KI Gegner</button>
-  <button class="bot-btn remove" onclick="removeBot()" id="removeBotBtn" style="display:none">✕ Bot entfernen</button>
+  <label class="bot-toggle">
+    <input type="checkbox" id="pokerBotToggle" onchange="togglePokerBots(this.checked)">
+    <span class="bot-switch"></span>
+    Bots
+  </label>
 </div>
 
 <!-- VIDEO CHAT (ausklappbar) -->
@@ -1258,6 +1337,12 @@ document.addEventListener('touchmove', function(e) {
 
 // Prevent iOS double-tap zoom on buttons
 document.addEventListener('dblclick', function(e) { e.preventDefault(); });
+
+// XSS Protection
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
 // Fix iOS 100vh issue - use real viewport height
 function setVH() {
@@ -1309,10 +1394,16 @@ const PokerSFX = {
     src.start(t);
   },
 
-  // 🃏 Karte austeilen – schnelles "Fwipp"
+  // 🃏 Karte austeilen – echte Karten-Sound MP3
+  _cardDealAudio: null,
   cardDeal() {
-    this._noise(0.08, 0.3, 5000);
-    this._osc(800, 0.04, 0.08, 'triangle');
+    if (this.muted) return;
+    if (!this._cardDealAudio) this._cardDealAudio = new Audio('/games/sounds/freesound_community-shuffle-cards-46455.mp3');
+    const a = this._cardDealAudio.cloneNode();
+    a.volume = 0.5;
+    a.currentTime = 0.05;
+    a.play().catch(() => {});
+    setTimeout(() => { if (!a.paused) a.pause(); }, 600);
   },
 
   // 👀 Karte aufdecken/peek – sanftes Umdrehen
@@ -1774,6 +1865,23 @@ let turnTimerStart = 0;
 
 const myAvatarConfig = (() => {
   try { return JSON.parse(localStorage.getItem('pokerAvatar')) || {}; } catch(e) { return {}; }
+})();
+
+// Falls kein lokaler Avatar, vom Server laden
+(async function loadServerAvatar() {
+  if (myAvatarConfig.url) return;
+  const t = localStorage.getItem('casinoToken') || localStorage.getItem('token');
+  if (!t) return;
+  try {
+    const res = await fetch('/api/user/avatar', { headers: { 'Authorization': 'Bearer ' + t } });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.avatarUrl) {
+        myAvatarConfig.url = data.avatarUrl;
+        if (data.avatarConfig) myAvatarConfig.config = data.avatarConfig;
+      }
+    }
+  } catch(e) {}
 })();
 
 // 3D Avatar-Teile Definition
@@ -2904,38 +3012,25 @@ function capture3DThumbnail() {
   return url;
 }
 
-// ---- Avatar URL (DataURL) ----
+// ---- DiceBear Avatar URL ----
+function diceBearUrl(name) {
+  return 'https://api.dicebear.com/9.x/toon-head/svg?seed=' + encodeURIComponent(name);
+}
+
 function getAvatarUrl(username, serverAvatarUrl) {
   if (serverAvatarUrl) return serverAvatarUrl;
   if (myAvatarConfig.url && username === (myAvatarConfig.forName || '')) {
     return myAvatarConfig.url;
   }
-  // Fallback: einfacher farbiger Kreis mit Initiale
-  return generateSimpleAvatar(username);
+  return diceBearUrl(username);
 }
 
-function generateSimpleAvatar(username) {
-  const c = document.createElement('canvas');
-  c.width = 100; c.height = 100;
-  const ctx = c.getContext('2d');
-  let hash = 0;
-  for (let i = 0; i < username.length; i++) hash = ((hash << 5) - hash + username.charCodeAt(i)) | 0;
-  const hue = Math.abs(hash) % 360;
-  ctx.fillStyle = `hsl(${hue}, 40%, 30%)`;
-  ctx.beginPath();
-  ctx.arc(50, 50, 50, 0, Math.PI*2);
-  ctx.fill();
-  ctx.fillStyle = '#F0E6D3';
-  ctx.font = 'bold 40px Playfair Display, serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText((username[0] || '?').toUpperCase(), 50, 52);
-  return c.toDataURL('image/png');
-}
-
-function renderAvatar(username, isYou, serverAvatarUrl) {
-  const url = getAvatarUrl(username, isYou ? null : serverAvatarUrl);
+function renderAvatar(username, isYou, serverAvatarUrl, avatarConfig) {
   const editBtn = isYou ? '<div class="seat-avatar-edit" onclick="event.stopPropagation();openAvatarEditor()">✎</div>' : '';
+  if (avatarConfig && avatarConfig.emoji) {
+    return `<div class="seat-avatar" style="position:relative;background:${avatarConfig.color||'#D4AF37'};display:flex;align-items:center;justify-content:center;font-size:32px">${avatarConfig.emoji}${editBtn}</div>`;
+  }
+  const url = getAvatarUrl(username, isYou ? null : serverAvatarUrl);
   return `<div class="seat-avatar" style="position:relative"><img src="${url}" alt="${username}" loading="lazy">${editBtn}</div>`;
 }
 
@@ -3019,6 +3114,16 @@ function saveAvatar() {
 
   if (socket && socket.connected) {
     socket.emit('poker:setAvatar', { avatarUrl: thumbnailUrl });
+  }
+
+  // Avatar auf Server speichern (für alle Spiele)
+  const tkn = localStorage.getItem('casinoToken') || localStorage.getItem('token');
+  if (tkn) {
+    fetch('/api/user/avatar', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tkn },
+      body: JSON.stringify({ avatarUrl: thumbnailUrl, avatarConfig: {...accConfig} })
+    }).catch(() => {});
   }
 
   closeAvatarEditor();
@@ -3163,16 +3268,20 @@ function renderState(state) {
       const botBadge = s.isBot ? `<span class="bot-badge">KI</span>` : '';
       const botStyle = s.isBot && s.botStyle ? `<div class="bot-style-tag ${s.botStyle}">${s.botStyle}</div>` : '';
 
-      const avatarHTML = renderAvatar(s.username, s.isYou, s.avatarUrl);
+      const avatarHTML = renderAvatar(s.username, s.isYou, s.avatarUrl, s.avatarConfig);
       div.innerHTML = `<div class="seat-inner" style="position:relative">
         ${dealerChip}
         ${avatarHTML}
         <div class="seat-cards">${s.cards.map(renderCard).join('')}</div>
         <div class="seat-name">${s.username}${s.isYou ? ' (Du)' : ''}${botBadge}</div>
+        ${s.rang ? `<div class="seat-rang">${s.rang}</div>` : ''}
         <div class="seat-chips">💰 ${(s.chips || 0).toLocaleString('de-DE')} ₿</div>
         ${botStyle}${betBubble}${handName}${foldedLabel}
       </div>`;
-      div.onclick = null;
+      div.onclick = (e) => {
+        if (div._dragMoved) return;
+        if (!s.isYou) openPlayerMenu(div);
+      };
     }
   }
 
@@ -3204,11 +3313,10 @@ function renderState(state) {
   document.getElementById('tableInfo').textContent =
     `${tischName} · ${state.playerCount} Spieler · ${phaseMap(state.phase)}`;
 
-  // Bot button visibility
+  // Sync bot toggle state
   const hasBots = state.seats.some(s => s && s.isBot);
-  const hasEmptySeat = state.seats.some(s => !s);
-  document.getElementById('removeBotBtn').style.display = hasBots ? 'flex' : 'none';
-  document.querySelector('.bot-controls .bot-btn:first-child').style.display = hasEmptySeat ? 'flex' : 'none';
+  const toggle = document.getElementById('pokerBotToggle');
+  if (toggle && toggle.checked !== hasBots) toggle.checked = hasBots;
 
   renderControls(state);
   updateMyHand(state);
@@ -3510,6 +3618,16 @@ function doAllIn() {
 function addBot() { socket.emit('poker:addBot', { tableId }); }
 function removeBot() { socket.emit('poker:removeBot', { tableId }); }
 function removeAllBots() { socket.emit('poker:removeBots', { tableId }); }
+function togglePokerBots(on) {
+  if (on) {
+    const count = 1 + Math.floor(Math.random() * 3); // max 3 Bots
+    for (let i = 0; i < Math.min(count, 3); i++) {
+      setTimeout(() => addBot(), i * 500);
+    }
+  } else {
+    removeAllBots();
+  }
+}
 
 // ===================== CHAT =====================
 function toggleChat() {
@@ -3522,6 +3640,80 @@ function sendChat() {
   socket.emit('chat:msg', { room: 'pk-' + tableId, msg });
   input.value = '';
 }
+
+// ===================== SPEECH BUBBLES (overlay-based, survives re-render) =====================
+const _activeBubbles = {};
+
+function showSpeechBubble(name, text) {
+  if (_activeBubbles[name]?.timer) clearTimeout(_activeBubbles[name].timer);
+  _activeBubbles[name] = { text, created: Date.now() };
+  _renderBubbles();
+  _activeBubbles[name].timer = setTimeout(() => {
+    delete _activeBubbles[name];
+    _renderBubbles();
+  }, 4500);
+}
+
+function _renderBubbles() {
+  let overlay = document.getElementById('bubble-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'bubble-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:100;';
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = '';
+  for (const [name, data] of Object.entries(_activeBubbles)) {
+    let el = null;
+    document.querySelectorAll('.seat').forEach(s => {
+      const n = s.querySelector('.seat-name');
+      if (n && n.textContent.includes(name)) el = s.querySelector('.seat-avatar') || s;
+    });
+    if (!el) continue;
+    const rect = el.getBoundingClientRect();
+    const bubble = document.createElement('div');
+    bubble.textContent = data.text;
+    bubble.style.cssText = `position:fixed;left:${rect.left + rect.width/2}px;top:${rect.top - 4}px;transform:translate(-50%,-100%);background:rgba(0,0,0,.85);color:#F0E6D3;padding:6px 12px;border-radius:10px;font-size:12px;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;border:1px solid rgba(212,175,55,.4);box-shadow:0 2px 12px rgba(0,0,0,.6);z-index:100;pointer-events:none;backdrop-filter:blur(4px);`;
+    overlay.appendChild(bubble);
+  }
+}
+
+// ===================== BOT CHAT =====================
+const PK_BOT_CHAT = {
+  idle: [
+    'Hmm, interessant...','Ich überlege noch...','Pokern ist Kunst!',
+    'All-in Vibes! 🃏','Heute gewinne ich!','Bluff oder echt? 🤔',
+    'Die Karten lügen nicht!','Wer traut sich?','Netter Tisch hier!',
+    'Ich hab ein Gefühl...','Kommt schon, traut euch!'
+  ],
+  win: [
+    'JAAAA! 🎉','So macht man das!','Zu leicht! 😎',
+    'Danke für die Chips!','Gewonnen, Baby!','Poker-König! 👑'
+  ],
+  fold: [
+    'Ich passe...','Nicht meine Runde.','Klug gepasst!',
+    'Nächste Runde bin ich dran!','Strategie, Leute!'
+  ],
+  raise: [
+    'All-in! 🔥','Wer kommt mit?','Mutig heute!',
+    'Raise! Wer traut sich?','Das wird teuer für euch! 💰'
+  ]
+};
+let pkBotChatInterval = null;
+
+function startPKBotChat() {
+  if (pkBotChatInterval) clearInterval(pkBotChatInterval);
+  pkBotChatInterval = setInterval(() => {
+    if (!myState || !myState.seats) return;
+    const bots = myState.seats.filter(s => s && s.isBot && !s.folded);
+    if (bots.length === 0 || Math.random() > 0.35) return;
+    const bot = bots[Math.floor(Math.random() * bots.length)];
+    let pool = PK_BOT_CHAT.idle;
+    if (bot.folded) pool = PK_BOT_CHAT.fold;
+    showSpeechBubble(bot.username, pool[Math.floor(Math.random() * pool.length)]);
+  }, 6000 + Math.random() * 10000);
+}
+startPKBotChat();
 
 // ===================== UI HELPERS =====================
 function showPhase(text) {
@@ -3583,8 +3775,9 @@ function setupSocketEvents() {
 
   socket.on('chat:msg', d => {
     const msgs = document.getElementById('chatMessages');
-    msgs.innerHTML += `<div class="chat-msg"><span class="name">${d.username}:</span> ${d.msg}</div>`;
+    msgs.innerHTML += `<div class="chat-msg"><span class="name">${escapeHtml(d.username)}:</span> ${escapeHtml(d.msg)}</div>`;
     msgs.scrollTop = msgs.scrollHeight;
+    showSpeechBubble(d.username, d.msg);
   });
 
   socket.on('error', msg => { showPhase(msg); });
@@ -3645,7 +3838,7 @@ if (isEmbedMode) {
     body.embed-mode .top-bar h1 { font-size: 11px !important; }
     body.embed-mode .top-bar .table-sub { display: none !important; }
     body.embed-mode .back-btn { display: none !important; }
-    body.embed-mode .bot-controls { display: none !important; }
+    body.embed-mode .bot-controls { display: flex !important; }
     body.embed-mode .chat-btn { display: none !important; }
     body.embed-mode #chatBox { display: none !important; }
     body.embed-mode .vc-btn { display: none !important; }
@@ -3706,6 +3899,17 @@ if (isEmbedMode) {
     body.embed-mode .seats-container { position: fixed !important; inset: 0 !important; }
   `;
   document.head.appendChild(embedCSS);
+
+  // Embed: Sound standardmäßig aus, Lobby schaltet per postMessage ein
+  PokerSFX.muted = true;
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'embedAudioOn') {
+      PokerSFX.muted = false;
+      PokerSFX.resume();
+    } else if (e.data && e.data.type === 'embedAudioOff') {
+      PokerSFX.muted = true;
+    }
+  });
 }
 
 // Starte: Prüfe ob Name vorhanden
@@ -3925,7 +4129,7 @@ function addVideoTile(id, username, stream, isLocal) {
       tile = document.createElement('div');
       tile.id = 'vt-' + id;
       tile.className = 'video-tile';
-      tile.innerHTML = `<video autoplay playsinline></video><div class="vt-name">${username}</div>`;
+      tile.innerHTML = `<video autoplay playsinline></video><div class="vt-name">${escapeHtml(username)}</div>`;
       document.getElementById('videoGrid').appendChild(tile);
     }
     tile.querySelector('video').srcObject = stream;
@@ -4044,8 +4248,144 @@ function removePeer(peerId) {
 
 // (RTC Socket Events + Drag-System sind jetzt in setupSocketEvents() bzw. initSeatDrag() integriert)
 </script>
+<!-- PLAYER MENU -->
+<div class="player-menu-overlay" id="pmOverlay" onclick="closePlayerMenu()"></div>
+<div class="player-menu" id="playerMenu">
+  <div class="pm-header">
+    <div class="pm-avatar" id="pmAvatar">👤</div>
+    <div>
+      <div class="pm-name" id="pmName">Spieler</div>
+      <div class="pm-status">Online</div>
+    </div>
+  </div>
+  <div class="pm-actions">
+    <button class="pm-action" onclick="pmAction('profile')"><div class="pm-action-icon profile">👤</div><div><div class="pm-action-label">Profil ansehen</div><div class="pm-action-sub">Statistiken & Rang</div></div></button>
+    <button class="pm-action" onclick="pmAction('message')"><div class="pm-action-icon msg">💬</div><div><div class="pm-action-label">Nachricht</div><div class="pm-action-sub">Textnachricht senden</div></div></button>
+    <button class="pm-action" onclick="pmAction('call')"><div class="pm-action-icon call">📞</div><div><div class="pm-action-label">Anrufen</div><div class="pm-action-sub">Sprachanruf starten</div></div></button>
+    <button class="pm-action" onclick="pmAction('video')"><div class="pm-action-icon video">📹</div><div><div class="pm-action-label">Videoanruf</div><div class="pm-action-sub">Face-to-Face</div></div></button>
+    <button class="pm-action" onclick="pmAction('voicemsg')"><div class="pm-action-icon voice">🎙</div><div><div class="pm-action-label">Sprachnachricht</div><div class="pm-action-sub">Audio aufnehmen & senden</div></div></button>
+    <button class="pm-action" onclick="pmAction('money')"><div class="pm-action-icon money">💰</div><div><div class="pm-action-label">Geld senden</div><div class="pm-action-sub">Baxt Coins überweisen</div></div></button>
+  </div>
+</div>
+
+<script>
+// ═══════ PLAYER MENU (Roulette-Style) ═══════
+let pmTarget = null;
+function openPlayerMenu(seatEl) {
+  const nameEl = seatEl.querySelector('.seat-name');
+  if (!nameEl) return;
+  pmTarget = nameEl.textContent.replace(' (Du)', '').replace(/KI$/, '').trim();
+  const menu = document.getElementById('playerMenu');
+  const overlay = document.getElementById('pmOverlay');
+  document.getElementById('pmName').textContent = pmTarget;
+  const avImg = seatEl.querySelector('.seat-avatar img');
+  const avatarEl = document.getElementById('pmAvatar');
+  if (avImg) avatarEl.innerHTML = `<img src="${avImg.src}" alt="${pmTarget}">`;
+  else avatarEl.innerHTML = pmTarget.charAt(0).toUpperCase();
+  const rect = seatEl.getBoundingClientRect();
+  let top = rect.bottom + 8;
+  let left = rect.left;
+  if (top + 320 > window.innerHeight) top = rect.top - 320;
+  if (top < 8) top = 8;
+  if (left + 210 > window.innerWidth) left = window.innerWidth - 218;
+  if (left < 8) left = 8;
+  menu.style.top = top + 'px';
+  menu.style.left = left + 'px';
+  overlay.classList.add('open');
+  menu.classList.add('open');
+}
+function closePlayerMenu() {
+  document.getElementById('pmOverlay').classList.remove('open');
+  document.getElementById('playerMenu').classList.remove('open');
+  pmTarget = null;
+}
+function pmAction(type) {
+  const name = pmTarget;
+  closePlayerMenu();
+  switch(type) {
+    case 'profile': openProfileModal(name); break;
+    case 'message': openMessageModal(name); break;
+    case 'call': startCallUI(name, false); break;
+    case 'video': startCallUI(name, true); break;
+    case 'voicemsg': openVoiceRecorder(name); break;
+    case 'money': openSendMoney(name); break;
+  }
+}
+function createActionModal(title, content, onClose) {
+  const old = document.getElementById('actionModal');
+  if (old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'actionModal';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center';
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:linear-gradient(165deg,rgba(30,18,8,.97),rgba(15,8,3,.98));border:1.5px solid rgba(212,175,55,.3);border-radius:16px;padding:20px;min-width:280px;max-width:90vw;box-shadow:0 12px 40px rgba(0,0,0,.7),0 0 20px rgba(212,175,55,.1);color:#F0E6D3;font-family:Playfair Display,serif';
+  modal.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="font-size:16px;font-weight:700;color:#F4D03F">${title}</div>
+    <button onclick="closeActionModal()" style="background:none;border:none;color:#888;font-size:20px;cursor:pointer;padding:4px">✕</button>
+  </div>${content}`;
+  overlay.appendChild(modal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeActionModal(); });
+  document.body.appendChild(overlay);
+  overlay._onClose = onClose;
+  return modal;
+}
+function closeActionModal() {
+  const m = document.getElementById('actionModal');
+  if (m) { if (m._onClose) m._onClose(); m.remove(); }
+}
+function openProfileModal(name) {
+  const hash = [...name].reduce((h,c) => ((h<<5)-h)+c.charCodeAt(0), 0);
+  const level = Math.abs(hash % 20) + 1;
+  const wins = Math.abs((hash*7) % 150);
+  const games = wins + Math.abs((hash*3) % 200);
+  const winRate = games > 0 ? Math.round(wins/games*100) : 0;
+  const rank = level > 15 ? 'Diamant' : level > 10 ? 'Gold' : level > 5 ? 'Silber' : 'Bronze';
+  const rankColor = level > 15 ? '#b9f2ff' : level > 10 ? '#F4D03F' : level > 5 ? '#c0c0c0' : '#cd7f32';
+  createActionModal('👤 Spielerprofil', `
+    <div style="text-align:center;margin-bottom:14px">
+      <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#2c1810,#1a0f08);border:3px solid ${rankColor};margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 16px ${rankColor}44">${name.charAt(0).toUpperCase()}</div>
+      <div style="font-size:18px;font-weight:900;color:#F4D03F">${name}</div>
+      <div style="font-size:12px;color:${rankColor};margin-top:2px">⭐ ${rank} · Level ${level}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#F4D03F">${games}</div><div style="font-size:10px;color:rgba(240,230,211,.4)">Spiele</div></div>
+      <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#2ecc71">${winRate}%</div><div style="font-size:10px;color:rgba(240,230,211,.4)">Gewinnrate</div></div>
+    </div>`);
+}
+function openMessageModal(name) {
+  createActionModal('💬 Nachricht an ' + name, `
+    <textarea id="msgInput" placeholder="Nachricht eingeben..." style="width:100%;height:80px;background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.2);border-radius:8px;padding:10px;color:#F0E6D3;font-family:inherit;font-size:13px;resize:none"></textarea>
+    <button onclick="closeActionModal()" style="margin-top:10px;width:100%;padding:10px;background:linear-gradient(135deg,#D4AF37,#8B6914);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Senden</button>`);
+}
+function startCallUI(name, video) {
+  createActionModal(video ? '📹 Videoanruf' : '📞 Sprachanruf', `
+    <div style="text-align:center;padding:20px">
+      <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#2c1810,#1a0f08);border:3px solid #2ecc71;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:36px">${name.charAt(0).toUpperCase()}</div>
+      <div style="font-size:16px;font-weight:700;color:#F4D03F;margin-bottom:4px">${name}</div>
+      <div style="color:rgba(240,230,211,.4);font-size:12px">Rufe an...</div>
+      <button onclick="closeActionModal()" style="margin-top:16px;padding:10px 24px;background:#e74c3c;border:none;border-radius:20px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Auflegen</button>
+    </div>`);
+}
+function openVoiceRecorder(name) {
+  createActionModal('🎙 Sprachnachricht an ' + name, `
+    <div style="text-align:center;padding:16px">
+      <div style="font-size:48px;margin-bottom:10px">🎙</div>
+      <div style="color:rgba(240,230,211,.4);font-size:12px;margin-bottom:14px">Tippe zum Aufnehmen</div>
+      <button onclick="closeActionModal()" style="padding:10px 24px;background:linear-gradient(135deg,#D4AF37,#8B6914);border:none;border-radius:20px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Senden</button>
+    </div>`);
+}
+function openSendMoney(name) {
+  createActionModal('💰 Geld senden an ' + name, `
+    <div style="text-align:center">
+      <input type="number" id="moneyAmount" placeholder="Betrag in ₿" style="width:100%;padding:10px;background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.2);border-radius:8px;color:#F0E6D3;font-family:inherit;font-size:16px;text-align:center;margin-bottom:10px">
+      <button onclick="closeActionModal()" style="width:100%;padding:10px;background:linear-gradient(135deg,#D4AF37,#8B6914);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Überweisen</button>
+    </div>`);
+}
+</script>
+
 <script src="/js/baxt-coins.js"></script>
 <script src="/js/friends.js"></script>
 <script src="/js/jukebox.js"></script>
+<script src="/js/jackpot.js"></script>
 </body>
 </html>

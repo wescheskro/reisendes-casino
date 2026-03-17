@@ -16,6 +16,14 @@
       right: 12px;
       z-index: 9990;
       font-family: 'Segoe UI', sans-serif;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .baxt-widget.dragging {
+      cursor: grabbing;
+      opacity: 0.9;
     }
 
     .baxt-badge {
@@ -60,6 +68,18 @@
       text-shadow: 0 0 8px rgba(244,208,63,0.4);
       letter-spacing: 0.5px;
     }
+
+    .baxt-topup {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+      border: 1.5px solid rgba(255,255,255,.2);
+      color: #fff; font-size: 16px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all .2s; flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(46,204,113,.3);
+      line-height: 1;
+    }
+    .baxt-topup:hover { transform: scale(1.15); box-shadow: 0 4px 12px rgba(46,204,113,.5); }
 
     /* ── Dropdown Panel ── */
     .baxt-panel {
@@ -315,6 +335,12 @@
   let panelOpen = false;
   let panelView = 'main'; // main | history | ranking
 
+  // ── XSS Protection ──
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
   // ── Token Helper ──
   function getToken() {
     return localStorage.getItem('token');
@@ -355,9 +381,83 @@
         <div class="baxt-coin-icon">₿</div>
         <span class="baxt-amount" id="baxt-display">0</span>
       </div>
+      <div class="baxt-topup" onclick="event.stopPropagation();window._baxt.topUp()" title="Aufladen">+</div>
       <div class="baxt-panel" id="baxt-panel"></div>
     `;
+
     document.body.appendChild(widget);
+
+    // Gespeicherte Position wiederherstellen
+    const saved = localStorage.getItem('baxt-widget-pos');
+    if (saved) {
+      try {
+        const pos = JSON.parse(saved);
+        widget.style.top = pos.top + 'px';
+        widget.style.right = 'auto';
+        widget.style.left = pos.left + 'px';
+      } catch (e) {}
+    }
+
+    // ── Drag-Logik (mit Threshold damit Klicks durchkommen) ──
+    let pointerDown = false, dragging = false, startX, startY, origX, origY;
+    const DRAG_THRESHOLD = 6; // px – erst ab dieser Distanz wird es ein Drag
+
+    function onStart(e) {
+      // Panel-Klicks & Topup nicht abfangen
+      if (e.target.closest('.baxt-panel') || e.target.closest('.baxt-topup')) return;
+      pointerDown = true;
+      dragging = false;
+      const touch = e.touches ? e.touches[0] : e;
+      startX = touch.clientX;
+      startY = touch.clientY;
+      const rect = widget.getBoundingClientRect();
+      origX = rect.left;
+      origY = rect.top;
+    }
+
+    function onMove(e) {
+      if (!pointerDown) return;
+      const touch = e.touches ? e.touches[0] : e;
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+
+      // Threshold prüfen – erst dann Drag starten
+      if (!dragging) {
+        if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+        dragging = true;
+        widget.classList.add('dragging');
+        e.preventDefault();
+      }
+
+      if (e.cancelable) e.preventDefault();
+      widget.style.right = 'auto';
+      widget.style.left = Math.max(0, Math.min(window.innerWidth - 60, origX + dx)) + 'px';
+      widget.style.top = Math.max(0, Math.min(window.innerHeight - 40, origY + dy)) + 'px';
+    }
+
+    function onEnd(e) {
+      if (!pointerDown) return;
+      pointerDown = false;
+      if (dragging) {
+        dragging = false;
+        widget.classList.remove('dragging');
+        localStorage.setItem('baxt-widget-pos', JSON.stringify({
+          top: parseInt(widget.style.top),
+          left: parseInt(widget.style.left)
+        }));
+        // Drag beenden → Click unterdrücken
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      // Kein Drag → normaler Click geht durch (togglePanel etc.)
+    }
+
+    widget.addEventListener('mousedown', onStart);
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd, true);
+    widget.addEventListener('touchstart', onStart, { passive: true });
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
   }
 
   function updateBadge() {
@@ -440,15 +540,17 @@
         'daily_login': '🎁 Täglicher Bonus',
         'level_up': '⬆ Level-Up Bonus',
         'slot_big_win': '🎰 Slot Großgewinn',
+        'slot_win': '🎰 Slot Gewinn',
+        'slot_bet': '🎰 Slot Einsatz',
         'transfer_out': '💸 Gesendet',
         'transfer_in': '💰 Erhalten'
       };
 
       let html = '<div class="baxt-history-list">';
       for (const tx of data.history) {
-        const isOut = tx.type === 'transfer_out';
+        const isOut = tx.type === 'transfer_out' || tx.type === 'slot_bet';
         const label = reasonLabels[tx.reason || tx.type] || tx.reason || tx.type;
-        const extra = tx.to ? ` an ${tx.to}` : (tx.from ? ` von ${tx.from}` : '');
+        const extra = tx.to ? ` an ${escapeHtml(tx.to)}` : (tx.from ? ` von ${escapeHtml(tx.from)}` : '');
         html += `
           <div class="baxt-history-item">
             <div>
@@ -498,7 +600,7 @@
         html += `
           <div class="baxt-ranking-item">
             <div class="baxt-ranking-pos">${medals[i] || (i + 1)}</div>
-            <div class="baxt-ranking-name">${u.username} <span style="color:#666;font-size:10px;">${u.rang}</span></div>
+            <div class="baxt-ranking-name">${u.username} <span style="color:#888;font-size:0.5em;">${u.rang}</span></div>
             <div class="baxt-ranking-coins">${u.baxtCoins.toLocaleString('de-DE')} ₿</div>
           </div>
         `;
@@ -537,6 +639,51 @@
 
   function closeTransfer() {
     document.getElementById('baxt-transfer-modal')?.remove();
+  }
+
+  function topUp() {
+    panelOpen = false;
+    document.getElementById('baxt-panel')?.classList.remove('open');
+
+    const amounts = [1000, 5000, 10000, 50000, 100000];
+    const overlay = document.createElement('div');
+    overlay.className = 'baxt-modal-overlay';
+    overlay.id = 'baxt-topup-modal';
+    overlay.innerHTML = `
+      <div class="baxt-modal">
+        <h3>➕ Baxt Coins aufladen</h3>
+        <p style="color:#aaa;font-size:12px;margin-bottom:12px">Aktuell: <span style="color:#F4D03F;font-weight:700">${baxtCoins.toLocaleString('de-DE')} ₿</span></p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+          ${amounts.map(a => `<button class="baxt-action-btn" style="width:auto;padding:8px 16px;background:linear-gradient(135deg,#D4AF37,#F4D03F);color:#1a1a2e;font-size:13px;font-weight:700;border-radius:20px;min-width:80px" onclick="window._baxt.doTopUp(${a})">+${a.toLocaleString('de-DE')} ₿</button>`).join('')}
+        </div>
+        <div class="baxt-modal-error" id="baxt-topup-error"></div>
+        <div class="baxt-modal-actions" style="margin-top:12px">
+          <button class="baxt-modal-cancel" onclick="window._baxt.closeTopUp()">Schließen</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeTopUp(); });
+  }
+
+  function closeTopUp() {
+    document.getElementById('baxt-topup-modal')?.remove();
+  }
+
+  async function doTopUp(amount) {
+    try {
+      const data = await apiFetch('/api/baxt/topup', {
+        method: 'POST',
+        body: JSON.stringify({ amount })
+      });
+      baxtCoins = data.baxtCoins;
+      updateBadge();
+      closeTopUp();
+      showToast(`➕ ${amount.toLocaleString('de-DE')} ₿ aufgeladen!`, 'Konto aufgeladen');
+    } catch (e) {
+      const errorEl = document.getElementById('baxt-topup-error');
+      if (errorEl) errorEl.textContent = e.message || 'Fehler beim Aufladen';
+    }
   }
 
   async function doTransfer() {
@@ -589,8 +736,8 @@
     toast.innerHTML = `
       <div class="baxt-toast-icon">🪙</div>
       <div>
-        <div class="baxt-toast-text">${text}</div>
-        ${sub ? `<div class="baxt-toast-sub">${sub}</div>` : ''}
+        <div class="baxt-toast-text">${escapeHtml(text)}</div>
+        ${sub ? `<div class="baxt-toast-sub">${escapeHtml(sub)}</div>` : ''}
       </div>
     `;
     document.body.appendChild(toast);
@@ -648,12 +795,18 @@
     closeTransfer() { closeTransfer(); },
     doTransfer() { doTransfer(); },
     claimDaily() { claimDaily(); },
+    topUp() { topUp(); },
+    closeTopUp() { closeTopUp(); },
+    doTopUp(amount) { doTopUp(amount); },
     refresh() { loadBalance(); },
     getBalance() { return baxtCoins; }
   };
 
   // ── Init ──
   function init() {
+    // Nicht in Embeds anzeigen
+    if (new URLSearchParams(window.location.search).get('embed') === '1') return;
+
     const token = getToken();
     if (!token) return; // Nicht eingeloggt → kein Widget
 

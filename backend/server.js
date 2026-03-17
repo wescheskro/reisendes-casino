@@ -1,3 +1,20 @@
+// .env Datei laden (falls vorhanden)
+try {
+  const envPath = require('path').join(__dirname, '.env');
+  if (require('fs').existsSync(envPath)) {
+    require('fs').readFileSync(envPath, 'utf-8').split('\n').forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) return;
+      const eq = trimmed.indexOf('=');
+      if (eq > 0) {
+        const key = trimmed.substring(0, eq).trim();
+        const val = trimmed.substring(eq + 1).trim();
+        if (!process.env[key]) process.env[key] = val;
+      }
+    });
+  }
+} catch(e) {}
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -9,6 +26,8 @@ const jwt = require('jsonwebtoken');
 const geoip = require('geoip-lite');
 const http = require('http');
 const { Server: SocketIO } = require('socket.io');
+const nodemailer = require('nodemailer');
+const { OAuth2Client } = require('google-auth-library');
 
 const app = express();
 const server = http.createServer(app);
@@ -17,15 +36,131 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'reisendes-casino-secret-change-in-production';
 
 // ---------------------------------------------------------------------------
-// In-Memory DB (später PostgreSQL)
+// E-Mail & Google Auth Konfiguration
 // ---------------------------------------------------------------------------
+const EMAIL_USER = process.env.EMAIL_USER || '';       // z.B. dein-casino@gmail.com
+const EMAIL_PASS = process.env.EMAIL_PASS || '';       // Gmail App-Passwort (16 Zeichen)
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+
+// Nodemailer Transporter (Gmail)
+const mailTransporter = EMAIL_USER && EMAIL_PASS ? nodemailer.createTransport({
+  service: 'gmail',
+  auth: { user: EMAIL_USER, pass: EMAIL_PASS }
+}) : null;
+
+// Google OAuth2 Client
+const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
+
+// Verification Codes (in-memory, auto-expire)
+const verificationCodes = new Map(); // key: email -> { code, userId, type, expiresAt }
+
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // 6-stellig
+}
+
+function cleanExpiredCodes() {
+  const now = Date.now();
+  for (const [key, val] of verificationCodes) {
+    if (val.expiresAt < now) verificationCodes.delete(key);
+  }
+}
+setInterval(cleanExpiredCodes, 60000); // Jede Minute aufräumen
+
+async function sendMail(to, subject, html) {
+  if (!mailTransporter) {
+    console.warn('[MAIL] Kein E-Mail konfiguriert! Setze EMAIL_USER und EMAIL_PASS.');
+    return false;
+  }
+  try {
+    await mailTransporter.sendMail({
+      from: `"Reisendes Casino 🦔" <${EMAIL_USER}>`,
+      to,
+      subject,
+      html
+    });
+    return true;
+  } catch (e) {
+    console.error('[MAIL] Fehler:', e.message);
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// In-Memory DB mit JSON-Persistenz
+// ---------------------------------------------------------------------------
+const DB_FILE = path.join(__dirname, 'data', 'db.json');
+
 const db = {
   users: new Map(),
   transactions: new Map(),
   sessions: new Map(),
-  leaderboard: new Map(),        // odgovor: weekKey -> Map(userId -> {totalWin, username, spins})
-  weeklyWinners: []              // Archiv vergangener Gewinner
+  leaderboard: new Map(),
+  weeklyWinners: []
 };
+
+// ── DB laden ──
+function loadDB() {
+  try {
+    if (!fs.existsSync(DB_FILE)) return;
+    const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+    if (raw.users) for (const [k, v] of Object.entries(raw.users)) db.users.set(k, v);
+    if (raw.transactions) for (const [k, v] of Object.entries(raw.transactions)) db.transactions.set(k, v);
+    if (raw.leaderboard) for (const [k, v] of Object.entries(raw.leaderboard)) {
+      const weekMap = new Map();
+      for (const [uk, uv] of Object.entries(v)) weekMap.set(uk, uv);
+      db.leaderboard.set(k, weekMap);
+    }
+    if (raw.weeklyWinners) db.weeklyWinners = raw.weeklyWinners;
+    console.log(`[DB] ${db.users.size} User geladen aus ${DB_FILE}`);
+  } catch (e) {
+    console.error('[DB] Fehler beim Laden:', e.message);
+  }
+}
+
+// ── DB speichern ──
+let saveTimer = null;
+function saveDB() {
+  // Debounce: max alle 2 Sekunden speichern
+  if (saveTimer) return;
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    try {
+      const dir = path.dirname(DB_FILE);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      const data = {
+        users: Object.fromEntries(db.users),
+        transactions: Object.fromEntries(db.transactions),
+        leaderboard: {},
+        weeklyWinners: db.weeklyWinners
+      };
+      for (const [wk, wMap] of db.leaderboard) {
+        data.leaderboard[wk] = Object.fromEntries(wMap);
+      }
+      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (e) {
+      console.error('[DB] Fehler beim Speichern:', e.message);
+    }
+  }, 2000);
+}
+
+// Beim Start laden
+loadDB();
+
+// Auto-Save: Periodisch alle 5 Sekunden + bei neuen Usern/Transaktionen
+let dbDirty = false;
+const origUsersSet = db.users.set.bind(db.users);
+db.users.set = function(k, v) { origUsersSet(k, v); dbDirty = true; saveDB(); return db.users; };
+const origTxSet = db.transactions.set.bind(db.transactions);
+db.transactions.set = function(k, v) { origTxSet(k, v); dbDirty = true; saveDB(); return db.transactions; };
+
+// Periodisches Speichern für Änderungen an bestehenden User-Objekten
+setInterval(() => {
+  if (db.users.size > 0) { dbDirty = true; saveDB(); }
+}, 10000);
+
+// Beim Beenden speichern
+process.on('SIGINT', () => { saveTimer = null; saveDB(); setTimeout(() => process.exit(0), 500); });
+process.on('SIGTERM', () => { saveTimer = null; saveDB(); setTimeout(() => process.exit(0), 500); });
 
 // Aktuelle Kalenderwoche berechnen
 function getWeekKey() {
@@ -203,9 +338,19 @@ const BAXT_REWARDS = {
   blackjackBJ: 75,      // Blackjack (21 mit 2 Karten)
   roundPlayed: 5,       // Runde gespielt (egal welches Spiel)
   levelUp: 200,         // Level-Up Bonus
-  dailyLogin: 100,      // Täglicher Login-Bonus
+  dailyLogin: 500,      // Täglicher Login-Bonus
   slotBigWin: 40,       // Slot: großer Gewinn (>10x)
+  guestWelcome: 500,    // Gast-Willkommensbonus
+  registerBonus: 5000,  // Registrierungsbonus
 };
+
+// Nachschub-System (Refill Cooldowns)
+const REFILL_TIERS = [
+  { wait: 10 * 60 * 1000, amount: 200 },   // 1. Refill: 10 min → 200
+  { wait: 30 * 60 * 1000, amount: 150 },   // 2. Refill: 30 min → 150
+  { wait: 60 * 60 * 1000, amount: 100 },   // 3.+ Refill: 60 min → 100
+];
+const AD_REFILL_AMOUNT = 100; // Werbung schauen → 100 Baxt
 
 // Baxt Coins vergeben
 function awardBaxtCoins(user, amount, reason) {
@@ -326,9 +471,18 @@ function authMiddleware(req, res, next) {
 // AUTH ROUTES
 // ---------------------------------------------------------------------------
 
+// Gast-Status prüfen (kein Login nötig)
+app.get('/api/guest/status', (req, res) => {
+  res.json({
+    guestWelcomeBonus: BAXT_REWARDS.guestWelcome,
+    registerBonus: BAXT_REWARDS.registerBonus,
+    dailyBonus: BAXT_REWARDS.dailyLogin
+  });
+});
+
 // Register
 app.post('/api/auth/register', async (req, res) => {
-  const { phone, pin, username } = req.body;
+  const { phone, pin, username, email } = req.body;
 
   if (!phone || !pin || !username) {
     return res.status(400).json({ error: 'Phone, PIN and username required' });
@@ -339,6 +493,9 @@ app.post('/api/auth/register', async (req, res) => {
     if (user.phone === phone) {
       return res.status(409).json({ error: 'Phone already registered' });
     }
+    if (email && user.email && user.email.toLowerCase() === email.toLowerCase()) {
+      return res.status(409).json({ error: 'Email already registered' });
+    }
   }
 
   const userId = uuidv4();
@@ -347,12 +504,14 @@ app.post('/api/auth/register', async (req, res) => {
   const user = {
     id: userId,
     phone,
+    email: email || null,
     username,
     pin: hashedPin,
     balance: 0,
     currency: 'EUR',
     createdAt: new Date().toISOString(),
     verified: false,
+    emailVerified: false,
     // Progression System
     xp: 0,
     level: 1,
@@ -365,7 +524,7 @@ app.post('/api/auth/register', async (req, res) => {
     handsWon: 0,
     highscoreAllTime: 0,
     // Baxt Coins
-    baxtCoins: 500,        // Startguthaben: 500 Baxt Coins
+    baxtCoins: BAXT_REWARDS.registerBonus, // Registrierungsbonus: 5000 Baxt Coins
     baxtHistory: [],       // Transaktionshistorie
     lastDailyBaxt: null,   // Letzter Daily-Login Bonus
     // Friends
@@ -378,9 +537,27 @@ app.post('/api/auth/register', async (req, res) => {
 
   const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
 
+  // Automatisch Verifizierungs-Code senden wenn E-Mail angegeben
+  if (email && mailTransporter) {
+    const code = generateCode();
+    verificationCodes.set(email.toLowerCase(), {
+      code, userId, type: 'verify', expiresAt: Date.now() + 15 * 60 * 1000
+    });
+    sendMail(email, 'Dein Verifizierungscode – Reisendes Casino', `
+      <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:20px;background:#1a1a2e;color:#fff;border-radius:12px;border:2px solid #D4AF37">
+        <h2 style="color:#D4AF37;text-align:center">🦔 Reisendes Casino</h2>
+        <p>Hallo <strong>${username}</strong>,</p>
+        <p>Dein Verifizierungscode:</p>
+        <div style="text-align:center;font-size:32px;font-weight:bold;color:#D4AF37;letter-spacing:8px;padding:16px;background:#0a0a12;border-radius:8px;margin:16px 0">${code}</div>
+        <p style="color:#aaa;font-size:12px">Code gültig für 15 Minuten.</p>
+      </div>
+    `);
+  }
+
   res.status(201).json({
     token,
-    user: { id: userId, username, phone, balance: 0, currency: 'EUR', baxtCoins: 500 }
+    user: { id: userId, username, phone, email: email || null, balance: 0, currency: 'EUR', baxtCoins: BAXT_REWARDS.registerBonus },
+    emailSent: !!(email && mailTransporter)
   });
 });
 
@@ -415,6 +592,252 @@ app.post('/api/auth/login', async (req, res) => {
       baxtCoins: foundUser.baxtCoins || 0
     }
   });
+});
+
+// Logout
+app.post('/api/auth/logout', authMiddleware, (req, res) => {
+  // Token-basiert → Client löscht Token, Server bestätigt nur
+  res.json({ success: true, message: 'Erfolgreich abgemeldet' });
+});
+
+// ---------------------------------------------------------------------------
+// E-MAIL VERIFIZIERUNG & PASSWORT-RESET
+// ---------------------------------------------------------------------------
+
+// Verifizierungscode erneut senden
+app.post('/api/auth/send-code', authMiddleware, async (req, res) => {
+  const email = req.user.email;
+  if (!email) return res.status(400).json({ error: 'Keine E-Mail hinterlegt' });
+  if (req.user.emailVerified) return res.json({ success: true, message: 'Bereits verifiziert' });
+
+  const code = generateCode();
+  verificationCodes.set(email.toLowerCase(), {
+    code, userId: req.user.id, type: 'verify', expiresAt: Date.now() + 15 * 60 * 1000
+  });
+
+  const sent = await sendMail(email, 'Dein Verifizierungscode – Reisendes Casino', `
+    <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:20px;background:#1a1a2e;color:#fff;border-radius:12px;border:2px solid #D4AF37">
+      <h2 style="color:#D4AF37;text-align:center">🦔 Reisendes Casino</h2>
+      <p>Hallo <strong>${req.user.username}</strong>,</p>
+      <p>Dein Verifizierungscode:</p>
+      <div style="text-align:center;font-size:32px;font-weight:bold;color:#D4AF37;letter-spacing:8px;padding:16px;background:#0a0a12;border-radius:8px;margin:16px 0">${code}</div>
+      <p style="color:#aaa;font-size:12px">Code gültig für 15 Minuten.</p>
+    </div>
+  `);
+
+  res.json({ success: sent, message: sent ? 'Code gesendet!' : 'E-Mail konnte nicht gesendet werden' });
+});
+
+// E-Mail verifizieren
+app.post('/api/auth/verify-email', authMiddleware, (req, res) => {
+  const { code } = req.body;
+  const email = req.user.email;
+  if (!email) return res.status(400).json({ error: 'Keine E-Mail hinterlegt' });
+
+  const stored = verificationCodes.get(email.toLowerCase());
+  if (!stored || stored.type !== 'verify') {
+    return res.status(400).json({ error: 'Kein Code angefordert' });
+  }
+  if (stored.expiresAt < Date.now()) {
+    verificationCodes.delete(email.toLowerCase());
+    return res.status(400).json({ error: 'Code abgelaufen – bitte neu anfordern' });
+  }
+  if (stored.code !== code) {
+    return res.status(400).json({ error: 'Falscher Code' });
+  }
+
+  req.user.emailVerified = true;
+  req.user.verified = true;
+  verificationCodes.delete(email.toLowerCase());
+  saveDB();
+
+  res.json({ success: true, message: 'E-Mail verifiziert!' });
+});
+
+// Passwort vergessen – Code an E-Mail senden
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'E-Mail erforderlich' });
+
+  let foundUser = null;
+  for (const [, user] of db.users) {
+    if (user.email && user.email.toLowerCase() === email.toLowerCase()) {
+      foundUser = user; break;
+    }
+  }
+
+  // Immer "erfolgreich" antworten (Sicherheit: kein User-Enumeration)
+  if (!foundUser) return res.json({ success: true, message: 'Falls ein Konto existiert, wurde ein Code gesendet' });
+
+  const code = generateCode();
+  verificationCodes.set(email.toLowerCase(), {
+    code, userId: foundUser.id, type: 'reset', expiresAt: Date.now() + 15 * 60 * 1000
+  });
+
+  await sendMail(email, 'PIN zurücksetzen – Reisendes Casino', `
+    <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:20px;background:#1a1a2e;color:#fff;border-radius:12px;border:2px solid #D4AF37">
+      <h2 style="color:#D4AF37;text-align:center">🦔 PIN zurücksetzen</h2>
+      <p>Hallo <strong>${foundUser.username}</strong>,</p>
+      <p>Dein Reset-Code:</p>
+      <div style="text-align:center;font-size:32px;font-weight:bold;color:#D4AF37;letter-spacing:8px;padding:16px;background:#0a0a12;border-radius:8px;margin:16px 0">${code}</div>
+      <p style="color:#aaa;font-size:12px">Code gültig für 15 Minuten. Falls du das nicht warst, ignoriere diese E-Mail.</p>
+    </div>
+  `);
+
+  res.json({ success: true, message: 'Falls ein Konto existiert, wurde ein Code gesendet' });
+});
+
+// PIN zurücksetzen mit Code
+app.post('/api/auth/reset-pin', async (req, res) => {
+  const { email, code, newPin } = req.body;
+  if (!email || !code || !newPin) return res.status(400).json({ error: 'Alle Felder erforderlich' });
+  if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) return res.status(400).json({ error: 'PIN muss 4 Ziffern sein' });
+
+  const stored = verificationCodes.get(email.toLowerCase());
+  if (!stored || stored.type !== 'reset') {
+    return res.status(400).json({ error: 'Kein Reset angefordert' });
+  }
+  if (stored.expiresAt < Date.now()) {
+    verificationCodes.delete(email.toLowerCase());
+    return res.status(400).json({ error: 'Code abgelaufen' });
+  }
+  if (stored.code !== code) {
+    return res.status(400).json({ error: 'Falscher Code' });
+  }
+
+  const user = db.users.get(stored.userId);
+  if (!user) return res.status(400).json({ error: 'User nicht gefunden' });
+
+  user.pin = await bcrypt.hash(newPin, 10);
+  verificationCodes.delete(email.toLowerCase());
+  saveDB();
+
+  res.json({ success: true, message: 'PIN wurde zurückgesetzt!' });
+});
+
+// ---------------------------------------------------------------------------
+// GOOGLE SIGN-IN
+// ---------------------------------------------------------------------------
+
+app.post('/api/auth/google', async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) return res.status(400).json({ error: 'Google credential fehlt' });
+
+  if (!googleClient) {
+    return res.status(503).json({ error: 'Google Sign-In nicht konfiguriert' });
+  }
+
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: GOOGLE_CLIENT_ID
+    });
+    const payload = ticket.getPayload();
+    const googleEmail = payload.email;
+    const googleName = payload.name || payload.given_name || googleEmail.split('@')[0];
+
+    // Suche ob User mit dieser E-Mail existiert
+    let foundUser = null;
+    for (const [, user] of db.users) {
+      if (user.email && user.email.toLowerCase() === googleEmail.toLowerCase()) {
+        foundUser = user; break;
+      }
+      if (user.googleId === payload.sub) {
+        foundUser = user; break;
+      }
+    }
+
+    if (foundUser) {
+      // Existierender User → Login
+      if (!foundUser.googleId) foundUser.googleId = payload.sub;
+      if (!foundUser.emailVerified) {
+        foundUser.emailVerified = true;
+        foundUser.verified = true;
+      }
+      saveDB();
+
+      const token = jwt.sign({ userId: foundUser.id }, JWT_SECRET, { expiresIn: '30d' });
+      return res.json({
+        token,
+        user: {
+          id: foundUser.id, username: foundUser.username,
+          phone: foundUser.phone, email: foundUser.email,
+          balance: foundUser.balance, currency: foundUser.currency,
+          baxtCoins: foundUser.baxtCoins || 0
+        }
+      });
+    }
+
+    // Neuer User via Google → Auto-Register
+    const userId = uuidv4();
+    const user = {
+      id: userId,
+      phone: null,
+      email: googleEmail,
+      googleId: payload.sub,
+      username: googleName.substring(0, 20),
+      pin: null,  // Kein PIN bei Google-Login
+      balance: 0,
+      currency: 'EUR',
+      createdAt: new Date().toISOString(),
+      verified: true,
+      emailVerified: true,
+      xp: 0, level: 1, rang: 'reisender',
+      inventory: [],
+      equipped: { avatar: 'default', cardBack: 'default', frame: 'default', title: 'Reisender', tableDesign: 'default', emote: null },
+      chestsReady: [], chestsOpened: 0,
+      roundsPlayed: 0, handsWon: 0, highscoreAllTime: 0,
+      baxtCoins: BAXT_REWARDS.registerBonus, baxtHistory: [], lastDailyBaxt: null,
+      friends: [], friendRequests: [], friendRequestsSent: []
+    };
+
+    db.users.set(userId, user);
+
+    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
+    res.status(201).json({
+      token,
+      user: { id: userId, username: user.username, phone: null, email: googleEmail, balance: 0, currency: 'EUR', baxtCoins: BAXT_REWARDS.registerBonus },
+      isNewUser: true
+    });
+  } catch (e) {
+    console.error('[GOOGLE] Verify error:', e.message);
+    res.status(401).json({ error: 'Google-Token ungültig' });
+  }
+});
+
+// E-Mail nachträglich hinzufügen
+app.put('/api/auth/email', authMiddleware, async (req, res) => {
+  const { email } = req.body;
+  if (!email || !email.includes('@')) return res.status(400).json({ error: 'Gültige E-Mail erforderlich' });
+
+  // Check ob E-Mail schon vergeben
+  for (const [, user] of db.users) {
+    if (user.email && user.email.toLowerCase() === email.toLowerCase() && user.id !== req.user.id) {
+      return res.status(409).json({ error: 'E-Mail bereits vergeben' });
+    }
+  }
+
+  req.user.email = email;
+  req.user.emailVerified = false;
+  saveDB();
+
+  // Direkt Verifizierungscode senden
+  const code = generateCode();
+  verificationCodes.set(email.toLowerCase(), {
+    code, userId: req.user.id, type: 'verify', expiresAt: Date.now() + 15 * 60 * 1000
+  });
+
+  const sent = await sendMail(email, 'Dein Verifizierungscode – Reisendes Casino', `
+    <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:20px;background:#1a1a2e;color:#fff;border-radius:12px;border:2px solid #D4AF37">
+      <h2 style="color:#D4AF37;text-align:center">🦔 Reisendes Casino</h2>
+      <p>Hallo <strong>${req.user.username}</strong>,</p>
+      <p>Dein Verifizierungscode:</p>
+      <div style="text-align:center;font-size:32px;font-weight:bold;color:#D4AF37;letter-spacing:8px;padding:16px;background:#0a0a12;border-radius:8px;margin:16px 0">${code}</div>
+      <p style="color:#aaa;font-size:12px">Code gültig für 15 Minuten.</p>
+    </div>
+  `);
+
+  res.json({ success: true, email, codeSent: sent });
 });
 
 // ---------------------------------------------------------------------------
@@ -780,6 +1203,173 @@ app.post('/api/baxt/daily', authMiddleware, (req, res) => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// NACHSCHUB-SYSTEM (Refill mit Cooldowns)
+// ---------------------------------------------------------------------------
+
+app.get('/api/baxt/refill-status', authMiddleware, (req, res) => {
+  const user = req.user;
+  const today = new Date().toISOString().split('T')[0];
+
+  // Tagesreset: refillCount zurücksetzen
+  if (user.refillDate !== today) {
+    user.refillCount = 0;
+    user.refillDate = today;
+  }
+
+  const tierIdx = Math.min(user.refillCount || 0, REFILL_TIERS.length - 1);
+  const tier = REFILL_TIERS[tierIdx];
+  const lastRefill = user.lastRefill || 0;
+  const elapsed = Date.now() - lastRefill;
+  const remaining = Math.max(0, tier.wait - elapsed);
+
+  res.json({
+    canRefill: remaining === 0 && (user.baxtCoins || 0) === 0,
+    remaining,       // ms bis Nachschub verfügbar
+    amount: tier.amount,
+    refillCount: user.refillCount || 0,
+    baxtCoins: user.baxtCoins || 0,
+    canWatchAd: remaining > 0 && (user.baxtCoins || 0) === 0
+  });
+});
+
+app.post('/api/baxt/refill', authMiddleware, (req, res) => {
+  const user = req.user;
+  const today = new Date().toISOString().split('T')[0];
+
+  // Tagesreset
+  if (user.refillDate !== today) {
+    user.refillCount = 0;
+    user.refillDate = today;
+  }
+
+  // Nur wenn wirklich pleite
+  if ((user.baxtCoins || 0) > 0) {
+    return res.status(400).json({ error: 'Du hast noch Baxt Coins!' });
+  }
+
+  const tierIdx = Math.min(user.refillCount || 0, REFILL_TIERS.length - 1);
+  const tier = REFILL_TIERS[tierIdx];
+  const lastRefill = user.lastRefill || 0;
+  const elapsed = Date.now() - lastRefill;
+
+  if (elapsed < tier.wait) {
+    const remaining = tier.wait - elapsed;
+    return res.status(400).json({
+      error: 'Noch nicht bereit',
+      remaining,
+      canWatchAd: true
+    });
+  }
+
+  // Nachschub geben
+  const result = awardBaxtCoins(user, tier.amount, 'refill');
+  user.lastRefill = Date.now();
+  user.refillCount = (user.refillCount || 0) + 1;
+  saveDB();
+
+  res.json({
+    success: true,
+    amount: tier.amount,
+    baxtCoins: user.baxtCoins,
+    refillCount: user.refillCount
+  });
+});
+
+// Werbung schauen → Cooldown überspringen
+app.post('/api/baxt/ad-refill', authMiddleware, (req, res) => {
+  const user = req.user;
+
+  // Nur wenn wirklich pleite
+  if ((user.baxtCoins || 0) > 0) {
+    return res.status(400).json({ error: 'Du hast noch Baxt Coins!' });
+  }
+
+  // Hier wäre echte Ad-Verification (z.B. Google AdMob callback)
+  // Für jetzt: einfach geben
+  const result = awardBaxtCoins(user, AD_REFILL_AMOUNT, 'ad_refill');
+  user.lastRefill = Date.now();
+  const today = new Date().toISOString().split('T')[0];
+  if (user.refillDate !== today) {
+    user.refillCount = 0;
+    user.refillDate = today;
+  }
+  user.refillCount = (user.refillCount || 0) + 1;
+  saveDB();
+
+  res.json({
+    success: true,
+    amount: AD_REFILL_AMOUNT,
+    baxtCoins: user.baxtCoins
+  });
+});
+
+// Baxt Coins aufladen
+app.post('/api/baxt/topup', authMiddleware, (req, res) => {
+  const user = req.user;
+  if (!user) return res.status(404).json({ error: 'User nicht gefunden' });
+  const { amount } = req.body;
+  const allowed = [1000, 5000, 10000, 50000, 100000];
+  if (!allowed.includes(amount)) return res.status(400).json({ error: 'Ungültiger Betrag' });
+  awardBaxtCoins(user, amount, 'topup');
+  res.json({ baxtCoins: user.baxtCoins });
+});
+
+// Slot: Einsatz abziehen (vor jedem Spin)
+app.post('/api/baxt/slot-bet', authMiddleware, (req, res) => {
+  const { amount } = req.body;
+  if (!amount || amount <= 0 || !Number.isInteger(amount)) {
+    return res.status(400).json({ error: 'Ungültiger Einsatz' });
+  }
+  const user = req.user;
+  if ((user.baxtCoins || 0) < amount) {
+    return res.status(400).json({ error: 'Nicht genug Baxt Coins', baxtCoins: user.baxtCoins || 0 });
+  }
+  user.baxtCoins -= amount;
+
+  const tx = {
+    id: uuidv4(), userId: user.id, type: 'slot_bet',
+    amount, reason: 'slot_bet', baxtAfter: user.baxtCoins,
+    timestamp: new Date().toISOString()
+  };
+  if (!user.baxtHistory) user.baxtHistory = [];
+  user.baxtHistory.unshift(tx);
+  if (user.baxtHistory.length > 100) user.baxtHistory.length = 100;
+
+  res.json({ baxtCoins: user.baxtCoins });
+});
+
+// Slot: Gewinn gutschreiben (nach Spin mit Gewinn)
+app.post('/api/baxt/slot-win', authMiddleware, (req, res) => {
+  const { amount } = req.body;
+  if (!amount || amount <= 0) {
+    return res.status(400).json({ error: 'Ungültiger Gewinn' });
+  }
+  const user = req.user;
+  const result = awardBaxtCoins(user, Math.round(amount), 'slot_win');
+  res.json({ baxtCoins: user.baxtCoins });
+});
+
+// Avatar speichern/abrufen (einheitlich für alle Spiele)
+app.get('/api/user/avatar', authMiddleware, (req, res) => {
+  res.json({
+    avatarUrl: req.user.avatarUrl || null,
+    avatarConfig: req.user.avatarConfig || null,
+    equipped: req.user.equipped || {}
+  });
+});
+
+app.put('/api/user/avatar', authMiddleware, (req, res) => {
+  const { avatarUrl, avatarConfig } = req.body;
+  if (avatarUrl !== undefined) req.user.avatarUrl = avatarUrl;
+  if (avatarConfig !== undefined) req.user.avatarConfig = avatarConfig;
+  res.json({
+    success: true,
+    avatarUrl: req.user.avatarUrl || null,
+    avatarConfig: req.user.avatarConfig || null
+  });
+});
+
 // Baxt Coins Rangliste (Top 20)
 app.get('/api/baxt/leaderboard', (req, res) => {
   const allUsers = [];
@@ -922,6 +1512,14 @@ app.get('/api/check-name', (req, res) => {
   res.json({ available: true });
 });
 
+// Frontend Config (Google Client ID etc.)
+app.get('/api/config', (req, res) => {
+  res.json({
+    googleClientId: GOOGLE_CLIENT_ID || null,
+    emailEnabled: !!mailTransporter
+  });
+});
+
 // Live Online-Status
 app.get('/api/online', (req, res) => {
   const total = io.sockets.sockets.size;
@@ -935,7 +1533,19 @@ app.get('/api/online', (req, res) => {
   for (const [, table] of tables.blackjack) {
     bjPlayers += [...table.players.values()].filter(p => !p.spectator).length;
   }
-  res.json({ total, poker: pokerPlayers, blackjack: bjPlayers, slots: Math.max(0, total - pokerPlayers - bjPlayers) });
+  // Spieler in Bar-Räumen
+  let barPlayers = 0;
+  if (global.barRooms) {
+    for (const room of Object.values(global.barRooms)) {
+      barPlayers += room.filter(s => s !== null).length;
+    }
+  }
+  // Spieler in Roulette (Socket-Räume die mit 'roulette' beginnen)
+  let roulettePlayers = 0;
+  for (const [, socket] of io.sockets.sockets) {
+    if (socket.rooms && socket.rooms.has('roulette')) roulettePlayers++;
+  }
+  res.json({ total, poker: pokerPlayers, blackjack: bjPlayers, bar: barPlayers, roulette: roulettePlayers, slots: Math.max(0, total - pokerPlayers - bjPlayers - barPlayers - roulettePlayers) });
 });
 
 // Live Poker-Tische: aktuelle Spieler für Landing Page
@@ -973,6 +1583,9 @@ app.get('/api/auth/profile', authMiddleware, (req, res) => {
     id: req.user.id,
     username: req.user.username,
     phone: req.user.phone,
+    email: req.user.email || null,
+    emailVerified: req.user.emailVerified || false,
+    googleId: req.user.googleId ? true : false,
     balance: req.user.balance,
     createdAt: req.user.createdAt,
     rank,
@@ -1389,14 +2002,19 @@ function bjTableState(table, forSocket) {
     if (!pid) return null;
     const p = table.players.get(pid);
     if (!p) return null;
+    // Avatar-URL aus User-Profil laden (wenn vorhanden)
+    const userObj = db.users.get(pid);
     return {
       seat: i, username: p.username, odgovor: p.odgovor || 0,
       bet: p.bet, cards: p.cards.map(cardStr), value: handValue(p.cards),
-      status: p.status, isYou: forSocket && pid === forSocket.user.id
+      status: p.status, isYou: forSocket && pid === forSocket.user.id,
+      isBot: !!p.isBot,
+      avatarUrl: (userObj && userObj.avatarUrl) || p.avatarUrl || null,
+      avatarConfig: (userObj && userObj.avatarConfig) || null,
+      rang: p.isBot ? 'KI' : (getRangFromLevel(getLevelFromXP((userObj || {}).xp || 0)).label || 'Reisender')
     };
   });
   const dealerCards = table.dealer.cards.map(cardStr);
-  // Hide dealer hole card during play
   const showDealer = table.phase === 'dealer' || table.phase === 'payout' || table.phase === 'waiting';
   return {
     id: table.id,
@@ -1422,6 +2040,21 @@ function bjStartRound(table) {
   table.deck = createDeck();
   for (const [, p] of table.players) {
     p.cards = []; p.bet = 0; p.status = 'betting'; p.payout = 0;
+  }
+  // Bots setzen automatisch nach 1-3s
+  for (const [, p] of table.players) {
+    if (p.isBot) {
+      setTimeout(() => {
+        if (table.phase !== 'betting') return;
+        const bets = [500, 1000, 2000, 5000];
+        p.bet = bets[Math.floor(Math.random() * bets.length)];
+        p.status = 'ready';
+        emitBJState(table);
+        // Check if all ready
+        const allReady = [...table.players.values()].every(pp => pp.status === 'ready' || pp.status === 'spectating');
+        if (allReady) bjDeal(table);
+      }, 1000 + Math.random() * 2000);
+    }
   }
   emitBJState(table);
 
@@ -1465,7 +2098,15 @@ function bjNextPlayer(table, afterSeat) {
     if (p.status === 'playing' && handValue(p.cards) < 21) {
       table.currentSeat = s;
       emitBJState(table);
-      // 30s Timer
+
+      // Bot spielt automatisch
+      if (p.isBot) {
+        if (table.timer) clearTimeout(table.timer);
+        bjBotPlay(table, s);
+        return;
+      }
+
+      // 30s Timer für echte Spieler
       if (table.timer) clearTimeout(table.timer);
       table.timer = setTimeout(() => {
         p.status = 'stand';
@@ -1478,6 +2119,33 @@ function bjNextPlayer(table, afterSeat) {
   }
   // Kein Spieler mehr → Dealer
   bjDealerPlay(table);
+}
+
+function bjBotPlay(table, seat) {
+  const pid = table.seats[seat];
+  const p = table.players.get(pid);
+  if (!p || !p.isBot) return;
+
+  function botTurn() {
+    const val = handValue(p.cards);
+    if (val >= 21) {
+      p.status = val > 21 ? 'bust' : 'stand';
+      emitBJState(table);
+      setTimeout(() => bjNextPlayer(table, seat), 600);
+      return;
+    }
+    // Simple strategy: hit on 16 or less, stand on 17+
+    if (val <= 16 || (val === 17 && Math.random() < 0.15)) {
+      p.cards.push(bjDraw(table));
+      emitBJState(table);
+      setTimeout(botTurn, 800 + Math.random() * 800);
+    } else {
+      p.status = 'stand';
+      emitBJState(table);
+      setTimeout(() => bjNextPlayer(table, seat), 600);
+    }
+  }
+  setTimeout(botTurn, 1000 + Math.random() * 1000);
 }
 
 function bjDealerPlay(table) {
@@ -1843,7 +2511,9 @@ function pokerTableState(table, forSocket) {
       botStyle: p.isBot ? p.botStyle : null,
       peeking: !!p.peeking,
       handName: table.phase === 'showdown' && !p.folded ? bestPokerHand(p.cards, table.community).name : null,
-      avatarUrl: p.avatarUrl || null
+      avatarUrl: p.avatarUrl || (db.users.get(pid) || {}).avatarUrl || null,
+      avatarConfig: (db.users.get(pid) || {}).avatarConfig || null,
+      rang: p.isBot ? 'KI' : (getRangFromLevel(getLevelFromXP((db.users.get(pid) || {}).xp || 0)).label || 'Reisender')
     };
   });
   return {
@@ -2088,9 +2758,9 @@ function ensureShowcaseBots() {
   const botCount = [...showcaseTable.players.values()].filter(p => p.isBot && !p.spectator).length;
   const totalActive = [...showcaseTable.players.values()].filter(p => !p.spectator).length;
 
-  // Wenn keine echten Spieler: 3 Bots sollen spielen
+  // Wenn keine echten Spieler: 3 Bots sollen spielen (max 4 Bots insgesamt)
   if (realPlayers === 0 && botCount < 3) {
-    const needed = 3 - botCount;
+    const needed = Math.min(3 - botCount, 4 - botCount);
     for (let i = 0; i < needed; i++) {
       // Bots einzeln hinzufügen OHNE direkt die Runde zu starten
       const freeSeat = showcaseTable.seats.findIndex(s => !s);
@@ -2146,6 +2816,25 @@ setTimeout(() => {
   // Regelmäßig prüfen ob Bots gebraucht werden / Spiel läuft
   setInterval(ensureShowcaseBots, 15000);
 }, 3000);
+
+// ===================== BAR BOTS (Server-seitig) =====================
+if (!global.barRooms) global.barRooms = {};
+const BAR_BOT_NAMES_SRV = ['Lucky Lena','Max Müller','Roulette Rita','Casino Carlo','Glücks-Gabi','Poker Pete','Fortuna Finn'];
+function _initBarBots(room) {
+  const seats = global.barRooms[room];
+  if (!seats) return;
+  const count = 1 + Math.floor(Math.random() * 3); // max 3 Bots
+  const shuffled = [...BAR_BOT_NAMES_SRV].sort(() => Math.random() - .5);
+  for (let i = 0; i < count; i++) {
+    const free = seats.findIndex(s => !s);
+    if (free >= 0) {
+      seats[free] = { username: shuffled[i], id: 'bot-' + shuffled[i].replace(/\s/g, ''), video: false, isBot: true };
+    }
+  }
+}
+// Raum 1 sofort initialisieren (damit LIVE-Anzeige Bots zeigt)
+global.barRooms['1'] = Array(8).fill(null);
+_initBarBots('1');
 
 // ===================== SOCKET EVENTS =====================
 io.on('connection', (socket) => {
@@ -2281,6 +2970,47 @@ io.on('connection', (socket) => {
     bjNextPlayer(table, table.currentSeat);
   });
 
+  socket.on('bj:addBot', ({ tableId }) => {
+    const table = tables.blackjack.get(tableId);
+    if (!table) return;
+    // Find empty seat
+    let freeSeat = -1;
+    for (let i = 0; i < 7; i++) { if (!table.seats[i]) { freeSeat = i; break; } }
+    if (freeSeat < 0) return socket.emit('error', 'Tisch voll');
+
+    const BJ_BOT_NAMES = ['Django 🤖','Paco 🤖','Luca 🤖','Baro 🤖','Kalo 🤖','Nuri 🤖','Sinto 🤖','Manusch 🤖','Pepe 🤖','Rico 🤖'];
+    const botId = 'bjbot-' + (++botIdCounter);
+    const name = BJ_BOT_NAMES[Math.floor(Math.random() * BJ_BOT_NAMES.length)];
+
+    table.players.set(botId, {
+      id: botId, username: name, socketId: null,
+      cards: [], bet: 0, status: 'waiting', payout: 0, isBot: true
+    });
+    table.seats[freeSeat] = botId;
+
+    io.to('bj-' + tableId).emit('bj:playerJoined', { username: name, seat: freeSeat });
+
+    // Start game if waiting
+    if (table.phase === 'waiting' && [...table.players.values()].filter(p => p.status !== 'spectating').length >= 1) {
+      bjStartRound(table);
+    } else {
+      emitBJState(table);
+    }
+  });
+
+  socket.on('bj:removeBots', ({ tableId }) => {
+    const table = tables.blackjack.get(tableId);
+    if (!table) return;
+    const botIds = [...table.players.keys()].filter(id => id.startsWith('bjbot-'));
+    for (const botId of botIds) {
+      const seatIdx = table.seats.indexOf(botId);
+      if (seatIdx >= 0) table.seats[seatIdx] = null;
+      table.players.delete(botId);
+      io.to('bj-' + tableId).emit('bj:playerLeft', { username: 'Bot' });
+    }
+    emitBJState(table);
+  });
+
   // --- POKER ---
   socket.on('poker:setAvatar', ({ avatarUrl }) => {
     if (!socket.user) return;
@@ -2408,6 +3138,10 @@ io.on('connection', (socket) => {
   socket.on('poker:addBot', ({ tableId }) => {
     const table = tables.poker.get(tableId || socket._pkTable);
     if (!table) return socket.emit('error', 'Tisch nicht gefunden');
+    const botCount = [...table.players.values()].filter(p => p.isBot).length;
+    if (botCount >= 4) return socket.emit('error', 'Maximal 4 Bots erlaubt');
+    const freeSeats = table.seats.filter(s => !s).length;
+    if (freeSeats <= 2) return socket.emit('error', 'Mindestens 2 Plätze bleiben frei');
     const result = addBotToTable(table);
     if (!result) return socket.emit('error', 'Tisch ist voll!');
     io.to('pk-' + table.id).emit('chat:msg', {
@@ -2507,38 +3241,244 @@ io.on('connection', (socket) => {
     }
   });
 
-  // --- BAR (Video-Chat Raum) ---
-  if (!global.barSeats) global.barSeats = Array(8).fill(null);
+  // --- RAUM-JUKEBOXEN (Bar Räume 2+, jeder Raum eigene Musik) ---
+  if (!global.roomJukeboxes) global.roomJukeboxes = {};
+  function getRoomJukebox(room) {
+    if (!global.roomJukeboxes[room]) global.roomJukeboxes[room] = { playlist: [] };
+    return global.roomJukeboxes[room];
+  }
 
-  socket.on('bar:join', () => {
-    socket.join('bar');
-    socket.emit('bar:state', { seats: global.barSeats });
+  // Dynamisch Raum-Jukebox-Events registrieren für alle Räume
+  // Format: jukebox:r{N}:join, jukebox:r{N}:play, etc.
+  socket.onAny((event, data) => {
+    const match = event.match(/^jukebox:r(\d+):(.+)$/);
+    if (!match) return;
+    const room = match[1];
+    const action = match[2];
+    const roomKey = 'jukebox-room-' + room;
+    const state = getRoomJukebox(room);
+
+    switch (action) {
+      case 'join':
+        socket.join(roomKey);
+        if (state.videoId) {
+          const sync = { ...state };
+          if (sync.playing && sync.startedAt) {
+            sync.time = Math.floor((Date.now() - sync.startedAt) / 1000) + (sync.timeOffset || 0);
+          }
+          socket.emit('jukebox:r' + room + ':sync', sync);
+        }
+        break;
+      case 'play':
+        global.roomJukeboxes[room] = {
+          videoId: data.videoId, idx: data.idx, title: data.title,
+          playing: true, time: 0, startedAt: Date.now(), timeOffset: 0,
+          playlist: data.playlist || state.playlist || []
+        };
+        socket.to(roomKey).emit('jukebox:r' + room + ':play', data);
+        break;
+      case 'pause':
+        if (state.startedAt) {
+          state.timeOffset = Math.floor((Date.now() - state.startedAt) / 1000) + (state.timeOffset || 0);
+        }
+        state.playing = false;
+        state.startedAt = null;
+        socket.to(roomKey).emit('jukebox:r' + room + ':pause');
+        break;
+      case 'resume':
+        state.playing = true;
+        state.startedAt = Date.now();
+        socket.to(roomKey).emit('jukebox:r' + room + ':resume');
+        break;
+      case 'add':
+        if (!state.playlist) state.playlist = [];
+        if (!state.playlist.some(s => s.id === data.videoId)) {
+          state.playlist.push({ id: data.videoId, title: data.title });
+        }
+        socket.to(roomKey).emit('jukebox:r' + room + ':add', data);
+        break;
+      case 'syncPlaylist':
+        if (data.playlist && data.playlist.length > 0) {
+          if (!state.playlist) state.playlist = [];
+          for (const song of data.playlist) {
+            if (!state.playlist.some(s => s.id === song.id)) {
+              state.playlist.push(song);
+            }
+          }
+        }
+        break;
+    }
+  });
+
+  // --- BAR (Video-Chat Räume / Wohnwagen) ---
+  // ─── ROULETTE ───
+  if (!global.rouletteTables) global.rouletteTables = {};
+  function getRlTable(id) {
+    if (!global.rouletteTables[id]) global.rouletteTables[id] = { players: [], history: [] };
+    return global.rouletteTables[id];
+  }
+
+  const RL_NUMBERS = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+
+  socket.on('rl:join', (data) => {
+    const tid = (data && data.tableId) || 'tisch-1';
+    socket.rlTable = tid;
+    socket.rlUsername = data.username || 'Gast';
+    socket.join('rl:' + tid);
+    const table = getRlTable(tid);
+    // Avatar-URL aus User-Profil laden
+    const rlAvatarUrl = socket.user ? socket.user.avatarUrl || null : null;
+    if (!table.players.find(p => p.id === socket.id)) {
+      table.players.push({ id: socket.id, username: socket.rlUsername, video: false, audio: false, isYou: false, avatarUrl: rlAvatarUrl });
+    }
+    // Send state to this player
+    const myPlayers = table.players.map(p => ({ ...p, isYou: p.id === socket.id }));
+    socket.emit('rl:state', { players: myPlayers, history: table.history, phase: table.phase || 'betting', countdown: table._countdownLeft || 0, bettors: table.bettors || [] });
+    // Notify others
+    socket.to('rl:' + tid).emit('rl:playerJoined', { id: socket.id, username: socket.rlUsername, avatarUrl: rlAvatarUrl });
+  });
+
+  // Roulette: Spieler setzt Wetten → Countdown startet → alle drehen gemeinsam
+  socket.on('rl:placeBets', (data) => {
+    const tid = socket.rlTable || 'tisch-1';
+    const table = getRlTable(tid);
+    if (table.phase === 'spinning') return; // Während Spin keine neuen Wetten
+
+    // Wetten speichern
+    if (!table.pendingBets) table.pendingBets = {};
+    table.pendingBets[socket.id] = { username: socket.rlUsername, bets: data.bets || [] };
+
+    // Bettors-Liste updaten und broadcasten
+    if (!table.bettors) table.bettors = [];
+    if (!table.bettors.includes(socket.rlUsername)) table.bettors.push(socket.rlUsername);
+    io.to('rl:' + tid).emit('rl:betPlaced', { username: socket.rlUsername, bettors: table.bettors });
+
+    // Countdown starten (wenn noch nicht läuft)
+    if (!table._countdownTimer) {
+      table.phase = 'countdown';
+      table._countdownLeft = 15;
+      io.to('rl:' + tid).emit('rl:countdown', { seconds: 15 });
+
+      table._countdownTimer = setInterval(() => {
+        table._countdownLeft--;
+        if (table._countdownLeft <= 0) {
+          clearInterval(table._countdownTimer);
+          table._countdownTimer = null;
+          // SPIN!
+          table.phase = 'spinning';
+          const number = RL_NUMBERS[Math.floor(Math.random() * RL_NUMBERS.length)];
+          table.history.unshift(number);
+          if (table.history.length > 20) table.history.pop();
+          io.to('rl:' + tid).emit('rl:spin', { number, bets: table.pendingBets });
+          // Nach Spin: Reset (nach Animation-Zeit)
+          setTimeout(() => {
+            table.phase = 'betting';
+            table.pendingBets = {};
+            table.bettors = [];
+            io.to('rl:' + tid).emit('rl:roundReset');
+          }, 12000); // 12s für Spin-Animation + Ergebnis
+        } else {
+          io.to('rl:' + tid).emit('rl:countdown', { seconds: table._countdownLeft });
+        }
+      }, 1000);
+    }
+  });
+
+  // Altes rl:spin als Fallback (Solo-Modus wenn nicht connected)
+  socket.on('rl:spin', (data) => {
+    const tid = socket.rlTable || 'tisch-1';
+    const table = getRlTable(tid);
+    if (table.phase === 'spinning') return;
+    const number = RL_NUMBERS[Math.floor(Math.random() * RL_NUMBERS.length)];
+    table.history.unshift(number);
+    if (table.history.length > 20) table.history.pop();
+    io.to('rl:' + tid).emit('rl:spin', { number });
+  });
+
+  socket.on('rl:media', (data) => {
+    const tid = socket.rlTable;
+    if (!tid) return;
+    const table = getRlTable(tid);
+    const p = table.players.find(pl => pl.id === socket.id);
+    if (p) { p.video = data.video; p.audio = data.audio; }
+    socket.to('rl:' + tid).emit('rl:media', { id: socket.id, video: data.video, audio: data.audio });
+  });
+
+  socket.on('rl:chat', (data) => {
+    if (!data.msg || data.msg.length > 200) return;
+    const tid = socket.rlTable;
+    if (tid) socket.to('rl:' + tid).emit('rl:chat', { username: socket.rlUsername, msg: data.msg });
+  });
+
+  // Roulette WebRTC Signaling
+  socket.on('rl:offer', (data) => {
+    io.to(data.to).emit('rl:offer', { from: socket.id, offer: data.offer });
+  });
+  socket.on('rl:answer', (data) => {
+    io.to(data.to).emit('rl:answer', { from: socket.id, answer: data.answer });
+  });
+  socket.on('rl:ice', (data) => {
+    io.to(data.to).emit('rl:ice', { from: socket.id, candidate: data.candidate });
+  });
+
+  // Roulette cleanup on disconnect (added to existing disconnect handler below)
+  socket.on('disconnect', () => {
+    const tid = socket.rlTable;
+    if (tid && global.rouletteTables[tid]) {
+      global.rouletteTables[tid].players = global.rouletteTables[tid].players.filter(p => p.id !== socket.id);
+      socket.to('rl:' + tid).emit('rl:playerLeft', { id: socket.id, username: socket.rlUsername });
+    }
+  });
+
+  // ─── BAR ───
+  function getBarRoom(room) {
+    if (!global.barRooms[room]) {
+      global.barRooms[room] = Array(8).fill(null);
+      if (room === '1') _initBarBots(room);
+    }
+    return global.barRooms[room];
+  }
+
+  socket.on('bar:join', (data) => {
+    const room = (data && data.room) || '1';
+    socket.barRoom = room;
+    socket.join('bar:' + room);
+    socket.emit('bar:state', { seats: getBarRoom(room) });
   });
 
   socket.on('bar:sit', (data) => {
-    if (data.idx >= 0 && data.idx < 8 && !global.barSeats[data.idx]) {
-      global.barSeats[data.idx] = { username: data.username, id: socket.id, video: false };
-      socket.to('bar').emit('bar:sit', { idx: data.idx, username: data.username, id: socket.id });
+    const room = socket.barRoom || '1';
+    const seats = getBarRoom(room);
+    const barAvatar = socket.user ? socket.user.avatarUrl || null : null;
+    const barAvatarConfig = socket.user ? socket.user.avatarConfig || null : null;
+    if (data.idx >= 0 && data.idx < 8 && !seats[data.idx]) {
+      seats[data.idx] = { username: data.username, id: socket.id, video: false, avatar: barAvatar, avatarConfig: barAvatarConfig };
+      socket.to('bar:' + room).emit('bar:sit', { idx: data.idx, username: data.username, id: socket.id, avatar: barAvatar, avatarConfig: barAvatarConfig });
     }
   });
 
   socket.on('bar:leave', (data) => {
-    if (data.idx >= 0 && data.idx < 8 && global.barSeats[data.idx]?.id === socket.id) {
-      global.barSeats[data.idx] = null;
-      socket.to('bar').emit('bar:leave', { idx: data.idx });
+    const room = socket.barRoom || '1';
+    const seats = getBarRoom(room);
+    if (data.idx >= 0 && data.idx < 8 && seats[data.idx]?.id === socket.id) {
+      seats[data.idx] = null;
+      socket.to('bar:' + room).emit('bar:leave', { idx: data.idx });
     }
   });
 
   socket.on('bar:media', (data) => {
-    if (data.idx >= 0 && data.idx < 8 && global.barSeats[data.idx]?.id === socket.id) {
-      global.barSeats[data.idx].video = data.video;
-      socket.to('bar').emit('bar:media', { idx: data.idx, video: data.video, audio: data.audio });
+    const room = socket.barRoom || '1';
+    const seats = getBarRoom(room);
+    if (data.idx >= 0 && data.idx < 8 && seats[data.idx]?.id === socket.id) {
+      seats[data.idx].video = data.video;
+      socket.to('bar:' + room).emit('bar:media', { idx: data.idx, video: data.video, audio: data.audio });
     }
   });
 
   socket.on('bar:chat', (data) => {
     if (!data.msg || data.msg.length > 200) return;
-    socket.to('bar').emit('bar:chat', { username: data.username, msg: data.msg });
+    const room = socket.barRoom || '1';
+    socket.to('bar:' + room).emit('bar:chat', { username: data.username, msg: data.msg });
   });
 
   // WebRTC Signaling für Bar
@@ -2554,11 +3494,12 @@ io.on('connection', (socket) => {
 
   // Bar: Platz freigeben bei Disconnect
   socket.on('disconnect', () => {
-    if (global.barSeats) {
-      global.barSeats.forEach((seat, i) => {
+    const room = socket.barRoom;
+    if (room && global.barRooms[room]) {
+      global.barRooms[room].forEach((seat, i) => {
         if (seat && seat.id === socket.id) {
-          global.barSeats[i] = null;
-          io.to('bar').emit('bar:leave', { idx: i });
+          global.barRooms[room][i] = null;
+          io.to('bar:' + room).emit('bar:leave', { idx: i });
         }
       });
     }
