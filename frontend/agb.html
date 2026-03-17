@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0a12">
+  <title>AGB – Reisendes Casino</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦔</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0a0a12;
+      color: #f0e6d3;
+      min-height: 100vh;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    .legal-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background: linear-gradient(180deg, #0a0a12 0%, #1a0a2e 50%, #0a0a12 100%);
+    }
+    .legal-container {
+      position: relative; z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+    .legal-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #D4AF37;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 30px;
+      transition: opacity .3s;
+    }
+    .legal-back:hover { opacity: .7; }
+    .legal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #D4AF37, #F4D03F, #D4AF37);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    .legal-subtitle {
+      font-size: 14px;
+      color: rgba(240,230,211,.5);
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(212,175,55,.15);
+    }
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: #D4AF37;
+      margin: 36px 0 16px;
+      letter-spacing: .5px;
+    }
+    h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      color: #F4D03F;
+      margin: 24px 0 10px;
+    }
+    p, li {
+      font-size: 14px;
+      color: rgba(240,230,211,.85);
+      margin-bottom: 12px;
+    }
+    ul, ol { padding-left: 20px; margin-bottom: 16px; }
+    ol { list-style-type: lower-alpha; }
+    li { margin-bottom: 6px; }
+    a { color: #D4AF37; text-decoration: none; transition: opacity .3s; }
+    a:hover { opacity: .7; text-decoration: underline; }
+    strong { color: #f0e6d3; }
+    .legal-footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(212,175,55,.15);
+      text-align: center;
+    }
+    .legal-footer-links {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legal-footer-links a {
+      color: rgba(240,230,211,.5);
+      font-size: 12px;
+    }
+    .legal-footer-links a:hover { color: #D4AF37; }
+    .legal-footer-copy {
+      font-size: 10px;
+      color: rgba(240,230,211,.3);
+    }
+    @media (max-width: 600px) {
+      .legal-title { font-size: 26px; }
+      .legal-container { padding: 24px 16px 40px; }
+      h2 { font-size: 19px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="legal-bg"></div>
+  <div class="legal-container">
+
+    <a href="/" class="legal-back">&larr; Zur&uuml;ck zum Casino</a>
+
+    <h1 class="legal-title">Allgemeine Gesch&auml;ftsbedingungen</h1>
+    <p class="legal-subtitle">Nutzungsbedingungen f&uuml;r die Plattform &bdquo;Reisendes Casino&ldquo; &mdash; Stand: M&auml;rz 2026</p>
+
+    <!-- 1. Geltungsbereich -->
+    <h2>1. Geltungsbereich</h2>
+    <p>
+      Diese Allgemeinen Gesch&auml;ftsbedingungen (nachfolgend &bdquo;AGB&ldquo;) gelten f&uuml;r die Nutzung der Plattform &bdquo;Reisendes Casino&ldquo; (erreichbar unter <a href="https://reisendescasino.de">https://reisendescasino.de</a>), betrieben von J&eacute;rome Stefan W&ouml;bbeking, Dieselstrasse 2, 63579 Freigericht (nachfolgend &bdquo;Betreiber&ldquo;).
+    </p>
+    <p>
+      Mit der Registrierung oder Nutzung der Plattform erkl&auml;rt der Nutzer sein Einverst&auml;ndnis mit diesen AGB. Abweichende Bedingungen des Nutzers werden nicht anerkannt, es sei denn, der Betreiber stimmt ihrer Geltung ausdr&uuml;cklich schriftlich zu.
+    </p>
+
+    <!-- 2. Leistungsbeschreibung -->
+    <h2>2. Leistungsbeschreibung</h2>
+    <p>
+      &bdquo;Reisendes Casino&ldquo; ist eine <strong>kostenlose Online-Unterhaltungsplattform</strong>, die verschiedene Gesellschaftsspiele als Multiplayer-Erlebnis anbietet, darunter:
+    </p>
+    <ul>
+      <li>Poker (Texas Hold'em)</li>
+      <li>Blackjack</li>
+      <li>Roulette</li>
+      <li>Spielautomaten (Slots)</li>
+      <li>Virtuelle Bar (Chat &amp; Community)</li>
+    </ul>
+    <p>
+      Alle Spiele verwenden ausschlie&szlig;lich die <strong>virtuelle W&auml;hrung &bdquo;Baxt Coins&ldquo;</strong>. Es handelt sich <strong>nicht um Gl&uuml;cksspiel im Sinne des Gl&uuml;cksspielstaatsvertrags</strong>.
+    </p>
+
+    <!-- 3. Virtuelle Währung -->
+    <h2>3. Virtuelle W&auml;hrung (Baxt Coins)</h2>
+
+    <h3>3.1 Wesen der Baxt Coins</h3>
+    <p>
+      Baxt Coins sind eine <strong>rein virtuelle Spielw&auml;hrung</strong> ohne realen Geldwert. Baxt Coins stellen <strong>kein E-Geld</strong>, kein Zahlungsmittel und keinen geldwerten Vorteil im rechtlichen Sinne dar.
+    </p>
+
+    <h3>3.2 Kein Echtgeld, keine Auszahlung</h3>
+    <p>
+      Baxt Coins k&ouml;nnen <strong>unter keinen Umst&auml;nden</strong>:
+    </p>
+    <ul>
+      <li>in reale W&auml;hrung (Euro, Dollar etc.) umgetauscht werden,</li>
+      <li>ausgezahlt werden,</li>
+      <li>an Dritte &uuml;bertragen oder verkauft werden,</li>
+      <li>gegen Sachwerte oder Dienstleistungen eingetauscht werden.</li>
+    </ul>
+    <p>
+      Der Betreiber stellt ausdr&uuml;cklich klar, dass <strong>kein Rechtsanspruch auf Auszahlung</strong> oder Umtausch von Baxt Coins besteht &mdash; weder ganz noch teilweise.
+    </p>
+
+    <h3>3.3 Erwerb von Baxt Coins</h3>
+    <p>
+      Baxt Coins k&ouml;nnen auf folgende Weisen erhalten werden:
+    </p>
+    <ul>
+      <li><strong>Kostenlos:</strong> Jeder neue Nutzer erh&auml;lt bei der Registrierung ein Startguthaben. Zus&auml;tzliche Baxt Coins k&ouml;nnen durch t&auml;gliche Boni, Spielgewinne und Sonderaktionen erworben werden.</li>
+      <li><strong>Optionaler Kauf:</strong> Nutzer k&ouml;nnen zus&auml;tzliche Baxt Coins gegen Bezahlung &uuml;ber den Zahlungsdienstleister Stripe erwerben. Dabei handelt es sich um den Kauf einer virtuellen Spielw&auml;hrung, nicht um eine Einzahlung in ein Gl&uuml;cksspielkonto.</li>
+    </ul>
+
+    <h3>3.4 Kein R&uuml;cktrittsrecht bei Kauf</h3>
+    <p>
+      Da es sich bei Baxt Coins um digitale Inhalte handelt, die sofort nach dem Kauf bereitgestellt werden, erlischt das Widerrufsrecht gem. &sect; 356 Abs. 5 BGB, sofern der Nutzer dem ausdr&uuml;cklich zustimmt und Kenntnis davon nimmt, dass er sein Widerrufsrecht bei Beginn der Ausf&uuml;hrung verliert. Diese Zustimmung wird im Rahmen des Kaufprozesses eingeholt.
+    </p>
+
+    <!-- 4. Kein Glücksspiel -->
+    <h2>4. Kein Gl&uuml;cksspiel</h2>
+    <p>
+      Der Betreiber stellt ausdr&uuml;cklich fest:
+    </p>
+    <ul>
+      <li>Es findet <strong>kein Gl&uuml;cksspiel um Echtgeld</strong> statt.</li>
+      <li>Es werden <strong>keine Gewinne in realer W&auml;hrung</strong> ausgesch&uuml;ttet.</li>
+      <li>Die Plattform unterliegt <strong>nicht</strong> dem Gl&uuml;cksspielstaatsvertrag (Gl&uuml;StV).</li>
+      <li>Eine Gl&uuml;cksspiellizenz ist nicht erforderlich, da kein Gl&uuml;cksspiel im rechtlichen Sinne angeboten wird.</li>
+      <li>Baxt Coins haben <strong>keinen Echtgeldwert</strong> und dienen ausschlie&szlig;lich der Unterhaltung.</li>
+    </ul>
+
+    <!-- 5. Registrierung & Benutzerkonten -->
+    <h2>5. Registrierung und Benutzerkonten</h2>
+
+    <h3>5.1 Kontoerstellung</h3>
+    <p>
+      Die Nutzung bestimmter Funktionen setzt die Erstellung eines Benutzerkontos voraus. Die Registrierung ist kostenlos und kann per E-Mail-Adresse und Passwort oder &uuml;ber Google Sign-In erfolgen. Als Gast k&ouml;nnen ausgew&auml;hlte Spiele auch ohne Registrierung genutzt werden.
+    </p>
+
+    <h3>5.2 Pflichten des Nutzers</h3>
+    <p>Der Nutzer verpflichtet sich:</p>
+    <ul>
+      <li>Wahrheitsgem&auml;&szlig;e Angaben bei der Registrierung zu machen.</li>
+      <li>Seine Zugangsdaten vertraulich zu behandeln und nicht an Dritte weiterzugeben.</li>
+      <li>Den Betreiber unverz&uuml;glich zu informieren, wenn er Kenntnis von einer unbefugten Nutzung seines Kontos erlangt.</li>
+      <li>Nur ein einziges Benutzerkonto zu f&uuml;hren. Mehrfachkonten (Multi-Accounts) sind untersagt.</li>
+    </ul>
+
+    <h3>5.3 Verantwortlichkeit</h3>
+    <p>
+      Der Nutzer ist f&uuml;r alle Aktivit&auml;ten verantwortlich, die unter Verwendung seines Benutzerkontos erfolgen, sofern er nicht nachweist, dass ein Dritter unbefugt auf sein Konto zugegriffen hat.
+    </p>
+
+    <!-- 6. Verhaltensregeln -->
+    <h2>6. Verhaltensregeln</h2>
+    <p>Der Nutzer verpflichtet sich, folgende Handlungen zu unterlassen:</p>
+    <ul>
+      <li>Beleidigung, Bel&auml;stigung, Bedrohung oder Diskriminierung anderer Nutzer.</li>
+      <li>Verbreitung von rechtswidrigen, volksverhetzenden, pornografischen oder gewaltverherrlichenden Inhalten.</li>
+      <li>Nutzung von Bots, Skripten, Hacks oder sonstigen technischen Hilfsmitteln zur Manipulation der Plattform oder Spiele.</li>
+      <li>Ausnutzung von Programmfehlern (Exploits) zum eigenen Vorteil.</li>
+      <li>Spam, Werbung oder die Verbreitung von Kettenbriefen im Chat.</li>
+      <li>Identit&auml;tsdiebstahl oder das Vort&auml;uschen einer falschen Identit&auml;t.</li>
+      <li>Jegliche Versuche, die Plattform technisch zu st&ouml;ren oder zu &uuml;berlasten.</li>
+    </ul>
+
+    <!-- 7. Hausrecht & Sperrung -->
+    <h2>7. Hausrecht und Kontosperrung</h2>
+
+    <h3>7.1 Hausrecht</h3>
+    <p>
+      Der Betreiber &uuml;bt das virtuelle Hausrecht &uuml;ber die Plattform aus. Er ist berechtigt, Nutzer ohne Angabe von Gr&uuml;nden von der Nutzung der Plattform auszuschlie&szlig;en, insbesondere bei Verst&ouml;&szlig;en gegen diese AGB.
+    </p>
+
+    <h3>7.2 Ma&szlig;nahmen bei Verst&ouml;&szlig;en</h3>
+    <p>
+      Bei Verst&ouml;&szlig;en gegen diese AGB oder geltendes Recht kann der Betreiber nach eigenem Ermessen folgende Ma&szlig;nahmen ergreifen:
+    </p>
+    <ul>
+      <li>Verwarnung des Nutzers</li>
+      <li>Tempor&auml;re Sperrung des Benutzerkontos</li>
+      <li>Dauerhafte Sperrung des Benutzerkontos</li>
+      <li>L&ouml;schung von Inhalten</li>
+      <li>Einbehaltung des virtuellen Guthabens (Baxt Coins)</li>
+    </ul>
+
+    <h3>7.3 Keine Erstattung bei Sperrung</h3>
+    <p>
+      Bei einer berechtigten Sperrung aufgrund von Verst&ouml;&szlig;en gegen diese AGB besteht <strong>kein Anspruch auf Erstattung</strong> erworbener Baxt Coins oder sonstiger virtueller G&uuml;ter. Ein Anspruch auf R&uuml;ckerstattung des Kaufpreises f&uuml;r Baxt Coins besteht nur, soweit die Sperrung unberechtigt erfolgt ist.
+    </p>
+
+    <!-- 8. Haftungsausschluss -->
+    <h2>8. Haftungsbeschr&auml;nkung</h2>
+
+    <h3>8.1 Allgemeine Haftung</h3>
+    <p>
+      Der Betreiber haftet unbeschr&auml;nkt f&uuml;r Sch&auml;den aus der Verletzung des Lebens, des K&ouml;rpers oder der Gesundheit sowie bei Vorsatz und grober Fahrl&auml;ssigkeit. Im &Uuml;brigen haftet der Betreiber nur bei der Verletzung wesentlicher Vertragspflichten (Kardinalpflichten), jedoch begrenzt auf den vorhersehbaren, vertragstypischen Schaden.
+    </p>
+
+    <h3>8.2 Verf&uuml;gbarkeit</h3>
+    <p>
+      Der Betreiber bem&uuml;ht sich um eine m&ouml;glichst unterbrechungsfreie Verf&uuml;gbarkeit der Plattform, &uuml;bernimmt jedoch <strong>keine Garantie</strong> f&uuml;r eine bestimmte Verf&uuml;gbarkeit, Fehlerfreiheit oder Funktionalit&auml;t. Wartungsarbeiten, Updates und technische St&ouml;rungen k&ouml;nnen zu vor&uuml;bergehenden Einschr&auml;nkungen f&uuml;hren.
+    </p>
+
+    <h3>8.3 Virtuelle G&uuml;ter</h3>
+    <p>
+      Der Betreiber &uuml;bernimmt keine Haftung f&uuml;r den Verlust von Baxt Coins oder anderen virtuellen G&uuml;tern durch technische St&ouml;rungen, Server-Ausf&auml;lle oder Spielfehler, soweit dies gesetzlich zul&auml;ssig ist. Baxt Coins haben keinen realen Geldwert; ein finanzieller Schaden durch ihren Verlust ist daher ausgeschlossen.
+    </p>
+
+    <h3>8.4 Spielergebnisse</h3>
+    <p>
+      Die Spielergebnisse werden durch einen Zufallsgenerator bestimmt. Der Betreiber garantiert keine bestimmten Gewinnchancen oder Spielergebnisse. Jegliche Spielergebnisse sind endg&uuml;ltig und nicht anfechtbar.
+    </p>
+
+    <!-- 9. Jugendschutz -->
+    <h2>9. Jugendschutz</h2>
+    <p>
+      Da &bdquo;Reisendes Casino&ldquo; <strong>kein Gl&uuml;cksspiel um Echtgeld</strong> anbietet und keine Gewinne in realer W&auml;hrung aussch&uuml;ttet, unterliegt die Plattform nicht den Bestimmungen des Jugendschutzgesetzes f&uuml;r Gl&uuml;cksspiele.
+    </p>
+    <p>
+      Dennoch empfehlen wir die Nutzung <strong>erst ab einem Alter von 16 Jahren</strong>. Der Kauf von Baxt Coins &uuml;ber Stripe erfordert eine g&uuml;ltige Zahlungsmethode und setzt damit faktisch die Gesch&auml;ftsf&auml;higkeit des Nutzers voraus. Minderj&auml;hrige ben&ouml;tigen f&uuml;r In-App-K&auml;ufe die Zustimmung eines Erziehungsberechtigten.
+    </p>
+    <p>
+      Erziehungsberechtigte k&ouml;nnen jederzeit die L&ouml;schung eines Kontos beantragen, das durch einen Minderj&auml;hrigen erstellt wurde.
+    </p>
+
+    <!-- 10. Datenschutz -->
+    <h2>10. Datenschutz</h2>
+    <p>
+      Informationen zur Verarbeitung personenbezogener Daten finden Sie in unserer <a href="/datenschutz.html">Datenschutzerkl&auml;rung</a>. Diese ist Bestandteil dieser AGB.
+    </p>
+
+    <!-- 11. Geistiges Eigentum -->
+    <h2>11. Geistiges Eigentum</h2>
+    <p>
+      S&auml;mtliche Inhalte der Plattform (Texte, Grafiken, Logos, Software, Soundeffekte, Spieldesigns) sind urheberrechtlich gesch&uuml;tzt und Eigentum des Betreibers oder lizenziert. Die Nutzung der Plattform gew&auml;hrt dem Nutzer kein Eigentums- oder Lizenzrecht an diesen Inhalten &uuml;ber die bestimmungsgem&auml;&szlig;e Nutzung hinaus.
+    </p>
+    <p>
+      Insbesondere ist es untersagt, Inhalte der Plattform zu kopieren, zu modifizieren, zu verbreiten oder &ouml;ffentlich zug&auml;nglich zu machen, soweit dies nicht gesetzlich erlaubt ist.
+    </p>
+
+    <!-- 12. Änderungen der AGB -->
+    <h2>12. &Auml;nderungen der AGB</h2>
+    <p>
+      Der Betreiber beh&auml;lt sich vor, diese AGB jederzeit mit Wirkung f&uuml;r die Zukunft zu &auml;ndern. &Uuml;ber wesentliche &Auml;nderungen werden registrierte Nutzer per E-Mail oder durch einen Hinweis auf der Plattform informiert. Die fortgesetzte Nutzung der Plattform nach Inkrafttreten ge&auml;nderter AGB gilt als Zustimmung zu den &Auml;nderungen.
+    </p>
+    <p>
+      Widerspricht der Nutzer den ge&auml;nderten AGB, steht ihm das Recht zu, sein Benutzerkonto zu k&uuml;ndigen und die L&ouml;schung seiner Daten zu verlangen.
+    </p>
+
+    <!-- 13. Schlussbestimmungen -->
+    <h2>13. Schlussbestimmungen</h2>
+
+    <h3>13.1 Anwendbares Recht</h3>
+    <p>
+      Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des UN-Kaufrechts.
+    </p>
+
+    <h3>13.2 Gerichtsstand</h3>
+    <p>
+      Soweit der Nutzer Kaufmann ist oder keinen allgemeinen Gerichtsstand in Deutschland hat, ist der Gerichtsstand f&uuml;r alle Streitigkeiten aus oder im Zusammenhang mit diesen AGB der Sitz des Betreibers.
+    </p>
+
+    <h3>13.3 Salvatorische Klausel</h3>
+    <p>
+      Sollten einzelne Bestimmungen dieser AGB unwirksam oder undurchf&uuml;hrbar sein oder werden, so wird die Wirksamkeit der &uuml;brigen Bestimmungen hierdurch nicht ber&uuml;hrt. An die Stelle der unwirksamen oder undurchf&uuml;hrbaren Bestimmung tritt diejenige wirksame Bestimmung, die dem wirtschaftlichen Zweck der unwirksamen oder undurchf&uuml;hrbaren Bestimmung am n&auml;chsten kommt.
+    </p>
+
+    <h3>13.4 Kontakt</h3>
+    <p>
+      Bei Fragen zu diesen Nutzungsbedingungen wenden Sie sich bitte an:<br>
+      <a href="mailto:info@reisendescasino.de">info@reisendescasino.de</a>
+    </p>
+
+    <div class="legal-footer">
+      <div class="legal-footer-links">
+        <a href="/impressum.html">Impressum</a>
+        <a href="/datenschutz.html">Datenschutz</a>
+        <a href="/agb.html">AGB</a>
+        <a href="mailto:info@reisendescasino.de">Kontakt</a>
+        <a href="/">Zur&uuml;ck zum Casino</a>
+      </div>
+      <div class="legal-footer-copy">&copy; 2026 Reisendes Casino &mdash; J&eacute;rome Stefan W&ouml;bbeking</div>
+    </div>
+
+  </div>
+</body>
+</html>
