@@ -1272,29 +1272,76 @@
     .install-btn:active { transform: scale(.96); }
     .install-icon { font-size: 20px; }
 
+    .install-overlay {
+      display:none; position:fixed; inset:0; z-index:100000;
+      background:rgba(0,0,0,.85); backdrop-filter:blur(6px);
+      justify-content:center; align-items:center;
+    }
+    .install-overlay.active { display:flex; }
+    .install-card {
+      background:linear-gradient(145deg,#1a1a2e,#16213e);
+      border:2px solid #D4AF37; border-radius:20px;
+      padding:28px 24px; width:min(380px,92vw); position:relative;
+      text-align:center;
+    }
+    .install-card .close-x {
+      position:absolute; top:12px; right:16px; color:#aaa;
+      font-size:22px; cursor:pointer; line-height:1;
+    }
+    .install-card h3 {
+      color:#D4AF37; font-family:'Playfair Display',serif;
+      font-size:22px; margin:0 0 6px;
+    }
+    .install-card .subtitle {
+      color:rgba(240,230,211,.5); font-size:13px; margin-bottom:20px;
+    }
+    .install-step {
+      display:flex; align-items:center; gap:16px;
+      padding:16px; margin-bottom:12px;
+      background:rgba(255,255,255,.04); border:1px solid rgba(212,175,55,.15);
+      border-radius:14px; text-align:left;
+    }
+    .install-step-icon {
+      font-size:36px; min-width:50px; text-align:center;
+      filter:drop-shadow(0 2px 8px rgba(212,175,55,.3));
+    }
+    .install-step-text {
+      color:#F0E6D3; font-size:15px; line-height:1.4;
+    }
+    .install-step-text b { color:#D4AF37; }
+    .install-step-num {
+      background:linear-gradient(135deg,#D4AF37,#B8860B);
+      color:#1a1a2e; width:28px; height:28px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:800; font-size:14px; flex-shrink:0;
+    }
+    .install-note {
+      margin-top:16px; padding:12px; border-radius:12px;
+      background:rgba(46,204,113,.08); border:1px solid rgba(46,204,113,.2);
+      color:rgba(46,204,113,.9); font-size:13px;
+    }
+    .install-arrow {
+      position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+      font-size:40px; animation:bounceArrow 1.5s infinite;
+      filter:drop-shadow(0 2px 12px rgba(212,175,55,.5));
+    }
+    @keyframes bounceArrow {
+      0%,100% { transform:translateX(-50%) translateY(0); }
+      50% { transform:translateX(-50%) translateY(-12px); }
+    }
+    /* Legacy fallback */
     .install-hint {
-      max-width: 400px;
-      margin: 0 auto 20px;
-      padding: 14px 18px;
-      background: rgba(0,0,0,.6);
-      border: 1px solid rgba(212,175,55,.25);
-      border-radius: 10px;
-      font-size: 13px;
-      color: rgba(240,230,211,.8);
-      line-height: 1.6;
-      text-align: left;
+      max-width: 400px; margin: 0 auto 20px; padding: 14px 18px;
+      background: rgba(0,0,0,.6); border: 1px solid rgba(212,175,55,.25);
+      border-radius: 10px; font-size: 13px; color: rgba(240,230,211,.8);
+      line-height: 1.6; text-align: left;
     }
     .install-hint .step {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
+      display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
     }
     .install-hint .step-num {
-      background: #D4AF37;
-      color: #000;
-      width: 22px; height: 22px;
-      border-radius: 50%;
+      background: #D4AF37; color: #000;
+      width: 22px; height: 22px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-weight: 700; font-size: 12px;
       flex-shrink: 0;
@@ -2267,6 +2314,12 @@
         &#128242; App installieren
       </button>
       <div class="install-hint" id="installHint" style="display:none"></div>
+    <!-- iOS/Android Install Overlay -->
+    <div class="install-overlay" id="installOverlay" onclick="if(event.target===this)this.classList.remove('active')">
+      <div class="install-card" id="installCard">
+        <span class="close-x" onclick="document.getElementById('installOverlay').classList.remove('active')">&times;</span>
+      </div>
+    </div>
     </div>
     <script>
     function toggleVorlesen() {
@@ -3100,8 +3153,7 @@
     });
 
     function installApp() {
-      const hint = document.getElementById('installHint');
-
+      // Android/Desktop: Native Install Prompt
       if (deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choice) => {
@@ -3113,27 +3165,84 @@
         return;
       }
 
+      const overlay = document.getElementById('installOverlay');
+      const card = document.getElementById('installCard');
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
       if (isIOS) {
-        hint.style.display = 'block';
-        hint.innerHTML = `
-          <div style="text-align:center;font-weight:700;color:#D4AF37;margin-bottom:8px">iPhone / iPad Installation</div>
-          <div class="step"><span class="step-num">1</span> Tippe unten auf <b>Teilen</b> (das Quadrat mit Pfeil &#11014;&#65039;)</div>
-          <div class="step"><span class="step-num">2</span> Scrolle runter und tippe <b>"Zum Home-Bildschirm"</b></div>
-          <div class="step"><span class="step-num">3</span> Tippe <b>"Hinzuf&uuml;gen"</b> &mdash; fertig!</div>
-          <div style="margin-top:8px;font-size:11px;color:rgba(240,230,211,.5)">Die App &ouml;ffnet dann im Vollbild ohne Browser-Leiste.</div>
+        card.innerHTML = `
+          <span class="close-x" onclick="document.getElementById('installOverlay').classList.remove('active')">&times;</span>
+          <h3>Reisendes Casino</h3>
+          <div class="subtitle">Als App auf dein iPhone installieren</div>
+
+          <div class="install-step">
+            <div class="install-step-num">1</div>
+            <div class="install-step-icon">&#xe900;</div>
+            <div class="install-step-text">
+              Tippe unten in Safari auf das<br><b>Teilen-Symbol</b> <span style="font-size:24px;vertical-align:middle">&#x2B06;&#xFE0F;</span>
+            </div>
+          </div>
+
+          <div class="install-step">
+            <div class="install-step-num">2</div>
+            <div class="install-step-icon">&#x2795;</div>
+            <div class="install-step-text">
+              Scrolle runter und tippe auf<br><b>"Zum Home-Bildschirm"</b>
+            </div>
+          </div>
+
+          <div class="install-step">
+            <div class="install-step-num">3</div>
+            <div class="install-step-icon">&#x2705;</div>
+            <div class="install-step-text">
+              Tippe oben rechts auf <b>"Hinzuf&uuml;gen"</b><br>und die App ist installiert!
+            </div>
+          </div>
+
+          <div class="install-note">
+            &#x1F4F1; Die App &ouml;ffnet dann im <b>Vollbild</b> ohne Safari-Leiste &mdash; wie eine echte App!
+          </div>
+
+          <div class="install-arrow">&#x2B06;&#xFE0F;</div>
         `;
-        return;
+      } else {
+        // Android / Desktop
+        card.innerHTML = `
+          <span class="close-x" onclick="document.getElementById('installOverlay').classList.remove('active')">&times;</span>
+          <h3>Reisendes Casino</h3>
+          <div class="subtitle">Als App auf dein Handy installieren</div>
+
+          <div class="install-step">
+            <div class="install-step-num">1</div>
+            <div class="install-step-icon">&#x22EE;</div>
+            <div class="install-step-text">
+              Tippe oben rechts auf die<br><b>3 Punkte</b> (Men&uuml;)
+            </div>
+          </div>
+
+          <div class="install-step">
+            <div class="install-step-num">2</div>
+            <div class="install-step-icon">&#x1F4E5;</div>
+            <div class="install-step-text">
+              W&auml;hle <b>"App installieren"</b> oder<br><b>"Zum Startbildschirm hinzuf&uuml;gen"</b>
+            </div>
+          </div>
+
+          <div class="install-step">
+            <div class="install-step-num">3</div>
+            <div class="install-step-icon">&#x2705;</div>
+            <div class="install-step-text">
+              Best&auml;tige mit <b>"Installieren"</b><br>und die App ist auf deinem Handy!
+            </div>
+          </div>
+
+          <div class="install-note">
+            &#x1F3B0; &Ouml;ffnet dann wie eine echte App im <b>Vollbild</b> &mdash; ohne Browser-Leiste!
+          </div>
+        `;
       }
 
-      hint.style.display = 'block';
-      hint.innerHTML = `
-        <div style="text-align:center;font-weight:700;color:#D4AF37;margin-bottom:8px">App installieren</div>
-        <div class="step"><span class="step-num">1</span> Tippe auf <b>&#8942; Men&uuml;</b> (3 Punkte oben rechts)</div>
-        <div class="step"><span class="step-num">2</span> W&auml;hle <b>"App installieren"</b> oder <b>"Zum Startbildschirm"</b></div>
-        <div class="step"><span class="step-num">3</span> Best&auml;tige mit <b>"Installieren"</b></div>
-        <div style="margin-top:8px;font-size:11px;color:rgba(240,230,211,.5)">&Ouml;ffnet dann wie eine echte App im Vollbild!</div>
-      `;
+      overlay.classList.add('active');
     }
 
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
