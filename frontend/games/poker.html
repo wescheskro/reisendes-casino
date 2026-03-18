@@ -1352,7 +1352,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 <div class="video-grid" id="videoGrid"></div>
 <div class="vc-status" id="vcStatus"></div>
 <div class="vc-controls" id="vcControls">
-  <button class="vc-btn" id="vcJoinBtn" onclick="toggleVoiceChat()" title="Sprachchat beitreten">📞</button>
+  <button class="vc-btn" id="vcJoinBtn" onclick="if(window._vc && socket) window._vc.autoStart(socket, [], socket.id)" title="Sprachchat beitreten">📞</button>
   <button class="vc-btn" id="vcMicBtn" onclick="toggleMic()" title="Mikrofon">🎤</button>
   <button class="vc-btn" id="vcCamBtn" onclick="toggleCam()" title="Kamera">📷</button>
   <button class="vc-btn" id="btnMute" onclick="toggleMuteAll()" title="Ton an/aus">🔊</button>
@@ -1787,6 +1787,7 @@ document.addEventListener('touchstart', function(e) {
 });
 </script>
 <script src="/socket.io/socket.io.js"></script>
+<script src="/js/voice-chat.js"></script>
 <script>
 const token = localStorage.getItem('casinoToken');
 const user = (() => { try { return JSON.parse(localStorage.getItem('casinoUser')); } catch(e) { return null; } })();
@@ -3385,8 +3386,8 @@ function renderState(state) {
   updateMyHand(state);
 
   // Video-Tiles an Seats re-attachen (weil seat innerHTML aktualisiert wurde)
-  if (vcActive) {
-    try { reattachSeatVideos(); } catch(e) { console.warn('Video reattach error:', e); }
+  if (window._vc && window._vc.stream) {
+    try { if (typeof reattachSeatVideos === 'function') reattachSeatVideos(); } catch(e) { console.warn('Video reattach error:', e); }
   }
 }
 
@@ -3841,9 +3842,12 @@ function setupSocketEvents() {
   socket.on('connect', () => {
     socket.emit('poker:join', { tableId, seat: -1 });
     document.getElementById('tableInfo').textContent = 'Verbunden!';
-    // Auto-Mic nach kurzer Verzögerung (iframe hat allow="microphone")
-    if (!isEmbedMode && !vcActive) {
-      setTimeout(function() { toggleVoiceChat(); }, 1500);
+    // Voice Chat initialisieren
+    window._vc.attachSignaling(socket);
+    if (!isEmbedMode) {
+      document.addEventListener('click', function() {
+        window._vc.autoStart(socket, [], socket.id);
+      }, { once: true });
     }
   });
 
@@ -3894,44 +3898,6 @@ function setupSocketEvents() {
 
   socket.on('error', msg => { showPhase(msg); });
 
-  // ---- RTC SOCKET EVENTS (für Video/Sprach-Chat) ----
-  socket.on('rtc:peers', async (peerList) => {
-    for (const { peerId, username } of peerList) {
-      await createPeerConnection(peerId, username, true);
-    }
-  });
-
-  socket.on('rtc:peerJoined', async ({ peerId, username }) => {
-    if (!vcActive) return;
-    setVcStatus(`🟢 ${username} ist beigetreten`);
-  });
-
-  socket.on('rtc:offer', async ({ from, username, offer }) => {
-    if (!vcActive) return;
-    const pc = await createPeerConnection(from, username, false);
-    await pc.setRemoteDescription(offer);
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    socket.emit('rtc:answer', { to: from, answer });
-  });
-
-  socket.on('rtc:answer', async ({ from, answer }) => {
-    if (peers[from]) {
-      await peers[from].pc.setRemoteDescription(answer);
-    }
-  });
-
-  socket.on('rtc:ice', async ({ from, candidate }) => {
-    if (peers[from]) {
-      try { await peers[from].pc.addIceCandidate(candidate); } catch(e) {}
-    }
-  });
-
-  socket.on('rtc:peerLeft', ({ peerId }) => {
-    const username = peers[peerId]?.username || 'Jemand';
-    removePeer(peerId);
-    setVcStatus(`🔴 ${username} hat verlassen`);
-  });
 }
 
 // Preload background
@@ -4076,292 +4042,14 @@ if (isEmbedMode) {
   }
 })();
 
-// ===================== VIDEO/SPRACH-CHAT (WebRTC) =====================
-const ICE_SERVERS = [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' }
-];
-
-let localStream = null;
-let vcActive = false;
-let micEnabled = true;
-let camEnabled = true;
-const peers = {}; // peerId -> { pc, username, videoEl }
-
-function setVcStatus(text) {
-  document.getElementById('vcStatus').textContent = text;
-  if (text) setTimeout(() => {
-    const el = document.getElementById('vcStatus');
-    if (el.textContent === text) el.textContent = '';
-  }, 3000);
-}
-
-async function toggleVoiceChat() {
-  if (vcActive) {
-    leaveVoiceChat();
-    return;
-  }
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-    vcActive = true;
-
-    // Eigenes Video anzeigen
-    addVideoTile('local', user?.username || 'Du', localStream, true);
-
-    // Buttons aktualisieren
-    document.getElementById('vcFab').classList.add('connected');
-    document.getElementById('vcFab').textContent = '🟢';
-    document.getElementById('vcJoinBtn').classList.add('active');
-    document.getElementById('vcJoinBtn').textContent = '📵';
-    document.getElementById('vcJoinBtn').title = 'Sprachchat verlassen';
-    document.getElementById('vcMicBtn').classList.add('active');
-    document.getElementById('vcCamBtn').classList.add('active');
-
-    // Dem RTC-Raum beitreten
-    socket.emit('rtc:join', { room: 'pk-' + tableId });
-    setVcStatus('🟢 Sprachchat aktiv');
-  } catch (err) {
-    console.error('Kamera/Mikrofon Fehler:', err);
-    setVcStatus('⚠️ Kein Zugriff auf Kamera/Mikrofon');
-
-    // Nur Audio versuchen
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-      vcActive = true;
-      camEnabled = false;
-      addVideoTile('local', user?.username || 'Du', localStream, true);
-      document.getElementById('vcFab').classList.add('connected');
-      document.getElementById('vcFab').textContent = '🟢';
-      document.getElementById('vcJoinBtn').classList.add('active');
-      document.getElementById('vcJoinBtn').textContent = '📵';
-      document.getElementById('vcMicBtn').classList.add('active');
-      document.getElementById('vcCamBtn').classList.add('muted');
-      socket.emit('rtc:join', { room: 'pk-' + tableId });
-      setVcStatus('🟢 Nur Sprache (keine Kamera)');
-    } catch (err2) {
-      setVcStatus('❌ Kein Mikrofon gefunden');
-    }
-  }
-}
-
-function leaveVoiceChat() {
-  vcActive = false;
-  socket.emit('rtc:leave');
-
-  // Alle Peer-Verbindungen schließen
-  for (const peerId of Object.keys(peers)) {
-    removePeer(peerId);
-  }
-
-  // Eigenen Stream stoppen
-  if (localStream) {
-    localStream.getTracks().forEach(t => t.stop());
-    localStream = null;
-  }
-
-  // Video-Grid + Seat-Videos + eigenes Video leeren
-  document.getElementById('videoGrid').innerHTML = '';
-  document.querySelectorAll('.seat-video').forEach(v => v.remove());
-  const myVid = document.getElementById('myVideoTile');
-  if (myVid) myVid.remove();
-  // Peer-Seat-Map leeren
-  for (const key of Object.keys(peerSeatMap)) delete peerSeatMap[key];
-
-  // Buttons zurücksetzen
-  document.getElementById('vcFab').classList.remove('connected');
-  document.getElementById('vcFab').textContent = '📞';
-  document.getElementById('vcJoinBtn').classList.remove('active');
-  document.getElementById('vcJoinBtn').textContent = '📞';
-  document.getElementById('vcJoinBtn').title = 'Sprachchat beitreten';
-  document.getElementById('vcMicBtn').classList.remove('active', 'muted');
-  document.getElementById('vcCamBtn').classList.remove('active', 'muted');
-  document.getElementById('vcControls').classList.remove('open');
-  micEnabled = true;
-  camEnabled = true;
-  setVcStatus('Sprachchat verlassen');
-}
-
+// ===================== VIDEO/SPRACH-CHAT (via voice-chat.js) =====================
 function toggleMic() {
-  if (!localStream) return;
-  micEnabled = !micEnabled;
-  localStream.getAudioTracks().forEach(t => t.enabled = micEnabled);
-  const btn = document.getElementById('vcMicBtn');
-  btn.classList.toggle('active', micEnabled);
-  btn.classList.toggle('muted', !micEnabled);
-  btn.textContent = micEnabled ? '🎤' : '🔇';
+  if (window._vc) window._vc.toggleMic();
 }
 
 function toggleCam() {
-  if (!localStream) return;
-  const videoTracks = localStream.getVideoTracks();
-  if (videoTracks.length === 0) return;
-  camEnabled = !camEnabled;
-  videoTracks.forEach(t => t.enabled = camEnabled);
-  const btn = document.getElementById('vcCamBtn');
-  btn.classList.toggle('active', camEnabled);
-  btn.classList.toggle('muted', !camEnabled);
-  btn.textContent = camEnabled ? '📷' : '🚫';
-
-  // Eigenes Video-Tile aktualisieren
-  const myVid = document.getElementById('myVideoTile');
-  if (myVid) myVid.style.display = camEnabled ? '' : 'none';
+  if (window._vc) window._vc.toggleCam();
 }
-
-// Peer-Username → Seat-Index Mapping
-const peerSeatMap = {}; // peerId -> seatIdx
-
-function findSeatForUsername(username) {
-  if (!myState) return -1;
-  return myState.seats.findIndex(s => s && s.username === username);
-}
-
-function addVideoTile(id, username, stream, isLocal) {
-  // Eigenes Video: kleines Overlay unten rechts
-  if (isLocal) {
-    let myVid = document.getElementById('myVideoTile');
-    if (!myVid) {
-      myVid = document.createElement('div');
-      myVid.id = 'myVideoTile';
-      myVid.className = 'my-video';
-      myVid.innerHTML = `<video autoplay muted playsinline></video><div class="mv-label">Du</div>`;
-      document.body.appendChild(myVid);
-    }
-    myVid.querySelector('video').srcObject = stream;
-    if (!stream.getVideoTracks().length) myVid.style.display = 'none';
-    return;
-  }
-
-  // Gegner-Video: Am Seat des Spielers anzeigen
-  const seatIdx = findSeatForUsername(username);
-  peerSeatMap[id] = { username, stream, seatIdx };
-
-  if (seatIdx >= 0) {
-    attachVideoToSeat(id, seatIdx, stream);
-  } else {
-    // Fallback: ins Grid (falls Seat nicht gefunden)
-    let tile = document.getElementById('vt-' + id);
-    if (!tile) {
-      tile = document.createElement('div');
-      tile.id = 'vt-' + id;
-      tile.className = 'video-tile';
-      tile.innerHTML = `<video autoplay playsinline></video><div class="vt-name">${escapeHtml(username)}</div>`;
-      document.getElementById('videoGrid').appendChild(tile);
-    }
-    tile.querySelector('video').srcObject = stream;
-  }
-
-  // Speaking-Erkennung
-  try {
-    const audioCtx = new AudioContext();
-    const analyser = audioCtx.createAnalyser();
-    const source = audioCtx.createMediaStreamSource(stream);
-    source.connect(analyser);
-    analyser.fftSize = 256;
-    const data = new Uint8Array(analyser.frequencyBinCount);
-    const checkSpeaking = () => {
-      if (!peers[id]) return;
-      analyser.getByteFrequencyData(data);
-      const avg = data.reduce((a, b) => a + b) / data.length;
-      const isSpeaking = avg > 20;
-      // Speaking-Status auf Seat-Video + Grid-Tile setzen
-      const seatVid = document.getElementById('sv-' + id);
-      const gridTile = document.getElementById('vt-' + id);
-      if (seatVid) seatVid.classList.toggle('speaking', isSpeaking);
-      if (gridTile) gridTile.classList.toggle('speaking', isSpeaking);
-      requestAnimationFrame(checkSpeaking);
-    };
-    checkSpeaking();
-  } catch(e) {}
-}
-
-function attachVideoToSeat(peerId, seatIdx, stream) {
-  const seat = document.querySelector(`.seat[data-pos="${seatIdx}"]`);
-  if (!seat) return;
-
-  // Altes Seat-Video entfernen falls vorhanden
-  const old = document.getElementById('sv-' + peerId);
-  if (old) old.remove();
-
-  const seatVid = document.createElement('div');
-  seatVid.id = 'sv-' + peerId;
-  seatVid.className = 'seat-video';
-  seatVid.innerHTML = `<video autoplay playsinline></video>`;
-  seatVid.querySelector('video').srcObject = stream;
-  seat.appendChild(seatVid);
-}
-
-// Nach jedem renderState: Video-Elemente an Seats re-attachen (weil innerHTML sich ändert)
-function reattachSeatVideos() {
-  for (const [peerId, info] of Object.entries(peerSeatMap)) {
-    if (!peers[peerId]) continue;
-    const newSeatIdx = findSeatForUsername(info.username);
-    if (newSeatIdx >= 0) {
-      info.seatIdx = newSeatIdx;
-      // Nur re-attachen wenn nicht mehr vorhanden
-      if (!document.getElementById('sv-' + peerId)) {
-        attachVideoToSeat(peerId, newSeatIdx, info.stream);
-      }
-    }
-  }
-}
-
-function removeVideoTile(id) {
-  const tile = document.getElementById('vt-' + id);
-  if (tile) tile.remove();
-  const sv = document.getElementById('sv-' + id);
-  if (sv) sv.remove();
-  delete peerSeatMap[id];
-}
-
-// ===================== WEBRTC PEER MANAGEMENT =====================
-async function createPeerConnection(peerId, username, isInitiator) {
-  const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
-
-  peers[peerId] = { pc, username };
-
-  // Lokalen Stream hinzufügen
-  if (localStream) {
-    localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-  }
-
-  // Remote Stream empfangen
-  pc.ontrack = (e) => {
-    if (e.streams[0]) {
-      addVideoTile(peerId, username, e.streams[0], false);
-    }
-  };
-
-  // ICE Candidates senden
-  pc.onicecandidate = (e) => {
-    if (e.candidate) {
-      socket.emit('rtc:ice', { to: peerId, candidate: e.candidate });
-    }
-  };
-
-  pc.onconnectionstatechange = () => {
-    if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
-      removePeer(peerId);
-    }
-  };
-
-  if (isInitiator) {
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    socket.emit('rtc:offer', { to: peerId, offer });
-  }
-
-  return pc;
-}
-
-function removePeer(peerId) {
-  if (peers[peerId]) {
-    peers[peerId].pc.close();
-    delete peers[peerId];
-  }
-  removeVideoTile(peerId);
-}
-
-// (RTC Socket Events + Drag-System sind jetzt in setupSocketEvents() bzw. initSeatDrag() integriert)
 </script>
 <!-- PLAYER MENU -->
 <div class="player-menu-overlay" id="pmOverlay" onclick="closePlayerMenu()"></div>

@@ -745,9 +745,9 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 <!-- VIDEO CHAT -->
 <button class="vc-fab" id="vcFab" onclick="toggleVC()">⚙</button>
 <div class="vc-controls" id="vcControls">
-  <button class="vc-btn" id="vcJoin" onclick="joinVC()" title="Sprachchat beitreten">🎤</button>
-  <button class="vc-btn" id="vcMic" onclick="toggleMic()" title="Mikrofon">🔇</button>
-  <button class="vc-btn" id="vcCam" onclick="toggleCam()" title="Kamera">📷</button>
+  <button class="vc-btn" id="vcJoin" onclick="window._vc.autoStart(socket, [], socket.id)" title="Sprachchat beitreten">🎤</button>
+  <button class="vc-btn" id="vcMic" onclick="window._vc.toggleMic(); this.classList.toggle('active', window._vc.micOn); this.classList.toggle('muted', !window._vc.micOn); this.textContent = window._vc.micOn ? '🎤' : '🔇'" title="Mikrofon">🔇</button>
+  <button class="vc-btn" id="vcCam" onclick="window._vc.toggleCam(); this.classList.toggle('active', window._vc.camOn)" title="Kamera">📷</button>
   <button class="vc-btn" id="btnMute" onclick="toggleMuteAll()" title="Ton an/aus">🔊</button>
   <input type="range" id="volumeSlider" min="0" max="100" value="100" oninput="setGameVolume(this.value)" style="width:36px;writing-mode:vertical-lr;direction:rtl;height:80px;accent-color:#D4AF37;cursor:pointer">
 </div>
@@ -774,6 +774,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 <script>if(location.search.includes('embed=1') || window.self !== window.top)document.getElementById('bjLobbyBtn').style.display='none';</script>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="/js/voice-chat.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════
 // BLACKJACK – Premium Multiplayer Client
@@ -807,7 +808,10 @@ let timerInterval = null;
 // ═══════ SOUND EFFECTS (Web Audio) ═══════
 const BJSFX = {
   ctx: null,
-  init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+  init() {
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+  },
   play(freq, type, dur, vol=0.15) {
     this.init();
     const o = this.ctx.createOscillator();
@@ -848,6 +852,9 @@ const BJSFX = {
   bust() { this.play(150, 'sawtooth', 0.5, 0.08); },
   yourTurn() { [880,1100,880].forEach((f,i) => setTimeout(() => this.play(f,'sine',0.15,0.1), i*100)); }
 };
+// AudioContext braucht User-Geste zum Starten — bei erstem Touch/Click initialisieren
+document.addEventListener('click', function() { BJSFX.init(); }, { once: true });
+document.addEventListener('touchstart', function() { BJSFX.init(); }, { once: true, passive: true });
 
 // ═══════ DICEBEAR AVATAR ═══════
 function diceBearUrl(name) {
@@ -1429,9 +1436,6 @@ function sendChat() {
 
 // ═══════ VIDEO CHAT ═══════
 let vcOpen = false;
-let localStream = null;
-let micEnabled = false;
-let camEnabled = false;
 
 let globalMuted = false;
 let globalVolume = parseInt(localStorage.getItem('game-volume') || '100');
@@ -1452,60 +1456,6 @@ document.getElementById('volumeSlider').value = globalVolume;
 function toggleVC() {
   vcOpen = !vcOpen;
   document.getElementById('vcControls').classList.toggle('open', vcOpen);
-}
-
-async function joinVC() {
-  const btn = document.getElementById('vcJoin');
-  if (localStream) {
-    localStream.getTracks().forEach(t => t.stop());
-    localStream = null;
-    btn.classList.remove('active');
-    const myVid = document.querySelector('.my-video');
-    if (myVid) myVid.remove();
-    return;
-  }
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-  } catch(e) {
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch(e2) {
-      console.log('Kamera/Mikrofon Fehler:', e2);
-      return;
-    }
-  }
-  btn.classList.add('active');
-  micEnabled = true;
-  document.getElementById('vcMic').classList.remove('muted');
-  document.getElementById('vcMic').classList.add('active');
-  if (localStream.getVideoTracks().length > 0) {
-    camEnabled = true;
-    document.getElementById('vcCam').classList.add('active');
-    const vid = document.createElement('video');
-    vid.className = 'my-video';
-    vid.srcObject = localStream;
-    vid.autoplay = true; vid.muted = true; vid.playsInline = true;
-    document.body.appendChild(vid);
-  }
-}
-
-function toggleMic() {
-  if (!localStream) return;
-  micEnabled = !micEnabled;
-  localStream.getAudioTracks().forEach(t => t.enabled = micEnabled);
-  const btn = document.getElementById('vcMic');
-  btn.classList.toggle('active', micEnabled);
-  btn.classList.toggle('muted', !micEnabled);
-  btn.textContent = micEnabled ? '🎤' : '🔇';
-}
-
-function toggleCam() {
-  if (!localStream) return;
-  camEnabled = !camEnabled;
-  localStream.getVideoTracks().forEach(t => t.enabled = camEnabled);
-  const btn = document.getElementById('vcCam');
-  btn.classList.toggle('active', camEnabled);
-  btn.textContent = camEnabled ? '📷' : '📷';
 }
 
 // ═══════ BOTS ═══════
@@ -1531,9 +1481,12 @@ socket.on('connect', () => {
   if (document.getElementById('botToggle').checked) {
     setTimeout(() => toggleBots(true), 1000);
   }
-  // Auto-Mic nach kurzer Verzögerung (iframe hat allow="microphone")
-  if (!isEmbed && !localStream) {
-    setTimeout(function() { joinVC(); }, 1500);
+  // Voice Chat initialisieren
+  window._vc.attachSignaling(socket);
+  if (!isEmbed) {
+    document.addEventListener('click', function() {
+      window._vc.autoStart(socket, [], socket.id);
+    }, { once: true });
   }
 });
 

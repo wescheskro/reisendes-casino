@@ -3946,7 +3946,7 @@ io.on('connection', (socket) => {
     io.to('bar:' + room).emit('bar:chat', { username: data.username, msg: data.msg });
   });
 
-  // WebRTC Signaling für Bar
+  // WebRTC Signaling für Bar (Legacy)
   socket.on('bar:offer', (data) => {
     io.to(data.to).emit('bar:offer', { from: socket.id, offer: data.offer });
   });
@@ -3957,8 +3957,31 @@ io.on('connection', (socket) => {
     io.to(data.to).emit('bar:ice', { from: socket.id, candidate: data.candidate });
   });
 
+  // ─── Generische WebRTC Signaling (für alle Spiele) ───
+  socket.on('vc:offer', (data) => {
+    io.to(data.to).emit('vc:offer', { from: socket.id, offer: data.offer });
+  });
+  socket.on('vc:answer', (data) => {
+    io.to(data.to).emit('vc:answer', { from: socket.id, answer: data.answer });
+  });
+  socket.on('vc:ice', (data) => {
+    io.to(data.to).emit('vc:ice', { from: socket.id, candidate: data.candidate });
+  });
+  socket.on('vc:join', () => {
+    // Anderen im selben Room mitteilen
+    if (socket.rooms) {
+      socket.rooms.forEach(room => {
+        if (room !== socket.id) {
+          socket.to(room).emit('vc:user-joined', { userId: socket.id });
+        }
+      });
+    }
+  });
+
   // Bar: Platz freigeben bei Disconnect
   socket.on('disconnect', () => {
+    // VC: allen mitteilen dass User weg ist
+    socket.broadcast.emit('vc:user-left', { userId: socket.id });
     const room = socket.barRoom;
     if (room && global.barRooms[room]) {
       global.barRooms[room].forEach((seat, i) => {
