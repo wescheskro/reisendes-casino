@@ -570,6 +570,9 @@
           <button class="baxt-action-btn baxt-btn-history" onclick="window._baxt.showHistory()">
             📜 Verlauf anzeigen
           </button>
+          <button class="baxt-action-btn baxt-topup" onclick="if(typeof openShop==='function')openShop();else window.location.href='/?shop=1';" style="background:linear-gradient(135deg,#D4AF37,#F4D03F);color:#1a1a2e;font-weight:700;margin-top:8px">
+            🪙 Coins aufladen
+          </button>
         `}
       </div>
     `;
