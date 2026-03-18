@@ -34,7 +34,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 
 /* ═══ LAYOUT ═══ */
 .game-layout{
-  position:fixed;top:44px;left:0;right:0;bottom:0;
+  position:fixed;top:44px;left:0;right:0;bottom:120px;
   display:flex;flex-direction:column;align-items:center;
   justify-content:flex-end;
   overflow-y:auto;overflow-x:hidden;
@@ -96,7 +96,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 .bet-area{
   width:min(98vw,680px);
   margin:6px auto;flex-shrink:0;
-  padding-bottom:200px;
+  padding-bottom:20px;
   background:
     repeating-linear-gradient(45deg,
       rgba(212,175,55,.07) 0px, rgba(212,175,55,.07) 1px,
@@ -512,16 +512,19 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 /* ═══ PLAYER MENU ═══ */
 .player-menu-overlay{
   position:fixed;inset:0;z-index:300;
-  background:rgba(0,0,0,.5);
-  backdrop-filter:blur(3px);
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(6px);
   opacity:0;transition:opacity .25s;
   pointer-events:none;
 }
 .player-menu-overlay.open{opacity:1;pointer-events:all}
 .player-menu{
   position:fixed;z-index:301;
-  background:linear-gradient(165deg,rgba(30,18,8,.97),rgba(15,8,3,.98));
-  border:1.5px solid rgba(212,175,55,.3);
+  left:50%!important;top:50%!important;
+  transform:translate(-50%,-50%) scale(.9)!important;
+  width:min(320px,90vw);
+  background:linear-gradient(165deg,rgba(20,12,6,.98),rgba(10,6,2,.99));
+  border:2px solid rgba(212,175,55,.4);
   border-radius:16px;padding:0;
   min-width:200px;
   box-shadow:0 12px 40px rgba(0,0,0,.7),0 0 20px rgba(212,175,55,.1);
@@ -530,47 +533,54 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
   pointer-events:none;
   overflow:hidden;
 }
-.player-menu.open{transform:scale(1);opacity:1;pointer-events:all}
+.player-menu.open{transform:translate(-50%,-50%) scale(1)!important;opacity:1;pointer-events:all}
 .pm-header{
-  padding:14px 16px 10px;
-  display:flex;align-items:center;gap:10px;
-  border-bottom:1px solid rgba(212,175,55,.12);
+  padding:22px 24px 18px;
+  display:flex;align-items:center;gap:16px;
+  border-bottom:1px solid rgba(212,175,55,.2);
 }
 .pm-avatar{
-  width:40px;height:40px;border-radius:50%;
+  width:56px;height:56px;border-radius:50%;
   background:linear-gradient(135deg,#2c1810,#1a0f08);
-  border:2px solid rgba(212,175,55,.4);
+  border:2.5px solid rgba(212,175,55,.5);
   display:flex;align-items:center;justify-content:center;
-  font-size:20px;flex-shrink:0;
-  box-shadow:0 2px 8px rgba(0,0,0,.4);
+  font-size:28px;flex-shrink:0;
+  box-shadow:0 4px 12px rgba(0,0,0,.5);
 }
 .pm-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover}
 .pm-name{
-  font-size:14px;font-weight:700;color:#F4D03F;
-  letter-spacing:.5px;
+  font-family:'Playfair Display',serif;
+  font-size:20px;font-weight:700;color:#F4D03F;
+  letter-spacing:1px;
 }
-.pm-status{font-size:10px;color:rgba(240,230,211,.4);margin-top:1px}
-.pm-actions{padding:6px 0}
+.pm-status{font-size:12px;color:rgba(240,230,211,.5);margin-top:3px}
+.pm-actions{padding:8px 0}
 .pm-action{
-  display:flex;align-items:center;gap:12px;
-  padding:11px 16px;cursor:pointer;
-  transition:.15s;color:#F0E6D3;font-size:13px;
+  display:flex;align-items:center;gap:14px;
+  padding:13px 20px;cursor:pointer;
+  transition:.15s;color:#F0E6D3;font-size:15px;
   border:none;background:none;width:100%;
   font-family:inherit;
 }
 .pm-action:hover{background:rgba(212,175,55,.1)}
 .pm-action:active{background:rgba(212,175,55,.18)}
 .pm-action-icon{
-  width:32px;height:32px;border-radius:10px;
+  width:38px;height:38px;border-radius:12px;
   display:flex;align-items:center;justify-content:center;
-  font-size:16px;flex-shrink:0;
+  font-size:18px;flex-shrink:0;
 }
+.pm-action-label{font-size:15px;font-weight:600;text-align:center}
+.pm-action-sub{font-size:11px;color:rgba(240,230,211,.4);margin-top:2px;text-align:center}
+.pm-action > div:last-child{display:flex;flex-direction:column;align-items:center;flex:1}
 .pm-action-icon.profile{background:rgba(212,175,55,.15);color:#F4D03F}
 .pm-action-icon.call{background:rgba(46,204,113,.15);color:#2ecc71}
 .pm-action-icon.video{background:rgba(52,152,219,.15);color:#3498db}
 .pm-action-icon.voice{background:rgba(155,89,182,.15);color:#9b59b6}
 .pm-action-icon.money{background:rgba(241,196,15,.15);color:#f1c40f}
 .pm-action-icon.msg{background:rgba(230,126,34,.15);color:#e67e22}
+.pm-action-icon.friend{background:rgba(46,204,113,.15);color:#2ecc71}
+.pm-action-icon.block{background:rgba(231,76,60,.15);color:#e74c3c}
+.pm-divider{height:1px;background:rgba(212,175,55,.1);margin:4px 16px}
 .pm-action-label{font-weight:600}
 .pm-action-sub{font-size:10px;color:rgba(240,230,211,.35);margin-top:1px}
 
@@ -652,22 +662,38 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 }
 .my-video.active{display:block}
 .my-video video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-.mc-bar{
-  position:fixed;top:6px;right:60px;z-index:101;display:flex;gap:4px;
-}
-.mc-btn{
-  width:30px;height:30px;border-radius:50%;border:none;
-  background:rgba(0,0,0,.5);border:1px solid rgba(212,175,55,.3);
-  color:#F0E6D3;font-size:14px;cursor:pointer;
+.settings-fab{
+  position:fixed;top:6px;right:60px;z-index:101;
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(0,0,0,.6);border:1px solid rgba(212,175,55,.3);
+  color:#D4AF37;font-size:24px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  backdrop-filter:blur(4px);
+  backdrop-filter:blur(4px);transition:.2s;
+  min-height:44px;min-width:44px;
 }
-.mc-btn.active{background:rgba(76,175,80,.3);border-color:#4CAF50}
+.settings-fab:hover{background:rgba(212,175,55,.15)}
+.settings-menu{
+  position:fixed;top:56px;right:60px;z-index:101;
+  display:flex;flex-direction:column;gap:5px;
+  opacity:0;pointer-events:none;transition:.3s;
+}
+.settings-menu.open{opacity:1;pointer-events:all}
+.settings-menu-btn{
+  width:40px;height:40px;border-radius:50%;border:none;
+  background:rgba(0,0,0,.6);border:1px solid rgba(212,175,55,.3);
+  color:#F0E6D3;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);transition:.2s;
+}
+.settings-menu-btn.active{background:rgba(76,175,80,.3);border-color:#4CAF50}
 
 @media(max-width:500px){
   .wheel-wrapper{width:min(60vw,220px);height:min(60vw,220px)}
-  .bc{font-size:10px;padding:5px 1px;min-height:28px}
-  .chip{width:38px;height:38px;font-size:9px}
+  .bet-area{width:100vw!important;margin:0!important;padding-left:0;padding-right:0}
+  .bet-grid{grid-template-columns:22px repeat(12,1fr)}
+  .bc{font-size:9px;padding:4px 0;min-height:22px}
+  .bc.outside{font-size:8px;padding:3px 0;min-height:18px;letter-spacing:0}
+  .chip{width:36px;height:36px;font-size:9px}
   .chat-box{display:none}
   .vc-slot{width:65px;height:48px}
   .ctrl-bar{padding:6px 0 4px;margin-top:0}
@@ -695,7 +721,6 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
   <button class="back" id="lobbyBtn" onclick="location.href='/'">← Lobby</button>
   <div class="logo">🎰 Roulette</div>
   <div class="info" id="tableInfo">Verbinde...</div>
-  <button class="phys-toggle" onclick="event.stopPropagation();unlockPhysPanel()" title="Kugel-Einstellungen">⚙</button>
 </div>
 
 <div class="game-layout" id="gameLayout">
@@ -746,9 +771,12 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 <!-- VIDEO -->
 <div class="vc-wrap" id="vcWrap"></div>
 <div class="my-video" id="myVideo"><video id="localVideo" autoplay playsinline muted></video></div>
-<div class="mc-bar" id="mcBar">
-  <button class="mc-btn" id="btnMic" onclick="toggleMic()">🎤</button>
-  <button class="mc-btn" id="btnCam" onclick="toggleCam()">📷</button>
+<button class="settings-fab" id="settingsFab" onclick="toggleSettingsMenu()">⚙</button>
+<div class="settings-menu" id="settingsMenu">
+  <button class="settings-menu-btn" id="btnMic" onclick="toggleMic()" title="Mikrofon">🎤</button>
+  <button class="settings-menu-btn" id="btnCam" onclick="toggleCam()" title="Kamera">📷</button>
+  <button class="settings-menu-btn" id="btnMute" onclick="toggleMute()" title="Ton an/aus">🔊</button>
+  <input type="range" id="volumeSlider" min="0" max="100" value="100" oninput="setVolume(this.value)" style="width:40px;writing-mode:vertical-lr;direction:rtl;height:80px;accent-color:#D4AF37;cursor:pointer">
 </div>
 
 <!-- CHAT (hidden, used by speech bubbles) -->
@@ -788,6 +816,15 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
     <button class="pm-action" onclick="pmAction('money')">
       <div class="pm-action-icon money">💰</div>
       <div><div class="pm-action-label">Geld senden</div><div class="pm-action-sub">Baxt Coins überweisen</div></div>
+    </button>
+    <div class="pm-divider"></div>
+    <button class="pm-action" onclick="pmAction('friend')">
+      <div class="pm-action-icon friend">👥</div>
+      <div><div class="pm-action-label">Freund hinzufügen</div><div class="pm-action-sub">Zur Freundesliste</div></div>
+    </button>
+    <button class="pm-action" onclick="pmAction('block')">
+      <div class="pm-action-icon block">🚫</div>
+      <div><div class="pm-action-label">Blockieren</div><div class="pm-action-sub">Spieler stumm schalten</div></div>
     </button>
   </div>
 </div>
@@ -909,11 +946,21 @@ let peerConnections = {};
 
 // ─── EMBED ───
 if (isEmbed) {
-  document.getElementById('lobbyBtn').style.display = 'none';
-  document.getElementById('mcBar').style.display = 'none';
+  var lobbyBtn = document.getElementById('lobbyBtn');
+  if (lobbyBtn) lobbyBtn.style.display = 'none';
+  var mcBar = document.getElementById('mcBar');
+  if (mcBar) mcBar.style.display = 'none';
+  var settFab = document.getElementById('settingsFab');
+  if (settFab) settFab.style.display = 'none';
   document.querySelector('.ctrl-bar').style.display = 'none';
-  document.getElementById('chatBox').style.display = 'none';
+  var chatBox = document.getElementById('chatBox');
+  if (chatBox) chatBox.style.display = 'none';
+  document.querySelector('.top-bar').style.display = 'none';
   document.getElementById('tableInfo').textContent = 'Roulette';
+  // Rad nach oben schieben im Embed
+  document.querySelector('.game-layout').style.paddingTop = '0';
+  var playersStrip = document.querySelector('.players-strip');
+  if (playersStrip) playersStrip.parentElement.style.display = 'none';
 
   // Embed: Sound standardmäßig aus, Lobby schaltet per postMessage ein
   let embedAudioOn = false;
@@ -2068,6 +2115,35 @@ function renderHistory() {
 // ═══════════════════════════════════════
 // VIDEO/VOICE CHAT (WebRTC)
 // ═══════════════════════════════════════
+function toggleSettingsMenu() {
+  document.getElementById('settingsMenu').classList.toggle('open');
+}
+let globalMuted = false;
+let globalVolume = parseInt(localStorage.getItem('game-volume') || '100');
+function toggleMute() {
+  globalMuted = !globalMuted;
+  document.getElementById('btnMute').textContent = globalMuted ? '🔇' : '🔊';
+  document.getElementById('btnMute').classList.toggle('active', globalMuted);
+  document.querySelectorAll('audio,video').forEach(el => { el.muted = globalMuted; });
+  if (typeof SFX !== 'undefined') SFX.muted = globalMuted;
+}
+function setVolume(val) {
+  globalVolume = parseInt(val);
+  localStorage.setItem('game-volume', String(globalVolume));
+  document.querySelectorAll('audio,video').forEach(el => { el.volume = globalVolume / 100; });
+}
+document.getElementById('volumeSlider').value = globalVolume;
+document.addEventListener('touchstart', function(e) {
+  if (!e.target.closest('.settings-fab, .settings-menu, .settings-menu-btn')) {
+    document.getElementById('settingsMenu').classList.remove('open');
+  }
+});
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.settings-fab, .settings-menu, .settings-menu-btn')) {
+    document.getElementById('settingsMenu').classList.remove('open');
+  }
+});
+
 async function toggleMic() {
   micOn = !micOn;
   await ensureMedia();
@@ -2256,6 +2332,32 @@ function pmAction(type) {
     case 'video': startCallUI(name, true); break;
     case 'voicemsg': openVoiceRecorder(name); break;
     case 'money': openSendMoney(name); break;
+    case 'friend': addFriend(name); break;
+    case 'block': blockPlayer(name); break;
+  }
+}
+function addFriend(name) {
+  const token = localStorage.getItem('casinoToken');
+  if (!token) { alert('Bitte zuerst anmelden!'); return; }
+  fetch('/api/friends/request', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ targetUsername: name.replace(' 🤖','') })
+  }).then(r => r.json()).then(d => {
+    alert(d.error || 'Freundschaftsanfrage an ' + name + ' gesendet! 👥');
+  }).catch(() => alert('Fehler beim Senden'));
+}
+function blockPlayer(name) {
+  const cleanName = name.replace(' 🤖','');
+  let blocked = JSON.parse(localStorage.getItem('blockedPlayers') || '[]');
+  if (blocked.includes(cleanName)) {
+    blocked = blocked.filter(n => n !== cleanName);
+    localStorage.setItem('blockedPlayers', JSON.stringify(blocked));
+    alert(cleanName + ' wurde entblockt.');
+  } else {
+    blocked.push(cleanName);
+    localStorage.setItem('blockedPlayers', JSON.stringify(blocked));
+    alert(cleanName + ' wurde blockiert. 🚫');
   }
 }
 
@@ -2885,6 +2987,7 @@ startBotAutoPlay();
 <script src="/js/jukebox.js"></script>
 <script src="/js/door-sound.js"></script>
 <script src="/js/drinks.js"></script>
+<script src="/js/settings-fab.js"></script>
 
 </body>
 </html>
