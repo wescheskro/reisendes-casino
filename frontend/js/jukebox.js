@@ -1176,10 +1176,11 @@ function init() {
   // Embed-Vorschau auf Landingpage: keine Jukebox (Landingpage hat schon eine)
   if (hasEmbedParam && !IS_ROOM_JUKEBOX) return;
 
-  // Im iframe-Overlay (Spiel über Lobby geöffnet): prüfe ob Parent schon Jukebox hat
+  // Im iframe-Overlay (Spiel über Lobby geöffnet): eigene Jukebox laden
   if (isInIframe && !IS_ROOM_JUKEBOX) {
     try {
-      if (window.parent._jk) return; // Parent hat Jukebox → nicht doppelt laden
+      // Parent-Jukebox pausieren damit nicht doppelt spielt
+      if (window.parent._jk && window.parent._jk.pause) window.parent._jk.pause();
     } catch(e) {} // Cross-origin → laden (direkt eingebettet von anderer Seite)
   }
 

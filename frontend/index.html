@@ -3374,11 +3374,10 @@
       document.body.style.overflow = '';
       // Balance neu laden nach Spiel-Wechsel
       if (window._baxt) window._baxt.refresh();
-      // Jukebox wieder zeigen wenn zurück in Lobby
-      if (window._jk) window._jk.show();
+      // Jukebox wieder zeigen + starten wenn zurück in Lobby
+      if (window._jk) { window._jk.show(); window._jk.resume(); }
       // Tür-Sound
       if (window.playDoorSound) window.playDoorSound();
-      // Jukebox bleibt durchgehend an
     }
 
     function playGame() {
