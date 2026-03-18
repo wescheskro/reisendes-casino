@@ -741,13 +741,19 @@ async function ensureMedia() {
   if (myStream) return;
   try {
     myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  } catch(e) {
+    try {
+      myStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch(e2) {
+      console.error('Kamera/Mikrofon Fehler:', e2);
+      return;
+    }
+  }
+  if (myStream) {
     myStream.getAudioTracks().forEach(t => t.enabled = micOn);
     myStream.getVideoTracks().forEach(t => t.enabled = camOn);
     document.getElementById('localVideo').srcObject = myStream;
-    // WebRTC Verbindungen zu allen anderen aufbauen
     setupPeerConnections();
-  } catch(e) {
-    // Mikrofon/Kamera nicht verfügbar — normal auf Desktop ohne Permission
   }
 }
 

@@ -2224,12 +2224,24 @@ async function toggleCam() {
 async function ensureMedia() {
   if (myStream) return;
   try {
+    // Erst Audio+Video versuchen
     myStream = await navigator.mediaDevices.getUserMedia({ video:true, audio:true });
+  } catch(e) {
+    try {
+      // Fallback: Nur Audio (wenn Kamera blockiert)
+      myStream = await navigator.mediaDevices.getUserMedia({ audio:true });
+    } catch(e2) {
+      console.error('Kamera/Mikrofon Fehler:', e2);
+      return;
+    }
+  }
+  if (myStream) {
     myStream.getAudioTracks().forEach(t => t.enabled = micOn);
     myStream.getVideoTracks().forEach(t => t.enabled = camOn);
-    document.getElementById('localVideo').srcObject = myStream;
+    var localVid = document.getElementById('localVideo');
+    if (localVid) localVid.srcObject = myStream;
     setupPeerConnections();
-  } catch(e) { console.error('Media error:', e); }
+  }
 }
 function setupPeerConnections() {
   players.forEach(p => { if(p.id !== socket?.id) createPC(p.id, true); });
