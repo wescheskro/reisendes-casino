@@ -1352,7 +1352,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 <div class="video-grid" id="videoGrid"></div>
 <div class="vc-status" id="vcStatus"></div>
 <div class="vc-controls" id="vcControls">
-  <button class="vc-btn" id="vcJoinBtn" onclick="if(window._vc && socket) window._vc.autoStart(socket, [], socket.id)" title="Sprachchat beitreten">📞</button>
+  <button class="vc-btn" id="vcJoinBtn" onclick="if(window._vc && socket) window._vc.autoStart(socket, 'pk-'+tableId, socket.id)" title="Sprachchat beitreten">📞</button>
   <button class="vc-btn" id="vcMicBtn" onclick="toggleMic()" title="Mikrofon">🎤</button>
   <button class="vc-btn" id="vcCamBtn" onclick="toggleCam()" title="Kamera">📷</button>
   <button class="vc-btn" id="btnMute" onclick="toggleMuteAll()" title="Ton an/aus">🔊</button>
@@ -3846,7 +3846,7 @@ function setupSocketEvents() {
     window._vc.attachSignaling(socket);
     if (!isEmbedMode) {
       document.addEventListener('click', function() {
-        window._vc.autoStart(socket, [], socket.id);
+        window._vc.autoStart(socket, 'pk-' + tableId, socket.id);
       }, { once: true });
     }
   });

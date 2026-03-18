@@ -745,7 +745,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 <!-- VIDEO CHAT -->
 <button class="vc-fab" id="vcFab" onclick="toggleVC()">⚙</button>
 <div class="vc-controls" id="vcControls">
-  <button class="vc-btn" id="vcJoin" onclick="window._vc.autoStart(socket, [], socket.id)" title="Sprachchat beitreten">🎤</button>
+  <button class="vc-btn" id="vcJoin" onclick="window._vc.autoStart(socket, 'bj-'+tableId, socket.id)" title="Sprachchat beitreten">🎤</button>
   <button class="vc-btn" id="vcMic" onclick="window._vc.toggleMic(); this.classList.toggle('active', window._vc.micOn); this.classList.toggle('muted', !window._vc.micOn); this.textContent = window._vc.micOn ? '🎤' : '🔇'" title="Mikrofon">🔇</button>
   <button class="vc-btn" id="vcCam" onclick="window._vc.toggleCam(); this.classList.toggle('active', window._vc.camOn)" title="Kamera">📷</button>
   <button class="vc-btn" id="btnMute" onclick="toggleMuteAll()" title="Ton an/aus">🔊</button>
@@ -1485,7 +1485,7 @@ socket.on('connect', () => {
   window._vc.attachSignaling(socket);
   if (!isEmbed) {
     document.addEventListener('click', function() {
-      window._vc.autoStart(socket, [], socket.id);
+      window._vc.autoStart(socket, 'bj-' + tableId, socket.id);
     }, { once: true });
   }
 });

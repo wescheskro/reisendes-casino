@@ -113,6 +113,15 @@
   function attachSignaling(socket) {
     _socket = socket;
 
+    // Liste aller bereits anwesenden Peers erhalten → Peer-Connections aufbauen
+    socket.on('vc:peers', function(peers) {
+      if (myStream && peers && peers.length > 0) {
+        peers.forEach(function(p) {
+          createPeerConnection(socket, p.id, true);
+        });
+      }
+    });
+
     // Neuer User joined → Peer-Connection aufbauen
     socket.on('vc:user-joined', function(data) {
       if (myStream && data.userId) {
@@ -168,17 +177,15 @@
   }
 
   // ─── Auto-Mic bei erstem Klick ───
-  async function autoStart(socket, players, myId) {
+  // room = eindeutiger Raum-Name (z.B. "rl-tisch-1", "bj-tisch-1")
+  async function autoStart(socket, room, myId) {
     if (!socket && _socket) socket = _socket;
     if (!socket) return;
     _socket = socket;
     const stream = await ensureMedia(false); // nur Audio
     if (!stream) return;
-    socket.emit('vc:join', {});
-    // Verbinde mit allen bereits anwesenden Spielern
-    if (players && players.length > 0) {
-      setupPeers(socket, players, myId);
-    }
+    // vc:join mit Room-Name → Server sendet vc:peers zurück
+    socket.emit('vc:join', { room: room || 'default' });
   }
 
   // ─── Public API ───

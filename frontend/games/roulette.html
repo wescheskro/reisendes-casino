@@ -2717,7 +2717,7 @@ function initSocket() {
       if (!isEmbed) {
         // Auto-Mic nach erstem Klick
         document.addEventListener('click', function() {
-          window._vc.autoStart(socket, [], socket.id);
+          window._vc.autoStart(socket, 'rl-' + (tableId || 'tisch-1'), socket.id);
         }, { once: true });
       }
     }

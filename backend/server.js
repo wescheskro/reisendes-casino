@@ -3958,23 +3958,41 @@ io.on('connection', (socket) => {
   });
 
   // ─── Generische WebRTC Signaling (für alle Spiele) ───
+  // Genau wie das funktionierende rtc: System — mit Peer-Discovery
+  socket.on('vc:join', ({ room }) => {
+    const vcRoom = 'vc-' + (room || 'default');
+    socket.join(vcRoom);
+    socket._vcRoom = vcRoom;
+    // Alle anderen im Raum benachrichtigen
+    socket.to(vcRoom).emit('vc:user-joined', { userId: socket.id });
+    // Liste aller bestehenden Peers senden
+    const roomSet = io.sockets.adapter.rooms.get(vcRoom);
+    if (roomSet) {
+      const peers = [];
+      for (const sid of roomSet) {
+        if (sid === socket.id) continue;
+        peers.push({ id: sid });
+      }
+      socket.emit('vc:peers', peers);
+    }
+  });
   socket.on('vc:offer', (data) => {
-    io.to(data.to).emit('vc:offer', { from: socket.id, offer: data.offer });
+    const target = io.sockets.sockets.get(data.to);
+    if (target) target.emit('vc:offer', { from: socket.id, offer: data.offer });
   });
   socket.on('vc:answer', (data) => {
-    io.to(data.to).emit('vc:answer', { from: socket.id, answer: data.answer });
+    const target = io.sockets.sockets.get(data.to);
+    if (target) target.emit('vc:answer', { from: socket.id, answer: data.answer });
   });
   socket.on('vc:ice', (data) => {
-    io.to(data.to).emit('vc:ice', { from: socket.id, candidate: data.candidate });
+    const target = io.sockets.sockets.get(data.to);
+    if (target) target.emit('vc:ice', { from: socket.id, candidate: data.candidate });
   });
-  socket.on('vc:join', () => {
-    // Anderen im selben Room mitteilen
-    if (socket.rooms) {
-      socket.rooms.forEach(room => {
-        if (room !== socket.id) {
-          socket.to(room).emit('vc:user-joined', { userId: socket.id });
-        }
-      });
+  socket.on('vc:leave', () => {
+    if (socket._vcRoom) {
+      socket.to(socket._vcRoom).emit('vc:user-left', { userId: socket.id });
+      socket.leave(socket._vcRoom);
+      socket._vcRoom = null;
     }
   });
 
