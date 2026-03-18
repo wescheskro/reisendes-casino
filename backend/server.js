@@ -3959,22 +3959,25 @@ io.on('connection', (socket) => {
 
   // ─── Generische WebRTC Signaling (für alle Spiele) ───
   // Genau wie das funktionierende rtc: System — mit Peer-Discovery
-  socket.on('vc:join', ({ room }) => {
-    const vcRoom = 'vc-' + (room || 'default');
+  socket.on('vc:join', (data) => {
+    const room = (data && data.room) || 'default';
+    const vcRoom = 'vc-' + room;
+    console.log('[VC] join:', socket.id, 'room:', vcRoom);
     socket.join(vcRoom);
     socket._vcRoom = vcRoom;
     // Alle anderen im Raum benachrichtigen
     socket.to(vcRoom).emit('vc:user-joined', { userId: socket.id });
     // Liste aller bestehenden Peers senden
     const roomSet = io.sockets.adapter.rooms.get(vcRoom);
+    const peers = [];
     if (roomSet) {
-      const peers = [];
       for (const sid of roomSet) {
         if (sid === socket.id) continue;
         peers.push({ id: sid });
       }
-      socket.emit('vc:peers', peers);
     }
+    console.log('[VC] sending peers to', socket.id, ':', peers.length, 'peers');
+    socket.emit('vc:peers', peers);
   });
   socket.on('vc:offer', (data) => {
     const target = io.sockets.sockets.get(data.to);
