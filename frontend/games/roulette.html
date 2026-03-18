@@ -2709,16 +2709,13 @@ function initSocket() {
   socket.on('connect', () => {
     socket.emit('rl:join', { tableId, username });
     document.getElementById('tableInfo').textContent = 'Verbunden!';
-    // Voice Chat: RTC initialisieren
-    RTC.init(socket, 'rl');
+    // Voice Chat: RTC initialisieren + Auto-Join bei erstem Klick
+    RTC.init(socket, 'rl-' + tableId);
     if (!isEmbed) {
       document.addEventListener('click', async function rlAutoMic() {
         if (RTC.stream) { document.removeEventListener('click', rlAutoMic); return; }
-        await RTC.startMedia();
-        if (RTC.stream) {
-          document.removeEventListener('click', rlAutoMic);
-          RTC.connectToAll(players, socket.id);
-        }
+        await RTC.start(socket, 'rl-' + tableId);
+        if (RTC.stream) document.removeEventListener('click', rlAutoMic);
       });
     }
   });
@@ -2733,13 +2730,11 @@ function initSocket() {
     if(!players.find(p=>p.id===data.id)) players.push(data);
     renderPlayers();
     addChat('🎰', data.username + ' ist beigetreten');
-    if (RTC.stream && data.id !== socket.id && !data.isBot) {
-      RTC.connectTo(data.id);
-    }
+    // Voice-Chat Peer-Discovery läuft über rtc:peerJoined/rtc:peers
   });
   socket.on('rl:playerLeft', data => {
     if (window.playDoorSound) window.playDoorSound();
-    RTC.disconnect(data.id);
+    // Voice-Chat Cleanup läuft über rtc:peerLeft
     players = players.filter(p=>p.id!==data.id);
     renderPlayers();
     addChat('🎰', data.username + ' hat verlassen');

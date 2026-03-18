@@ -1352,7 +1352,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 <div class="video-grid" id="videoGrid"></div>
 <div class="vc-status" id="vcStatus"></div>
 <div class="vc-controls" id="vcControls">
-  <button class="vc-btn" id="vcJoinBtn" onclick="if(socket) RTC.startMedia().then(function(){if(RTC.stream) RTC.connectToAll([], socket.id)})" title="Sprachchat beitreten">📞</button>
+  <button class="vc-btn" id="vcJoinBtn" onclick="if(socket) RTC.start(socket, 'pk-'+tableId)" title="Sprachchat beitreten">📞</button>
   <button class="vc-btn" id="vcMicBtn" onclick="toggleMic()" title="Mikrofon">🎤</button>
   <button class="vc-btn" id="vcCamBtn" onclick="toggleCam()" title="Kamera">📷</button>
   <button class="vc-btn" id="btnMute" onclick="toggleMuteAll()" title="Ton an/aus">🔊</button>
@@ -3842,15 +3842,13 @@ function setupSocketEvents() {
   socket.on('connect', () => {
     socket.emit('poker:join', { tableId, seat: -1 });
     document.getElementById('tableInfo').textContent = 'Verbunden!';
-    // Voice Chat initialisieren
-    RTC.init(socket, 'pk');
+    // Voice Chat initialisieren + Auto-Join bei erstem Klick
+    RTC.init(socket, 'pk-' + tableId);
     if (!isEmbedMode) {
       document.addEventListener('click', async function pkAutoMic() {
         if (RTC.stream) { document.removeEventListener('click', pkAutoMic); return; }
-        await RTC.startMedia();
-        if (RTC.stream) {
-          document.removeEventListener('click', pkAutoMic);
-        }
+        await RTC.start(socket, 'pk-' + tableId);
+        if (RTC.stream) document.removeEventListener('click', pkAutoMic);
       });
     }
   });

@@ -745,7 +745,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 <!-- VIDEO CHAT -->
 <button class="vc-fab" id="vcFab" onclick="toggleVC()">⚙</button>
 <div class="vc-controls" id="vcControls">
-  <button class="vc-btn" id="vcJoin" onclick="RTC.startMedia().then(function(){if(RTC.stream && myState) RTC.connectToAll(myState.seats, socket.id)})" title="Sprachchat beitreten">🎤</button>
+  <button class="vc-btn" id="vcJoin" onclick="RTC.start(socket, 'bj-'+tableId)" title="Sprachchat beitreten">🎤</button>
   <button class="vc-btn" id="vcMic" onclick="RTC.toggleMic(); this.classList.toggle('active', RTC.micOn)" title="Mikrofon">🔇</button>
   <button class="vc-btn" id="vcCam" onclick="RTC.toggleCam(); this.classList.toggle('active', RTC.camOn)" title="Kamera">📷</button>
   <button class="vc-btn" id="btnMute" onclick="toggleMuteAll()" title="Ton an/aus">🔊</button>
@@ -1481,19 +1481,13 @@ socket.on('connect', () => {
   if (document.getElementById('botToggle').checked) {
     setTimeout(() => toggleBots(true), 1000);
   }
-  // Voice Chat: RTC initialisieren
-  RTC.init(socket, 'bj');
+  // Voice Chat: RTC initialisieren + Auto-Join bei erstem Klick
+  RTC.init(socket, 'bj-' + tableId);
   if (!isEmbed) {
     document.addEventListener('click', async function bjAutoMic() {
       if (RTC.stream) { document.removeEventListener('click', bjAutoMic); return; }
-      await RTC.startMedia();
-      if (RTC.stream) {
-        document.removeEventListener('click', bjAutoMic);
-        // myState.seats enthält die Spieler
-        if (myState && myState.seats) {
-          RTC.connectToAll(myState.seats, socket.id);
-        }
-      }
+      await RTC.start(socket, 'bj-' + tableId);
+      if (RTC.stream) document.removeEventListener('click', bjAutoMic);
     });
   }
 });
@@ -1510,9 +1504,7 @@ socket.on('bj:playerJoined', d => {
   BJSFX.play(660, 'sine', 0.15, 0.08);
   setTimeout(() => BJSFX.play(880, 'sine', 0.15, 0.08), 100);
   // Voice Chat: Peer Connection zum neuen Spieler
-  if (RTC.stream && d.socketId && !d.isBot) {
-    RTC.connectTo(d.socketId);
-  }
+  // Voice-Chat Peer-Discovery läuft über rtc:peerJoined/rtc:peers
 });
 
 socket.on('bj:playerLeft', d => {
@@ -1521,7 +1513,7 @@ socket.on('bj:playerLeft', d => {
   BJSFX.play(440, 'sine', 0.15, 0.08);
   setTimeout(() => BJSFX.play(330, 'sine', 0.2, 0.08), 100);
   // Voice Chat: Peer Connection aufräumen
-  if (d.socketId) RTC.disconnect(d.socketId);
+  // Voice-Chat Cleanup läuft über rtc:peerLeft
 });
 
 socket.on('bj:results', d => {

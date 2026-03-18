@@ -1,29 +1,21 @@
 // ═══════════════════════════════════════════════════════
-// RTC.js — Sauberes Voice/Video Chat für alle Spiele
-// Exakt gleiche Technik wie die funktionierende Bar
+// RTC.js v2 — Nutzt das bewährte rtc: Server-System
+// Gleiche Events wie der funktionierende Poker-Chat
 // ═══════════════════════════════════════════════════════
-//
-// Benutzung in jedem Spiel:
-//   <script src="/js/rtc.js"></script>
-//   RTC.init(socket, 'rl');           // prefix = 'rl', 'bj', 'pk'
-//   RTC.startMedia();                  // Mic starten (braucht User-Geste)
-//   RTC.connectTo(peerId);             // PC zu einem Peer aufbauen
-//   RTC.connectToAll(players, myId);   // PCs zu allen Peers aufbauen
-//   RTC.disconnect(peerId);            // PC schließen
-//   RTC.toggleMic() / RTC.toggleCam()
 
 (function() {
   'use strict';
 
   var _socket = null;
-  var _prefix = '';
+  var _room = null;
   var _stream = null;
   var _pcs = {};
   var _micOn = false;
   var _camOn = false;
-  var _inited = false;
+  var _attached = false;
 
-  // Sichtbarer Status-Toast für Debugging
+  function log(msg) { console.log('[RTC] ' + msg); }
+
   function showStatus(msg, color) {
     var el = document.getElementById('rtc-status');
     if (!el) {
@@ -35,62 +27,11 @@
     el.style.background = color || 'rgba(0,0,0,0.8)';
     el.style.opacity = '1';
     el.textContent = msg;
-    clearTimeout(el._timer);
-    el._timer = setTimeout(function() { el.style.opacity = '0'; }, 4000);
+    clearTimeout(el._t);
+    el._t = setTimeout(function() { el.style.opacity = '0'; }, 4000);
   }
 
-  // ─── Init: Socket + Event-Prefix setzen ───
-  function init(socket, prefix) {
-    _socket = socket;
-    _prefix = prefix || 'rtc';
-
-    if (_inited) return; // Listener nur einmal registrieren
-    _inited = true;
-
-    // Signaling Events empfangen
-    socket.on(_prefix + ':offer', async function(data) {
-      console.log('[RTC] Offer von', data.from);
-      // Media holen falls noch nicht da
-      if (!_stream) {
-        _micOn = true;
-        await getMedia();
-      }
-      if (!_stream) {
-        console.warn('[RTC] Kein Media — kann Offer nicht beantworten');
-        return;
-      }
-      // PC erstellen und antworten
-      var pc = makePC(data.from, false);
-      try {
-        await pc.setRemoteDescription(data.offer);
-        var answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        socket.emit(_prefix + ':answer', { to: data.from, answer: answer });
-        console.log('[RTC] Answer gesendet an', data.from);
-        showStatus('✅ Sprachchat verbunden!', '#27ae60');
-      } catch(e) {
-        console.error('[RTC] Offer-Handling Fehler:', e);
-      }
-    });
-
-    socket.on(_prefix + ':answer', async function(data) {
-      var pc = _pcs[data.from];
-      if (pc) {
-        try { await pc.setRemoteDescription(data.answer); }
-        catch(e) { console.error('[RTC] Answer Fehler:', e); }
-      }
-    });
-
-    socket.on(_prefix + ':ice', async function(data) {
-      var pc = _pcs[data.from];
-      if (pc) {
-        try { await pc.addIceCandidate(data.candidate); }
-        catch(e) { /* ICE kann vor SDP kommen — ignorieren */ }
-      }
-    });
-  }
-
-  // ─── Media holen ───
+  // ─── Media ───
   async function getMedia() {
     if (_stream) return _stream;
     try {
@@ -99,32 +40,26 @@
       try {
         _stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       } catch(e2) {
-        console.error('[RTC] Mic/Cam Fehler:', e2);
-        showStatus('🎤 Mic blockiert: ' + (e2.name || e2), '#c0392b');
+        log('Mic/Cam FEHLER: ' + (e2.name || e2));
+        showStatus('🎤 Mic blockiert: ' + (e2.name || 'Fehler'), '#c0392b');
         return null;
       }
     }
     if (_stream) {
-      _stream.getAudioTracks().forEach(function(t) { t.enabled = _micOn; });
-      _stream.getVideoTracks().forEach(function(t) { t.enabled = _camOn; });
-      console.log('[RTC] Media OK: audio=' + _stream.getAudioTracks().length + ' video=' + _stream.getVideoTracks().length);
+      _stream.getAudioTracks().forEach(function(t) { t.enabled = true; });
+      _stream.getVideoTracks().forEach(function(t) { t.enabled = false; });
+      _micOn = true;
+      _camOn = false;
+      log('Media OK: audio=' + _stream.getAudioTracks().length);
       showStatus('🎤 Mic aktiv!', '#27ae60');
     }
     return _stream;
   }
 
-  // ─── Media starten (public) ───
-  async function startMedia() {
-    _micOn = true;
-    return await getMedia();
-  }
-
-  // ─── Peer Connection erstellen ───
+  // ─── Peer Connection ───
   function makePC(peerId, isInitiator) {
-    // Bereits vorhanden?
     if (_pcs[peerId]) {
-      if (isInitiator) return _pcs[peerId]; // Nicht nochmal initiieren
-      // Als Responder: alte schließen, neue erstellen
+      if (isInitiator) return _pcs[peerId];
       _pcs[peerId].close();
       delete _pcs[peerId];
     }
@@ -134,12 +69,10 @@
     });
     _pcs[peerId] = pc;
 
-    // Tracks hinzufügen
     if (_stream) {
       _stream.getTracks().forEach(function(t) { pc.addTrack(t, _stream); });
     }
 
-    // Remote Audio/Video empfangen
     pc.ontrack = function(e) {
       var kind = e.track.kind;
       var elId = 'rtc-' + kind + '-' + peerId;
@@ -153,11 +86,9 @@
         if (kind === 'video') {
           el.style.cssText = 'position:fixed;bottom:80px;right:10px;width:120px;height:90px;border-radius:10px;border:2px solid #d4af37;z-index:95;object-fit:cover;background:#000;cursor:pointer;';
           el.onclick = function() {
-            if (el.style.width === '120px') {
-              el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:80vw;height:60vh;border-radius:12px;border:3px solid #d4af37;z-index:9999;object-fit:contain;background:#000;cursor:pointer;';
-            } else {
-              el.style.cssText = 'position:fixed;bottom:80px;right:10px;width:120px;height:90px;border-radius:10px;border:2px solid #d4af37;z-index:95;object-fit:cover;background:#000;cursor:pointer;';
-            }
+            el.style.width = el.style.width === '120px'
+              ? '80vw' : '120px';
+            el.style.height = el.style.width === '80vw' ? '60vh' : '90px';
           };
         }
         document.body.appendChild(el);
@@ -165,78 +96,143 @@
       el.srcObject = e.streams[0];
     };
 
-    // ICE Candidates senden
     pc.onicecandidate = function(e) {
       if (e.candidate && _socket) {
-        _socket.emit(_prefix + ':ice', { to: peerId, candidate: e.candidate });
+        _socket.emit('rtc:ice', { to: peerId, candidate: e.candidate });
       }
     };
 
-    // Verbindungsstatus
     pc.onconnectionstatechange = function() {
+      log('PC ' + peerId.substr(0,8) + ' → ' + pc.connectionState);
       if (pc.connectionState === 'connected') {
-        showStatus('✅ Sprachchat aktiv!', '#27ae60');
+        showStatus('✅ Sprachchat verbunden!', '#27ae60');
       }
       if (pc.connectionState === 'failed') {
         showStatus('❌ Verbindung fehlgeschlagen', '#c0392b');
         cleanup(peerId);
       }
-      if (pc.connectionState === 'closed') {
-        cleanup(peerId);
-      }
     };
 
-    // Offer senden wenn Initiator
     if (isInitiator) {
       pc.createOffer().then(function(offer) {
         return pc.setLocalDescription(offer);
       }).then(function() {
-        _socket.emit(_prefix + ':offer', { to: peerId, offer: pc.localDescription });
-        console.log('[RTC] Offer gesendet an', peerId);
-        showStatus('📡 Verbinde mit Spieler...', '#2980b9');
+        _socket.emit('rtc:offer', { to: peerId, offer: pc.localDescription });
+        log('Offer → ' + peerId.substr(0,8));
+        showStatus('📡 Verbinde...', '#2980b9');
       }).catch(function(e) {
-        console.error('[RTC] Offer Fehler:', e);
+        log('Offer FEHLER: ' + e);
       });
     }
 
     return pc;
   }
 
-  // ─── Zu einem Peer verbinden ───
-  function connectTo(peerId) {
-    if (!_stream || !peerId || peerId === (_socket && _socket.id)) return;
-    makePC(peerId, true);
-  }
-
-  // ─── Zu allen Peers verbinden ───
-  function connectToAll(players, myId) {
-    if (!_stream || !players) return;
-    var count = 0;
-    players.forEach(function(p) {
-      if (!p) return;
-      var pid = p.socketId || p.id;
-      if (!pid || pid === myId || p.isBot || p.isYou) return;
-      makePC(pid, true);
-      count++;
-    });
-    if (count === 0) showStatus('🎤 Mic an — warte auf Mitspieler', '#f39c12');
-  }
-
-  // ─── Peer aufräumen ───
   function cleanup(peerId) {
     var pc = _pcs[peerId];
     if (pc) { pc.close(); delete _pcs[peerId]; }
-    ['audio', 'video'].forEach(function(kind) {
-      var el = document.getElementById('rtc-' + kind + '-' + peerId);
+    ['audio', 'video'].forEach(function(k) {
+      var el = document.getElementById('rtc-' + k + '-' + peerId);
       if (el) el.remove();
     });
   }
 
-  // ─── Alles stoppen ───
+  // ─── Init: Signaling Events registrieren ───
+  function init(socket, room) {
+    _socket = socket;
+    _room = room;
+
+    if (_attached) return;
+    _attached = true;
+
+    // Server sendet Liste aller Peers im Room
+    socket.on('rtc:peers', function(peers) {
+      log('Peers im Room: ' + peers.length);
+      if (_stream && peers.length > 0) {
+        peers.forEach(function(p) {
+          makePC(p.peerId, true);
+        });
+      } else if (peers.length === 0) {
+        showStatus('🎤 Mic an — warte auf Mitspieler', '#f39c12');
+      }
+    });
+
+    // Neuer Peer joined — ER sendet uns ein Offer (wir warten)
+    socket.on('rtc:peerJoined', function(data) {
+      log('Peer joined: ' + data.username);
+      // Nichts tun — der neue Peer bekommt rtc:peers und sendet Offers
+    });
+
+    // Peer hat verlassen
+    socket.on('rtc:peerLeft', function(data) {
+      log('Peer left: ' + data.peerId);
+      cleanup(data.peerId);
+    });
+
+    // Offer empfangen — Media holen und antworten
+    socket.on('rtc:offer', async function(data) {
+      log('Offer ← ' + (data.username || data.from.substr(0,8)));
+      if (!_stream) {
+        _micOn = true;
+        await getMedia();
+      }
+      if (!_stream) {
+        log('Kein Media — kann nicht antworten');
+        return;
+      }
+      var pc = makePC(data.from, false);
+      try {
+        await pc.setRemoteDescription(data.offer);
+        var answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        _socket.emit('rtc:answer', { to: data.from, answer: answer });
+        log('Answer → ' + data.from.substr(0,8));
+      } catch(e) {
+        log('Offer-Handling FEHLER: ' + e);
+      }
+    });
+
+    // Answer empfangen
+    socket.on('rtc:answer', async function(data) {
+      var pc = _pcs[data.from];
+      if (pc) {
+        try { await pc.setRemoteDescription(data.answer); }
+        catch(e) { log('Answer FEHLER: ' + e); }
+      }
+    });
+
+    // ICE Candidate
+    socket.on('rtc:ice', async function(data) {
+      var pc = _pcs[data.from];
+      if (pc) {
+        try { await pc.addIceCandidate(data.candidate); }
+        catch(e) { /* kann vor SDP kommen */ }
+      }
+    });
+  }
+
+  // ─── Voice Chat starten ───
+  async function start(socket, room) {
+    if (!socket) socket = _socket;
+    if (!room) room = _room;
+    if (!socket || !room) return;
+    _socket = socket;
+    _room = room;
+
+    var stream = await getMedia();
+    if (!stream) return;
+
+    // Dem RTC-Room beitreten → Server sendet rtc:peers zurück
+    log('Joining room: ' + room);
+    socket.emit('rtc:join', { room: room });
+  }
+
+  // ─── Stoppen ───
   function stopAll() {
     if (_stream) { _stream.getTracks().forEach(function(t) { t.stop(); }); _stream = null; }
     _micOn = false; _camOn = false;
     Object.keys(_pcs).forEach(cleanup);
+    if (_socket) _socket.emit('rtc:leave');
   }
 
   // ─── Toggles ───
@@ -257,16 +253,12 @@
   // ─── Public API ───
   window.RTC = {
     init: init,
-    startMedia: startMedia,
-    connectTo: connectTo,
-    connectToAll: connectToAll,
-    disconnect: cleanup,
+    start: start,
     stopAll: stopAll,
     toggleMic: toggleMic,
     toggleCam: toggleCam,
     get stream() { return _stream; },
     get micOn() { return _micOn; },
-    get camOn() { return _camOn; },
-    get pcs() { return _pcs; }
+    get camOn() { return _camOn; }
   };
 })();
