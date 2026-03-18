@@ -273,16 +273,16 @@
       100% { transform: translateX(var(--scroll-pct, -50%)); }
     }
     .game-card {
-      flex: 0 0 240px;
+      flex: 0 0 300px;
       position: relative;
-      border-radius: 12px;
+      border-radius: 14px;
       overflow: hidden;
       border: 1px solid rgba(212,175,55,.3);
       box-shadow: 0 4px 20px rgba(0,0,0,.5);
       background: #0a0a12;
       cursor: pointer;
       transition: transform .2s, box-shadow .2s, border-color .2s;
-      aspect-ratio: 16/10;
+      aspect-ratio: 9/14;
     }
     .game-card:hover {
       transform: translateY(-3px);
@@ -292,11 +292,11 @@
     .game-card iframe {
       position: absolute;
       top: 0; left: 0;
-      width: calc(100% / 0.45);
-      height: calc(100% / 0.45);
+      width: calc(100% / 0.75);
+      height: calc(100% / 0.75);
       border: none;
       pointer-events: none;
-      transform: scale(0.45);
+      transform: scale(0.75);
       transform-origin: top left;
     }
     .game-card-overlay {
@@ -332,9 +332,9 @@
       box-shadow: 0 0 4px #2ecc71;
     }
     @media (max-width: 600px) {
-      .games-row { gap: 8px; }
-      .game-card { flex: 0 0 180px; }
-      .game-card-title { font-size: 11px; }
+      .games-row { gap: 10px; }
+      .game-card { flex: 0 0 220px; }
+      .game-card-title { font-size: 12px; }
     }
 
     /* ============ POKER TABLE HERO ============ */
@@ -1701,7 +1701,7 @@
     @media (min-width: 768px) {
       .game-logo { font-size: 52px; }
       .game-hero { padding-top: 60px; max-width: 900px; }
-      .game-card { flex: 0 0 320px; }
+      .game-card { flex: 0 0 340px; }
       .games-row { gap: 20px; animation-duration: 40s; }
       .live-embed-frame { max-width: 800px; }
       .koberei-banner, .live-embed-wrap { max-width: 900px; }
@@ -1712,7 +1712,7 @@
     }
     @media (min-width: 1200px) {
       .game-hero { max-width: 1100px; }
-      .game-card { flex: 0 0 380px; }
+      .game-card { flex: 0 0 400px; }
       .games-row { gap: 24px; animation-duration: 50s; }
       .live-embed-frame { max-width: 960px; }
       .koberei-banner, .live-embed-wrap { max-width: 1100px; }
@@ -2170,7 +2170,7 @@
       .hero h1 { font-size: 20px; }
       .hero p { font-size: 12px; display: none; }
       .games-row { gap: 8px; }
-      .game-card { flex: 0 0 140px; }
+      .game-card { flex: 0 0 200px; }
       .bottom-nav { padding: 4px 0; }
       .bottom-nav .nav-item span { display: none; }
     }
