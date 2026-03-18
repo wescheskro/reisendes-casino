@@ -740,8 +740,13 @@ async function toggleCam() {
   document.getElementById('btnCam').classList.toggle('active', camOn);
   const myVid = document.getElementById('myVideo');
   myVid.classList.toggle('active', camOn);
-  if (camOn && myStream) {
-    document.getElementById('localVideo').srcObject = myStream;
+  if (camOn) {
+    myVid.style.display = ''; // Clear inline display
+    if (myStream) {
+      const localVid = document.getElementById('localVideo');
+      localVid.srcObject = myStream;
+      localVid.play().catch(e=>console.warn(e));
+    }
   }
   // Video im Avatar-Kreis anzeigen
   updateSeatVideo(mySeatIdx, camOn ? myStream : null);
@@ -761,13 +766,17 @@ function updateSeatVideo(seatIdx, stream) {
       const video = document.createElement('video');
       video.autoplay = true;
       video.playsInline = true;
+      if (seatIdx === mySeatIdx) video.muted = true; // MUST be muted for local user to prevent echo/autoplay-block
       video.style.cssText = 'width:100%;height:100%;object-fit:cover;transform:scaleX(-1);border-radius:50%;';
       video.srcObject = stream;
       avEl.appendChild(video);
       avEl.style.border = '2px solid #4CAF50';
       avEl.style.background = '#000';
+      video.play().catch(e=>console.warn(e));
     } else {
-      avEl.querySelector('video').srcObject = stream;
+      const video = avEl.querySelector('video');
+      video.srcObject = stream;
+      video.play().catch(e=>console.warn(e));
     }
     avEl.onclick = function(e) {
       e.stopPropagation();
@@ -1428,7 +1437,7 @@ function openVoiceRecorder(name) { createActionModal('🎙 Sprachnachricht an ' 
 function openSendMoney(name) { createActionModal('💰 Geld senden an ' + name, `<div style="text-align:center"><input type="number" placeholder="Betrag in ₿" style="width:100%;padding:10px;background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.2);border-radius:8px;color:#F0E6D3;font-family:inherit;font-size:16px;text-align:center;margin-bottom:10px"><button onclick="closeActionModal()" style="width:100%;padding:10px;background:linear-gradient(135deg,#D4AF37,#8B6914);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Überweisen</button></div>`); }
 
 // ─── EIGENES VIDEO DRAG & DROP ───
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
   var mv = document.getElementById('myVideo');
   if (!mv) return;
   
@@ -1488,7 +1497,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function dragEnd() {
     isDragging = false;
   }
-});
+})();
 </script>
 <script src="/js/door-sound.js"></script>
 <script src="/js/drinks.js"></script>
