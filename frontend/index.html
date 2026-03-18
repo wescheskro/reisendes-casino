@@ -1747,18 +1747,30 @@
     }
 
     /* ============ GLOBAL JACKPOT TICKER ============ */
-    /* Scroll-Hinweis Pfeil */
+    /* Scroll-Hinweis Pfeil — fixed unten, verschwindet am Ende */
     .scroll-hint {
-      text-align: center; margin: -5px 0 10px; cursor: pointer;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 99998;
+      cursor: pointer;
+      transition: opacity .5s;
+      -webkit-tap-highlight-color: transparent;
     }
+    .scroll-hint.hidden { opacity: 0; pointer-events: none; }
     .scroll-hint img {
-      width: 40px; height: auto; opacity: 0.6;
-      animation: scrollBounce 2s ease-in-out infinite;
-      filter: drop-shadow(0 2px 8px rgba(212,175,55,.4));
+      width: 70px; height: auto;
+      animation: scrollBounce 1.8s ease-in-out infinite;
+      filter: drop-shadow(0 4px 16px rgba(212,175,55,.5));
     }
     @keyframes scrollBounce {
-      0%, 100% { transform: translateY(0); opacity: 0.5; }
-      50% { transform: translateY(10px); opacity: 0.8; }
+      0%, 100% { transform: translateY(0); opacity: 0.6; }
+      50% { transform: translateY(14px); opacity: 1; }
+    }
+    @media (max-width: 600px) {
+      .scroll-hint img { width: 60px; }
+      .scroll-hint { bottom: 14px; }
     }
 
     .jackpot-banner {
@@ -2461,9 +2473,6 @@
       <div class="game-subtitle">Wir pr&auml;sentieren</div>
       <h1 class="game-logo">Reisendes Casino</h1>
       <p class="game-tagline">Put Baxt! &mdash; Latscho Diwes!</p>
-      <div class="scroll-hint" onclick="document.getElementById('jackpotBanner').scrollIntoView({behavior:'smooth'})">
-        <img src="/img/scroll-arrow.png" alt="Runterscrollen">
-      </div>
     </section>
 
     <!-- JACKPOT TICKER -->
@@ -4793,5 +4802,29 @@
 <script src="/js/baxt-coins.js"></script>
 <script src="/js/friends.js"></script>
 <script src="/js/jukebox.js"></script>
+
+<!-- Scroll-Hinweis Pfeil (fixed unten, verschwindet am Seitenende) -->
+<div class="scroll-hint" id="scrollHint" onclick="window.scrollBy({top:window.innerHeight,behavior:'smooth'})">
+  <img src="/img/scroll-arrow.png" alt="Runterscrollen">
+</div>
+<script>
+(function(){
+  var hint = document.getElementById('scrollHint');
+  if (!hint) return;
+  function checkScroll() {
+    var scrollBottom = window.scrollY + window.innerHeight;
+    var docHeight = document.documentElement.scrollHeight;
+    // Verstecken wenn fast unten (200px vor Ende) oder im gameOverlay
+    var gameOpen = document.getElementById('gameOverlay');
+    if (scrollBottom >= docHeight - 200 || (gameOpen && gameOpen.style.display === 'block')) {
+      hint.classList.add('hidden');
+    } else {
+      hint.classList.remove('hidden');
+    }
+  }
+  window.addEventListener('scroll', checkScroll, {passive: true});
+  checkScroll();
+})();
+</script>
 </body>
 </html>
