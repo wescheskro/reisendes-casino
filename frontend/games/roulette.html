@@ -407,7 +407,17 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 .p-chip:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(212,175,55,.2)}
 .p-chip.dragging{cursor:grabbing;opacity:0.8;z-index:200;position:fixed;}
 .p-chip .dot{width:6px;height:6px;border-radius:50%;background:#4caf50}
-.p-chip .avatar{width:44px;height:44px;border-radius:50%;border:2px solid rgba(212,175,55,.4);flex-shrink:0;animation:av-bob 3s ease-in-out infinite;box-shadow:0 2px 8px rgba(0,0,0,.4),0 0 6px rgba(212,175,55,.15)}
+.p-chip .avatar{
+  width:96px;height:96px;border-radius:50%;
+  border:3px solid rgba(212,175,55,.4);
+  background:linear-gradient(135deg,#1a1a2e,#16213e);
+  box-shadow:0 4px 16px rgba(0,0,0,.5);
+  display:flex;align-items:center;justify-content:center;
+  font-size:40px;color:#F0E6D3;
+  flex-shrink:0;animation:av-bob 3s ease-in-out infinite;
+  overflow:hidden;
+}
+.p-chip .avatar img, .p-chip .avatar video{width:100%;height:100%;object-fit:cover;border-radius:50%}
 @keyframes av-bob{
   0%{transform:translateY(0) rotate(0) scale(1)}
   15%{transform:translateY(-3px) rotate(3deg) scale(1.05)}
@@ -434,7 +444,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 @media(max-width:480px){
   .players-strip{gap:6px;padding:2px 4px}
   .p-chip{padding:4px 8px 4px;min-width:52px;font-size:10px}
-  .p-chip .avatar{width:36px;height:36px}
+  .p-chip .avatar{width:72px;height:72px;font-size:30px}
 }
 
 /* Bot Chips auf dem Tisch */
