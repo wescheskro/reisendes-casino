@@ -786,8 +786,8 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 <div class="my-video" id="myVideo"><video id="localVideo" autoplay playsinline muted></video></div>
 <button class="settings-fab" id="settingsFab" onclick="toggleSettingsMenu()">⚙</button>
 <div class="settings-menu" id="settingsMenu">
-  <button class="settings-menu-btn" id="btnMic" onclick="window._vc && window._vc.toggleMic(); this.classList.toggle('active', window._vc && window._vc.micOn)" title="Mikrofon">🎤</button>
-  <button class="settings-menu-btn" id="btnCam" onclick="window._vc && window._vc.toggleCam(); this.classList.toggle('active', window._vc && window._vc.camOn)" title="Kamera">📷</button>
+  <button class="settings-menu-btn" id="btnMic" onclick="toggleMic()" title="Mikrofon">🎤</button>
+  <button class="settings-menu-btn" id="btnCam" onclick="toggleCam()" title="Kamera">📷</button>
   <button class="settings-menu-btn" id="btnMute" onclick="toggleMute()" title="Ton an/aus">🔊</button>
   <input type="range" id="volumeSlider" min="0" max="100" value="100" oninput="setVolume(this.value)" style="width:40px;writing-mode:vertical-lr;direction:rtl;height:80px;accent-color:#D4AF37;cursor:pointer">
 </div>
@@ -925,7 +925,6 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="/js/voice-chat.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════
 // ROULETTE – Premium 3D Wheel with Procedural Wood Grain
@@ -1006,7 +1005,10 @@ chipSound.volume = 0.6;
 })();
 let resultHistory = [];
 let players = [];
-// Voice Chat wird über /js/voice-chat.js (window._vc) gesteuert
+let myStream = null;
+let micOn = false;
+let camOn = false;
+let peerConnections = {};
 
 // ─── IFRAME: Lobby-Button verstecken ───
 if (window.self !== window.top) {
@@ -2219,7 +2221,106 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// toggleMic/toggleCam/ensureMedia/createPC → jetzt über window._vc (voice-chat.js)
+// ─── WebRTC Voice Chat (inline, wie bar.html) ───
+async function toggleMic() {
+  micOn = !micOn;
+  await ensureMedia();
+  if (myStream) {
+    myStream.getAudioTracks().forEach(t => t.enabled = micOn);
+  }
+  document.getElementById('btnMic').classList.toggle('active', micOn);
+}
+
+async function toggleCam() {
+  camOn = !camOn;
+  await ensureMedia();
+  if (myStream) {
+    myStream.getVideoTracks().forEach(t => t.enabled = camOn);
+  }
+  document.getElementById('btnCam').classList.toggle('active', camOn);
+  const myVid = document.getElementById('myVideo');
+  myVid.classList.toggle('active', camOn);
+  if (camOn && myStream) {
+    document.getElementById('localVideo').srcObject = myStream;
+  }
+}
+
+async function ensureMedia() {
+  if (myStream) return;
+  try {
+    myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  } catch(e) {
+    try {
+      myStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch(e2) {
+      console.error('Kamera/Mikrofon Fehler:', e2);
+      return;
+    }
+  }
+  if (myStream) {
+    myStream.getAudioTracks().forEach(t => t.enabled = micOn);
+    myStream.getVideoTracks().forEach(t => t.enabled = camOn);
+    document.getElementById('localVideo').srcObject = myStream;
+    setupPeerConnections();
+  }
+}
+
+function stopMedia() {
+  if (myStream) {
+    myStream.getTracks().forEach(t => t.stop());
+    myStream = null;
+  }
+  micOn = false; camOn = false;
+  document.getElementById('btnMic').classList.remove('active');
+  document.getElementById('btnCam').classList.remove('active');
+  document.getElementById('myVideo').classList.remove('active');
+  Object.values(peerConnections).forEach(pc => pc.close());
+  peerConnections = {};
+}
+
+function setupPeerConnections() {
+  players.forEach((p) => {
+    if (!p || p.id === socket.id || p.isBot) return;
+    createPeerConnection(p.id, true);
+  });
+}
+
+function createPeerConnection(peerId, isInitiator) {
+  if (peerConnections[peerId]) return;
+  const pc = new RTCPeerConnection({
+    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+  });
+  peerConnections[peerId] = pc;
+
+  if (myStream) {
+    myStream.getTracks().forEach(t => pc.addTrack(t, myStream));
+  }
+
+  pc.ontrack = (e) => {
+    // Remote audio abspielen
+    let audio = document.getElementById('remote-audio-' + peerId);
+    if (!audio) {
+      audio = document.createElement('audio');
+      audio.id = 'remote-audio-' + peerId;
+      audio.autoplay = true;
+      document.body.appendChild(audio);
+    }
+    audio.srcObject = e.streams[0];
+  };
+
+  pc.onicecandidate = (e) => {
+    if (e.candidate) {
+      socket.emit('rl:ice', { to: peerId, candidate: e.candidate });
+    }
+  };
+
+  if (isInitiator) {
+    pc.createOffer().then(offer => {
+      pc.setLocalDescription(offer);
+      socket.emit('rl:offer', { to: peerId, offer });
+    });
+  }
+}
 function renderPlayers() {
   let html = players.map(p => {
     const avHtml = p.avatarConfig && p.avatarConfig.emoji
@@ -2711,16 +2812,17 @@ function initSocket() {
   socket.on('connect', () => {
     socket.emit('rl:join', { tableId, username });
     document.getElementById('tableInfo').textContent = 'Verbunden!';
-    // Voice Chat initialisieren
-    if (window._vc) {
-      window._vc.attachSignaling(socket);
-      if (!isEmbed) {
-        // Auto-Mic nach erstem Klick (autoStart hat internen Guard gegen Doppelaufruf)
-        document.addEventListener('click', function vcAutoClick() {
-          if (window._vc.stream) { document.removeEventListener('click', vcAutoClick); return; }
-          window._vc.autoStart(socket, 'rl-' + (tableId || 'tisch-1'), socket.id);
-        });
-      }
+    // Auto-Mic: bei erstem Klick Mikrofon aktivieren
+    if (!isEmbed) {
+      document.addEventListener('click', async function rlAutoMic() {
+        if (myStream) { document.removeEventListener('click', rlAutoMic); return; }
+        micOn = true;
+        await ensureMedia();
+        if (myStream) {
+          document.removeEventListener('click', rlAutoMic);
+          document.getElementById('btnMic').classList.add('active');
+        }
+      });
     }
   });
   socket.on('rl:state', data => {
@@ -2734,9 +2836,20 @@ function initSocket() {
     if(!players.find(p=>p.id===data.id)) players.push(data);
     renderPlayers();
     addChat('🎰', data.username + ' ist beigetreten');
+    // WebRTC: Peer Connection zum neuen Spieler
+    if (myStream && data.id !== socket.id && !data.isBot) {
+      createPeerConnection(data.id, true);
+    }
   });
   socket.on('rl:playerLeft', data => {
     if (window.playDoorSound) window.playDoorSound();
+    // WebRTC: Peer Connection schließen
+    if (peerConnections[data.id]) {
+      peerConnections[data.id].close();
+      delete peerConnections[data.id];
+      const remAudio = document.getElementById('remote-audio-' + data.id);
+      if (remAudio) remAudio.remove();
+    }
     players = players.filter(p=>p.id!==data.id);
     renderPlayers();
     addChat('🎰', data.username + ' hat verlassen');
@@ -2758,7 +2871,24 @@ function initSocket() {
     if(p){p.video=data.video;p.audio=data.audio;}
     renderPlayers();
   });
-  // WebRTC signaling (rl:offer/answer/ice) → jetzt über window._vc (voice-chat.js)
+  // WebRTC Signaling (inline, wie bar.html)
+  socket.on('rl:offer', async (data) => {
+    createPeerConnection(data.from, false);
+    const pc = peerConnections[data.from];
+    if (!pc) return;
+    await pc.setRemoteDescription(data.offer);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit('rl:answer', { to: data.from, answer });
+  });
+  socket.on('rl:answer', async (data) => {
+    const pc = peerConnections[data.from];
+    if (pc) await pc.setRemoteDescription(data.answer);
+  });
+  socket.on('rl:ice', async (data) => {
+    const pc = peerConnections[data.from];
+    if (pc) await pc.addIceCandidate(data.candidate);
+  });
   socket.on('rl:chat', data => addChat(data.username, data.msg));
   socket.on('rl:balanceUpdate', (data) => {
     if (window.baxtUpdateBalance) window.baxtUpdateBalance(data.baxtCoins);
