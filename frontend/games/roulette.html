@@ -2715,10 +2715,11 @@ function initSocket() {
     if (window._vc) {
       window._vc.attachSignaling(socket);
       if (!isEmbed) {
-        // Auto-Mic nach erstem Klick
-        document.addEventListener('click', function() {
+        // Auto-Mic nach erstem Klick (autoStart hat internen Guard gegen Doppelaufruf)
+        document.addEventListener('click', function vcAutoClick() {
+          if (window._vc.stream) { document.removeEventListener('click', vcAutoClick); return; }
           window._vc.autoStart(socket, 'rl-' + (tableId || 'tisch-1'), socket.id);
-        }, { once: true });
+        });
       }
     }
   });

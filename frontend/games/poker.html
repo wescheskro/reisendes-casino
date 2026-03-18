@@ -3845,9 +3845,10 @@ function setupSocketEvents() {
     // Voice Chat initialisieren
     window._vc.attachSignaling(socket);
     if (!isEmbedMode) {
-      document.addEventListener('click', function() {
+      document.addEventListener('click', function pkVcAutoClick() {
+        if (window._vc.stream) { document.removeEventListener('click', pkVcAutoClick); return; }
         window._vc.autoStart(socket, 'pk-' + tableId, socket.id);
-      }, { once: true });
+      });
     }
   });
 

@@ -1484,9 +1484,10 @@ socket.on('connect', () => {
   // Voice Chat initialisieren
   window._vc.attachSignaling(socket);
   if (!isEmbed) {
-    document.addEventListener('click', function() {
+    document.addEventListener('click', function bjVcAutoClick() {
+      if (window._vc.stream) { document.removeEventListener('click', bjVcAutoClick); return; }
       window._vc.autoStart(socket, 'bj-' + tableId, socket.id);
-    }, { once: true });
+    });
   }
 });
 
