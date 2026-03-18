@@ -1266,7 +1266,14 @@
       border-radius: 14px;
       padding: 14px 8px 10px;
       transition: all .3s ease;
+      cursor: pointer;
+      position: relative;
     }
+    .card-tts {
+      position: absolute; top: 6px; right: 8px;
+      font-size: 13px; opacity: 0.35;
+    }
+    .baxt-feature-card:active .card-tts { opacity: 1; }
     .baxt-feature-card:hover {
       border-color: rgba(212,175,55,.4);
       box-shadow: 0 4px 20px rgba(212,175,55,.12);
@@ -2870,35 +2877,41 @@
       <button class="welcome-tts-btn" onclick="speakText(document.getElementById('baxtPromo').textContent.replace(/[🎰🎁🏆⬆️✨📋🔒📜❓]/g,'').substring(0,500), this)" style="margin:0 auto 12px;display:block;font-size:12px;padding:6px 14px">&#x1F50A; Vorlesen</button>
 
       <div class="baxt-features">
-        <div class="baxt-feature-card">
+        <div class="baxt-feature-card" onclick="speakText(this.textContent)">
           <div class="baxt-feature-icon">🎰</div>
           <h3>Beim Spielen verdienen</h3>
           <p>Jede Runde bringt dir Baxt Coins &mdash; egal ob Poker, Blackjack oder Slots. Gewinne bringen Extra-Coins!</p>
+          <div class="card-tts">🔊</div>
         </div>
-        <div class="baxt-feature-card">
+        <div class="baxt-feature-card" onclick="speakText(this.textContent)">
           <div class="baxt-feature-icon">📅</div>
           <h3>Täglicher Bonus</h3>
           <p>Hol dir jeden Tag deinen <strong>100 Baxt Coins</strong> Login-Bonus ab. Einfach einloggen &amp; kassieren!</p>
+          <div class="card-tts">🔊</div>
         </div>
-        <div class="baxt-feature-card">
+        <div class="baxt-feature-card" onclick="speakText(this.textContent)">
           <div class="baxt-feature-icon">🎁</div>
           <h3>Coins verschenken</h3>
           <p>Schicke Baxt Coins an Freunde und andere Spieler. Teile deinen Reichtum mit der Community!</p>
+          <div class="card-tts">🔊</div>
         </div>
-        <div class="baxt-feature-card">
+        <div class="baxt-feature-card" onclick="speakText(this.textContent)">
           <div class="baxt-feature-icon">🏆</div>
-          <h3>Ranking & Prestige</h3>
+          <h3>Ranking &amp; Prestige</h3>
           <p>Klettere die Rangliste hoch! Die Top-Sammler werden im Casino für alle sichtbar geehrt.</p>
+          <div class="card-tts">🔊</div>
         </div>
-        <div class="baxt-feature-card">
+        <div class="baxt-feature-card" onclick="speakText(this.textContent)">
           <div class="baxt-feature-icon">⬆️</div>
           <h3>Level-Up Belohnungen</h3>
           <p>Mit jedem Level-Up gibt es fette Coin-Boni &mdash; je höher dein Level, desto mehr bekommst du!</p>
+          <div class="card-tts">🔊</div>
         </div>
-        <div class="baxt-feature-card">
+        <div class="baxt-feature-card" onclick="speakText(this.textContent)">
           <div class="baxt-feature-icon">💎</div>
           <h3>Exklusive Vorteile</h3>
           <p>Setze Baxt Coins für besondere Items, Truhen und exklusive Casino-Features ein. Bald verfügbar!</p>
+          <div class="card-tts">🔊</div>
         </div>
       </div>
 
