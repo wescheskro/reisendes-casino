@@ -66,6 +66,16 @@ try {
   playlist = [...DEFAULT_PLAYLIST];
 }
 
+// Admin-Playlist vom Server laden (gilt für alle User)
+fetch('/api/admin/layout/jukebox-playlist').then(r => r.json()).then(data => {
+  if (data && data.value && Array.isArray(data.value) && data.value.length > 0) {
+    playlist = data.value;
+    localStorage.setItem(PLAYLIST_KEY, JSON.stringify(playlist));
+    if (currentIdx >= playlist.length) currentIdx = 0;
+    if (typeof buildPlaylist === 'function') buildPlaylist();
+  }
+}).catch(function(){});
+
 // Sicherstellen dass idx nicht out of bounds
 if (currentIdx >= playlist.length) currentIdx = 0;
 
@@ -82,6 +92,17 @@ function savePlaylist() {
   try {
     localStorage.setItem(PLAYLIST_KEY, JSON.stringify(playlist));
   } catch(e) {}
+  // Admin: Reihenfolge server-seitig speichern
+  if (window._isAdmin) {
+    const token = JSON.parse(localStorage.getItem('casinoUser') || '{}').token;
+    if (token) {
+      fetch('/api/admin/layout', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ key: 'jukebox-playlist', value: playlist })
+      }).catch(function(){});
+    }
+  }
 }
 
 // ---- YouTube IFrame API laden ----
@@ -504,7 +525,7 @@ function buildUI() {
     #jukebox.jk-open .jk-panel{display:block}
     #jukebox.jk-mini .jk-panel{display:none}
     #jukebox.jk-mini .jk-img{display:block}
-    .jk-hide-btn{position:absolute;top:-4px;right:-4px;width:20px;height:20px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);border-radius:50%;color:#aaa;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
+    .jk-hide-btn{position:absolute;top:-4px;right:-4px;width:20px;height:20px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:50%;color:rgba(255,255,255,.45);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1;backdrop-filter:blur(4px)}
     .jk-hide-btn:active{background:rgba(231,76,60,.8);color:#fff}
     .jk-mute-badge{position:absolute;bottom:-4px;right:-4px;width:24px;height:24px;background:rgba(0,0,0,.7);border:1px solid rgba(212,175,55,.4);border-radius:50%;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
     .jk-mute-badge:active{background:rgba(212,175,55,.3)}

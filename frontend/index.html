@@ -16,7 +16,9 @@
     /* ============================================================
        REISENDES CASINO – Landing Page (3 Games Only)
        ============================================================ */
+    html { scroll-behavior: smooth; }
     html, body { overflow-x: hidden; max-width: 100vw; width: 100%; }
+    body { -webkit-font-smoothing: antialiased; text-rendering: optimizeSpeed; }
     .main-content, .koberei-banner, .live-embed-wrap { max-width: 100vw; overflow-x: hidden; box-sizing: border-box; }
     .games-row-wrap { max-width: 100vw; box-sizing: border-box; }
     .baxt-promo { max-width: 100vw; box-sizing: border-box; }
@@ -261,16 +263,19 @@
       gap: 14px;
       width: max-content;
       animation: games-scroll 30s linear infinite;
+      will-change: transform;
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
     .games-row:hover { animation-play-state: paused; }
     .games-row.touching { animation-play-state: paused !important; }
     @keyframes games-scroll {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
+      0% { transform: translate3d(0,0,0); }
+      100% { transform: translate3d(-50%,0,0); }
     }
     @keyframes games-scroll-dynamic {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(var(--scroll-pct, -50%)); }
+      0% { transform: translate3d(0,0,0); }
+      100% { transform: translate3d(var(--scroll-pct, -50%),0,0); }
     }
     .game-card {
       flex: 0 0 300px;
@@ -283,6 +288,9 @@
       cursor: pointer;
       transition: transform .2s, box-shadow .2s, border-color .2s;
       aspect-ratio: 9/14;
+      will-change: transform;
+      transform: translateZ(0);
+      contain: layout style paint;
     }
     .game-card:hover {
       transform: translateY(-3px);
@@ -296,8 +304,9 @@
       height: calc(100% / 0.75);
       border: none;
       pointer-events: none;
-      transform: scale(0.75);
+      transform: scale(0.75) translateZ(0);
       transform-origin: top left;
+      will-change: auto;
     }
     .game-card-overlay {
       position: absolute;
@@ -345,7 +354,8 @@
       margin-bottom: 16px;
       padding: 0;
       width: 100%;
-      align-self: stretch;
+      content-visibility: auto;
+      contain-intrinsic-size: auto 700px;
     }
 
     .lp-badge {
@@ -449,6 +459,9 @@
       border: 2px solid rgba(212,175,55,0.35);
       box-shadow: 0 8px 35px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,175,55,0.15);
       background: #0a0a12;
+      contain: layout style paint;
+      content-visibility: auto;
+      contain-intrinsic-size: auto 680px;
     }
     /* Individuelle Embed-Höhen */
     #barEmbedWrap { height: 549px; }
@@ -464,7 +477,7 @@
       height: calc(100% / 0.85);
       border: none;
       pointer-events: none;
-      transform: scale(0.85);
+      transform: scale(0.85) translateZ(0);
       transform-origin: top left;
     }
     .live-embed-overlay {
@@ -1159,7 +1172,7 @@
     /* ============ BAXT COINS PROMO ============ */
     .baxt-promo {
       position: relative;
-      padding: 32px 20px 28px;
+      padding: 12px 20px 28px;
       text-align: center;
       max-width: 560px;
       margin: 0 auto;
@@ -1171,13 +1184,13 @@
     }
     .baxt-promo-glow {
       position: absolute;
-      top: -60px; left: 50%; transform: translateX(-50%);
-      width: 400px; height: 400px;
+      top: -30px; left: 50%; transform: translateX(-50%);
+      width: 300px; height: 300px;
       background: radial-gradient(circle, rgba(212,175,55,.1) 0%, transparent 65%);
       pointer-events: none;
       z-index: 0;
     }
-    .baxt-promo > * { position: relative; z-index: 1; }
+    .baxt-promo > *:not(.baxt-promo-glow) { position: relative; z-index: 1; }
 
     .baxt-coin-hero { margin-bottom: 6px; }
     .baxt-coin-spin {
@@ -1731,26 +1744,28 @@
 
     @media (min-width: 768px) {
       .game-logo { font-size: 52px; }
-      .game-hero { padding-top: 60px; max-width: 900px; }
+      .game-subtitle { font-size: 24px; letter-spacing: 8px; text-shadow: 0 0 20px rgba(212,175,55,.7), 0 2px 4px rgba(0,0,0,.8); }
+      .game-hero { padding-top: 80px; max-width: 900px; }
       .game-card { flex: 0 0 340px; }
       .games-row { gap: 20px; animation-duration: 40s; }
       .live-embed-frame { max-width: 800px; }
-      .koberei-banner, .live-embed-wrap { max-width: 900px; }
+      .koberei-banner, .live-embed-wrap { max-width: 900px; margin-left: auto; margin-right: auto; }
       .welcome-box { max-width: 700px; }
       .jackpot-banner { max-width: 700px; }
       .baxt-info-section { max-width: 900px; }
-      .slot-embed-frame { max-width: 900px; margin: 0 auto; }
+      .slot-embed-frame { max-width: 800px; margin: 0 auto; height: 700px; border-radius: 14px; border: 2px solid rgba(212,175,55,0.35); }
     }
     @media (min-width: 1200px) {
-      .game-hero { max-width: 1100px; }
+      .game-hero { max-width: 1100px; padding-top: 100px; }
+      .game-subtitle { font-size: 28px; letter-spacing: 10px; }
       .game-card { flex: 0 0 400px; }
       .games-row { gap: 24px; animation-duration: 50s; }
       .live-embed-frame { max-width: 960px; }
-      .koberei-banner, .live-embed-wrap { max-width: 1100px; }
+      .koberei-banner, .live-embed-wrap { max-width: 1100px; margin-left: auto; margin-right: auto; }
       .welcome-box { max-width: 800px; }
       .jackpot-banner { max-width: 800px; }
       .baxt-info-section { max-width: 1100px; }
-      .slot-embed-frame { max-width: 1100px; }
+      .slot-embed-frame { max-width: 960px; height: 800px; margin: 0 auto; }
     }
 
     /* ============ GLOBAL JACKPOT TICKER ============ */
@@ -2527,33 +2542,87 @@
     </div>
     <script>
     // ── Globale Vorlese-Funktion (männliche deutsche Stimme) ──
+    var _ttsVoicesReady = false;
+    var _ttsVoices = [];
+    function _loadVoices() {
+      _ttsVoices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+      if (_ttsVoices.length > 0) _ttsVoicesReady = true;
+    }
+    if (window.speechSynthesis) {
+      _loadVoices();
+      window.speechSynthesis.onvoiceschanged = _loadVoices;
+    }
+
+    function _pickVoice() {
+      if (!_ttsVoicesReady) _loadVoices();
+      var best = null;
+      for (var i = 0; i < _ttsVoices.length; i++) {
+        var v = _ttsVoices[i];
+        if (!v.lang.startsWith('de')) continue;
+        if (!best) best = v;
+        var n = v.name.toLowerCase();
+        if ((n.includes('male') && !n.includes('female')) || n.includes('stefan') || n.includes('martin') || n.includes('conrad') || n.includes('markus') || n.includes('florian') || n.includes('hans')) { best = v; break; }
+        if (n.includes('google deutsch') && !n.includes('female')) best = v;
+      }
+      return best;
+    }
+
+    var _ttsSpeaking = false;
+    var _ttsResumeTimer = null;
+
     function speakText(text, btn) {
       if (!window.speechSynthesis) return;
-      if (window.speechSynthesis.speaking) {
+      // Stopp wenn gerade spricht
+      if (_ttsSpeaking) {
         window.speechSynthesis.cancel();
+        _ttsSpeaking = false;
+        if (_ttsResumeTimer) { clearInterval(_ttsResumeTimer); _ttsResumeTimer = null; }
         if (btn) { btn.classList.remove('speaking'); btn.innerHTML = '&#x1F50A; Vorlesen'; }
         return;
       }
-      const utter = new SpeechSynthesisUtterance(text);
+      // Chrome Desktop: Voices laden manchmal erst nach erstem Aufruf
+      if (!_ttsVoicesReady) {
+        _loadVoices();
+        if (!_ttsVoicesReady) {
+          setTimeout(function() { speakText(text, btn); }, 300);
+          return;
+        }
+      }
+      // Cancel alte Reste
+      window.speechSynthesis.cancel();
+
+      var utter = new SpeechSynthesisUtterance(text);
       utter.lang = 'de-DE';
       utter.rate = 0.9;
       utter.pitch = 0.95;
-      const voices = window.speechSynthesis.getVoices();
-      let bestVoice = null;
-      for (const v of voices) {
-        if (!v.lang.startsWith('de')) continue;
-        if (!bestVoice) bestVoice = v;
-        const n = v.name.toLowerCase();
-        if ((n.includes('male') && !n.includes('female')) || n.includes('stefan') || n.includes('martin') || n.includes('conrad') || n.includes('markus') || n.includes('florian') || n.includes('hans')) { bestVoice = v; break; }
-        if (n.includes('google deutsch') && !n.includes('female')) bestVoice = v;
+      var voice = _pickVoice();
+      if (voice) utter.voice = voice;
+
+      function resetBtn() {
+        _ttsSpeaking = false;
+        if (_ttsResumeTimer) { clearInterval(_ttsResumeTimer); _ttsResumeTimer = null; }
+        if (btn) { btn.classList.remove('speaking'); btn.innerHTML = '&#x1F50A; Vorlesen'; }
       }
-      if (bestVoice) utter.voice = bestVoice;
+      utter.onend = resetBtn;
+      utter.onerror = resetBtn;
+
       if (btn) {
-        utter.onend = () => { btn.classList.remove('speaking'); btn.innerHTML = '&#x1F50A; Vorlesen'; };
         btn.classList.add('speaking');
         btn.innerHTML = '&#x23F9; Stopp';
       }
-      window.speechSynthesis.speak(utter);
+      _ttsSpeaking = true;
+
+      // Chrome Bug: speechSynthesis pausiert nach 15s — Workaround
+      _ttsResumeTimer = setInterval(function() {
+        if (!window.speechSynthesis.speaking) { resetBtn(); return; }
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      }, 10000);
+
+      // Kurze Verzögerung nach cancel() damit Chrome den Queue freigibt
+      setTimeout(function() {
+        window.speechSynthesis.speak(utter);
+      }, 50);
     }
 
     function toggleVorlesen() {
@@ -2570,10 +2639,7 @@
       speakText(el.textContent, btnEl);
     }
 
-    if (window.speechSynthesis) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-    }
+    // Voices werden oben in _loadVoices() geladen
     </script>
 
     <!-- LIVE ONLINE ANZEIGE -->
@@ -2683,7 +2749,7 @@
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcBar">0</b> in der Bar</div>
       <div class="live-embed-frame" id="barEmbedWrap" data-embed="bar">
         <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
-        <iframe src="/games/bar.html?embed=1" class="live-iframe" allow="camera;microphone;autoplay" loading="lazy" style="pointer-events:none;"></iframe>
+        <iframe data-src="/games/bar.html?embed=1" class="live-iframe lazy-embed" allow="camera;microphone;autoplay" style="pointer-events:none;"></iframe>
         <div class="embed-click-overlay" onclick="openBar()"></div>
         <div class="slot-fullscreen-bar" onclick="openBar()">
           <div class="live-overlay-text">&#127866; Bar betreten &#127866;</div>
@@ -2723,7 +2789,7 @@
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcPoker">0</b> am Poker</div>
       <div class="live-embed-frame" id="pokerEmbedWrap" data-embed="poker">
         <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
-        <iframe id="pokerEmbed" src="/games/poker.html?embed=1&table=embed-preview" class="live-iframe" allow="camera;microphone;autoplay" loading="lazy" style="pointer-events:none;"></iframe>
+        <iframe id="pokerEmbed" data-src="/games/poker.html?embed=1&table=embed-preview" class="live-iframe lazy-embed" allow="camera;microphone;autoplay" style="pointer-events:none;"></iframe>
         <div class="embed-click-overlay" onclick="openPoker()"></div>
         <div class="slot-fullscreen-bar" onclick="openPoker()">
           <div class="live-overlay-text">&#9824; Vollbild &ouml;ffnen &amp; mitspielen &#9824;</div>
@@ -2766,7 +2832,7 @@
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcBJ">0</b> am Blackjack</div>
       <div class="live-embed-frame" id="bjEmbedWrap" data-embed="blackjack">
         <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
-        <iframe src="/games/blackjack.html?embed=1" class="live-iframe" allow="autoplay" loading="lazy" style="pointer-events:none;"></iframe>
+        <iframe data-src="/games/blackjack.html?embed=1" class="live-iframe lazy-embed" allow="autoplay" style="pointer-events:none;"></iframe>
         <div class="embed-click-overlay" onclick="openBlackjack()"></div>
         <div class="slot-fullscreen-bar" onclick="openBlackjack()">
           <div class="live-overlay-text">🃏 Blackjack spielen 🃏</div>
@@ -2807,7 +2873,7 @@
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcRoulette">0</b> am Roulette</div>
       <div class="live-embed-frame" id="rlEmbedWrap" data-embed="roulette">
         <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
-        <iframe src="/games/roulette.html?embed=1" class="live-iframe" allow="autoplay" loading="lazy" style="pointer-events:none;width:calc(100%/0.65);height:calc(100%/0.65);transform:scale(0.65);transform-origin:top left;"></iframe>
+        <iframe data-src="/games/roulette.html?embed=1" class="live-iframe lazy-embed" allow="autoplay" style="pointer-events:none;width:calc(100%/0.65);height:calc(100%/0.65);transform:scale(0.65) translateZ(0);transform-origin:top left;"></iframe>
         <div class="embed-click-overlay" onclick="openRoulette()"></div>
         <div class="slot-fullscreen-bar" onclick="openRoulette()">
           <div class="live-overlay-text">🎰 Roulette spielen 🎰</div>
@@ -2833,7 +2899,7 @@
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcSlots">0</b> an den Slots</div>
       <div class="slot-embed-frame" id="slotEmbedWrap" data-embed="slot">
         <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
-        <iframe src="/games/book-of-baxt.html?embed=1" class="slot-embed-iframe" allow="autoplay" style="pointer-events:none;"></iframe>
+        <iframe data-src="/games/book-of-baxt.html?embed=1" class="slot-embed-iframe lazy-embed" allow="autoplay" style="pointer-events:none;"></iframe>
         <div class="embed-click-overlay" onclick="playGame()"></div>
         <div class="slot-fullscreen-bar" onclick="playGame()">
           <div class="live-overlay-text">&#127920; Vollbild öffnen &#127920;</div>
@@ -2849,8 +2915,6 @@
     <button class="cta-play cta-slot" onclick="playGame()">
       &#129430; Stachelingo Spielen
     </button>
-
-    <div class="game-divider"></div>
 
     <!-- ═══════════════════════════════════════════════════════════ -->
     <!-- BAXT COINS PROMO SECTION -->
@@ -4276,15 +4340,32 @@
     setInterval(updateOnlineCount, 5000);
 
     // =========================================================================
+    // LAZY LOADING — Embeds erst laden wenn 500px vom Viewport entfernt
+    // =========================================================================
+    (() => {
+      const lazyObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const iframe = entry.target;
+            if (iframe.dataset.src && !iframe.src) {
+              iframe.src = iframe.dataset.src;
+            }
+            lazyObserver.unobserve(iframe);
+          }
+        });
+      }, { rootMargin: '500px 0px' });
+      document.querySelectorAll('.lazy-embed').forEach(el => lazyObserver.observe(el));
+    })();
+
+    // =========================================================================
     // EMBED AUDIO — Sound nur für große Embeds (NICHT Slots), nur wenn sichtbar
     // =========================================================================
     (() => {
-      // Große Embeds die Sound bekommen dürfen (wenn im Bild)
       const audioEmbeds = ['barEmbedWrap', 'pokerEmbedWrap', 'bjEmbedWrap', 'rlEmbedWrap', 'slotEmbedWrap'];
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           const iframe = entry.target.querySelector('iframe');
-          if (!iframe) return;
+          if (!iframe || !iframe.src) return;
           try {
             iframe.contentWindow.postMessage(
               { type: entry.isIntersecting ? 'embedAudioOn' : 'embedAudioOff' }, '*'
@@ -4877,7 +4958,13 @@
     }
   }
 
-  window.addEventListener('scroll', checkScroll, {passive: true});
+  var _scrollTick = false;
+  window.addEventListener('scroll', function() {
+    if (!_scrollTick) {
+      _scrollTick = true;
+      requestAnimationFrame(function() { checkScroll(); _scrollTick = false; });
+    }
+  }, {passive: true});
   checkScroll();
 })();
 </script>

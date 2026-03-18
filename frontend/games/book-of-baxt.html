@@ -1741,17 +1741,17 @@ function animateCounter(elementId, from, to, duration = 500) {
 // ===== SYMBOL DEFINITIONS =====
 // HD SVG symbols with rich gradients and detail
 const SYMBOLS = [
-  {id:'book',   name:'Stachelingo',    cls:'premium book-sym', mult:[0,0,2,20,200],  scatter:true, wild:true},
-  {id:'mann',   name:'Reisender',     cls:'premium', mult:[0,0,50,500,5000]},
-  {id:'wagen',  name:'Wagen',         cls:'premium', mult:[0,0,30,100,400]},
-  {id:'pferd',  name:'Grast',         cls:'premium', mult:[0,0,20,80,200]},
-  {id:'geige',  name:'Geige',         cls:'premium', mult:[0,0,20,60,150]},
-  {id:'eye',    name:'Wahrsagerin',   cls:'premium', mult:[0,0,15,40,100]},
-  {id:'A',      name:'A',             cls:'letter',  mult:[0,0,5,25,75]},
-  {id:'K',      name:'K',             cls:'letter',  mult:[0,0,5,20,50]},
-  {id:'Q',      name:'Q',             cls:'letter',  mult:[0,0,5,20,50]},
-  {id:'J',      name:'J',             cls:'letter',  mult:[0,0,5,15,40]},
-  {id:'10',     name:'10',            cls:'letter',  mult:[0,0,5,15,40]},
+  {id:'book',   name:'Stachelingo',    cls:'premium book-sym', mult:[0,0,2,10,100],  scatter:true, wild:true},
+  {id:'mann',   name:'Reisender',     cls:'premium', mult:[0,0,15,100,750]},
+  {id:'wagen',  name:'Wagen',         cls:'premium', mult:[0,0,10,40,150]},
+  {id:'pferd',  name:'Grast',         cls:'premium', mult:[0,0,8,30,100]},
+  {id:'geige',  name:'Geige',         cls:'premium', mult:[0,0,6,20,60]},
+  {id:'eye',    name:'Wahrsagerin',   cls:'premium', mult:[0,0,5,15,50]},
+  {id:'A',      name:'A',             cls:'letter',  mult:[0,0,3,10,30]},
+  {id:'K',      name:'K',             cls:'letter',  mult:[0,0,3,8,25]},
+  {id:'Q',      name:'Q',             cls:'letter',  mult:[0,0,3,8,25]},
+  {id:'J',      name:'J',             cls:'letter',  mult:[0,0,2,6,20]},
+  {id:'10',     name:'10',            cls:'letter',  mult:[0,0,2,6,20]},
 ];
 
 // HD Images from AI generation + SVG letters
@@ -2204,8 +2204,8 @@ const _slotGuest = (() => { try { return JSON.parse(localStorage.getItem('casino
 const _slotToken = localStorage.getItem('casinoToken') || localStorage.getItem('token');
 let balance = _slotToken ? 0 : (_slotGuest ? parseInt(localStorage.getItem('guestBaxt') || '0') : parseInt(localStorage.getItem('slotBalance')) || 10000);
 let isSlotGuest = !_slotToken && !!_slotGuest;
-let betPerLine = 20;
-let lines = 10;
+let betPerLine = 5;
+let lines = 5;
 let lastWin = 0;
 let spinning = false;
 let autoPlay = false;

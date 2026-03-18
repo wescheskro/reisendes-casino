@@ -77,7 +77,7 @@
       "currency": "EUR",
       "createdAt": "2026-03-17T05:02:58.585Z",
       "verified": false,
-      "xp": 45,
+      "xp": 55,
       "level": 1,
       "rang": "reisender",
       "inventory": [],
@@ -91,11 +91,245 @@
       },
       "chestsReady": [],
       "chestsOpened": 0,
-      "roundsPlayed": 3,
+      "roundsPlayed": 4,
       "handsWon": 1,
       "highscoreAllTime": 0,
-      "baxtCoins": 13239,
+      "baxtCoins": 93744,
       "baxtHistory": [
+        {
+          "id": "19970c97-e0ed-4ebc-b6b5-3b2dd4847af9",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 800,
+          "reason": "slot_bet",
+          "baxtAfter": 93744,
+          "timestamp": "2026-03-18T15:58:11.398Z"
+        },
+        {
+          "id": "4f205d32-2616-4464-8354-751b01327c4e",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 1500,
+          "reason": "slot_bet",
+          "baxtAfter": 94544,
+          "timestamp": "2026-03-18T15:37:46.992Z"
+        },
+        {
+          "id": "3079a4d8-2cdb-40f0-9d08-b110e3055b51",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 800,
+          "reason": "slot_bet",
+          "baxtAfter": 96044,
+          "timestamp": "2026-03-18T15:10:58.281Z"
+        },
+        {
+          "id": "5a14db2c-fa19-4ebb-9152-2ee2a71319d4",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 96844,
+          "timestamp": "2026-03-18T07:53:52.154Z"
+        },
+        {
+          "id": "dee15c6b-92b6-4200-b969-1e4307225738",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 1500,
+          "reason": "slot_bet",
+          "baxtAfter": 97344,
+          "timestamp": "2026-03-18T07:53:40.654Z"
+        },
+        {
+          "id": "9cfdeca9-2902-4e9b-a454-bc983228fc95",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 800,
+          "reason": "slot_bet",
+          "baxtAfter": 98844,
+          "timestamp": "2026-03-18T07:53:24.543Z"
+        },
+        {
+          "id": "493f9502-cc97-43b5-bc8b-abc5aa3598b7",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 99644,
+          "timestamp": "2026-03-18T07:52:57.804Z"
+        },
+        {
+          "id": "36e794d6-1638-4b37-8238-0acf58ae9344",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 100144,
+          "timestamp": "2026-03-18T07:50:11.163Z"
+        },
+        {
+          "id": "b9c58a96-bab5-4855-8b4d-9526d38a1ae2",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 800,
+          "reason": "slot_bet",
+          "baxtAfter": 100644,
+          "timestamp": "2026-03-18T07:47:54.499Z"
+        },
+        {
+          "id": "53fe8256-efec-4796-8b21-6b515ee8169f",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "earn",
+          "amount": 5,
+          "reason": "poker_round",
+          "baxtAfter": 1044,
+          "timestamp": "2026-03-18T07:40:52.230Z"
+        },
+        {
+          "id": "75bf8a56-cdfe-4cfe-82b8-d5ddaf36dd83",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 800,
+          "reason": "slot_bet",
+          "baxtAfter": 1539,
+          "timestamp": "2026-03-18T07:40:40.975Z"
+        },
+        {
+          "id": "a862e087-a1bd-436b-ae09-f12477cf3a20",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 2339,
+          "timestamp": "2026-03-18T07:40:39.211Z"
+        },
+        {
+          "id": "f6cc1028-47b7-4b64-9060-54b2f589001a",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 3339,
+          "timestamp": "2026-03-18T07:39:53.634Z"
+        },
+        {
+          "id": "b7e8b445-783e-470a-9ffd-2a9125ed5d75",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 3839,
+          "timestamp": "2026-03-18T07:39:51.296Z"
+        },
+        {
+          "id": "b2d35621-3c71-4f46-ab1f-ef6f3b2ca6e5",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 4339,
+          "timestamp": "2026-03-18T07:39:48.253Z"
+        },
+        {
+          "id": "7fcd2c30-e387-4f39-900f-fbec11bb8753",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 4839,
+          "timestamp": "2026-03-18T07:36:46.445Z"
+        },
+        {
+          "id": "37458feb-bd80-4b17-8314-7ed635b0acab",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 5339,
+          "timestamp": "2026-03-18T07:36:08.225Z"
+        },
+        {
+          "id": "57772ecc-c87f-43d3-a8dd-cd7e613cdeff",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 800,
+          "reason": "slot_bet",
+          "baxtAfter": 5839,
+          "timestamp": "2026-03-18T07:36:06.241Z"
+        },
+        {
+          "id": "a344121a-b126-4853-bd9f-8fb8284b8f7b",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 800,
+          "reason": "slot_bet",
+          "baxtAfter": 6639,
+          "timestamp": "2026-03-18T07:33:27.087Z"
+        },
+        {
+          "id": "67c3ccb4-ea53-4825-b662-a2354433c73e",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 1500,
+          "reason": "slot_bet",
+          "baxtAfter": 7439,
+          "timestamp": "2026-03-18T07:33:24.458Z"
+        },
+        {
+          "id": "6b103e65-6188-4f8b-829d-bbd5ac4686b3",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 8939,
+          "timestamp": "2026-03-18T07:25:15.657Z"
+        },
+        {
+          "id": "c6723838-7789-424e-bf96-7b3e254d8ebc",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 9439,
+          "timestamp": "2026-03-18T07:25:04.297Z"
+        },
+        {
+          "id": "cf4528e1-35ff-430a-9c75-b337ac1ae879",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 9939,
+          "timestamp": "2026-03-18T07:24:15.664Z"
+        },
+        {
+          "id": "c75ce9cd-c280-499b-b473-18c6d14c0aa1",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 1500,
+          "reason": "slot_bet",
+          "baxtAfter": 10439,
+          "timestamp": "2026-03-18T07:24:14.277Z"
+        },
+        {
+          "id": "cd991bd8-ad64-4776-aadb-e68525467fbe",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 800,
+          "reason": "slot_bet",
+          "baxtAfter": 11939,
+          "timestamp": "2026-03-18T07:24:13.008Z"
+        },
+        {
+          "id": "693ec12d-7313-40fc-8875-a37fa9e14cf0",
+          "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 12739,
+          "timestamp": "2026-03-18T07:24:10.875Z"
+        },
         {
           "id": "d2087c79-7c38-4059-b134-f5e52a948812",
           "userId": "375890d0-e870-4f73-ba86-0345eadd3a48",
@@ -742,7 +976,23 @@
       "friendRequestsSent": [],
       "isAdmin": true,
       "refillCount": 0,
-      "refillDate": "2026-03-18"
+      "refillDate": "2026-03-18",
+      "avatarUrl": "https://api.dicebear.com/9.x/toon-head/svg?skinColor=f5d0a9&hair=spiky&hairProbability=100&hairColor=2c1b18&eyes=happy&eyebrows=neutral&mouth=smile&beard=longBeard&beardProbability=100&clothes=shirt&clothesColor=D4AF37",
+      "avatarConfig": {
+        "dicebear": {
+          "skin": "f5d0a9",
+          "hair": "spiky",
+          "hairColor": "2c1b18",
+          "eyes": "happy",
+          "eyebrows": "neutral",
+          "mouth": "smile",
+          "beard": "longBeard",
+          "clothes": "shirt",
+          "clothesColor": "D4AF37",
+          "bg": "transparent"
+        },
+        "avatarUrl": "https://api.dicebear.com/9.x/toon-head/svg?skinColor=f5d0a9&hair=spiky&hairProbability=100&hairColor=2c1b18&eyes=happy&eyebrows=neutral&mouth=smile&beard=longBeard&beardProbability=100&clothes=shirt&clothesColor=D4AF37"
+      }
     }
   },
   "transactions": {},
@@ -750,8 +1000,12 @@
   "weeklyWinners": [],
   "adminLayout": {
     "baxt-widget": {
-      "top": 7,
-      "left": 262
+      "top": 2,
+      "left": 321
+    },
+    "friends-badge": {
+      "top": 630,
+      "left": 291
     }
   },
   "gameSettings": {}
