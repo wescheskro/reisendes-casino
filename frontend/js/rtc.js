@@ -23,6 +23,22 @@
   var _camOn = false;
   var _inited = false;
 
+  // Sichtbarer Status-Toast für Debugging
+  function showStatus(msg, color) {
+    var el = document.getElementById('rtc-status');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'rtc-status';
+      el.style.cssText = 'position:fixed;top:50px;left:50%;transform:translateX(-50%);z-index:99999;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:bold;color:#fff;pointer-events:none;transition:opacity 0.5s;';
+      document.body.appendChild(el);
+    }
+    el.style.background = color || 'rgba(0,0,0,0.8)';
+    el.style.opacity = '1';
+    el.textContent = msg;
+    clearTimeout(el._timer);
+    el._timer = setTimeout(function() { el.style.opacity = '0'; }, 4000);
+  }
+
   // ─── Init: Socket + Event-Prefix setzen ───
   function init(socket, prefix) {
     _socket = socket;
@@ -51,6 +67,7 @@
         await pc.setLocalDescription(answer);
         socket.emit(_prefix + ':answer', { to: data.from, answer: answer });
         console.log('[RTC] Answer gesendet an', data.from);
+        showStatus('✅ Sprachchat verbunden!', '#27ae60');
       } catch(e) {
         console.error('[RTC] Offer-Handling Fehler:', e);
       }
@@ -83,6 +100,7 @@
         _stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       } catch(e2) {
         console.error('[RTC] Mic/Cam Fehler:', e2);
+        showStatus('🎤 Mic blockiert: ' + (e2.name || e2), '#c0392b');
         return null;
       }
     }
@@ -90,6 +108,7 @@
       _stream.getAudioTracks().forEach(function(t) { t.enabled = _micOn; });
       _stream.getVideoTracks().forEach(function(t) { t.enabled = _camOn; });
       console.log('[RTC] Media OK: audio=' + _stream.getAudioTracks().length + ' video=' + _stream.getVideoTracks().length);
+      showStatus('🎤 Mic aktiv!', '#27ae60');
     }
     return _stream;
   }
@@ -155,7 +174,14 @@
 
     // Verbindungsstatus
     pc.onconnectionstatechange = function() {
-      if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+      if (pc.connectionState === 'connected') {
+        showStatus('✅ Sprachchat aktiv!', '#27ae60');
+      }
+      if (pc.connectionState === 'failed') {
+        showStatus('❌ Verbindung fehlgeschlagen', '#c0392b');
+        cleanup(peerId);
+      }
+      if (pc.connectionState === 'closed') {
         cleanup(peerId);
       }
     };
@@ -167,6 +193,7 @@
       }).then(function() {
         _socket.emit(_prefix + ':offer', { to: peerId, offer: pc.localDescription });
         console.log('[RTC] Offer gesendet an', peerId);
+        showStatus('📡 Verbinde mit Spieler...', '#2980b9');
       }).catch(function(e) {
         console.error('[RTC] Offer Fehler:', e);
       });
