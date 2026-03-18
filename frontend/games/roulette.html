@@ -96,6 +96,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 .bet-area{
   width:min(98vw,680px);
   margin:6px auto;flex-shrink:0;
+  padding-bottom:200px;
   background:
     repeating-linear-gradient(45deg,
       rgba(212,175,55,.07) 0px, rgba(212,175,55,.07) 1px,
@@ -212,6 +213,8 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
   pointer-events:none;
 }
 .chip-stack .stack-chip:first-child{margin-top:0}
+.stack-chip.sc10{background:radial-gradient(circle at 38% 32%,#8bc34a,#558b2f,#2e5a1c)}
+.stack-chip.sc50{background:radial-gradient(circle at 38% 32%,#ffb74d,#e65100,#7a2900)}
 .stack-chip.sc100{background:radial-gradient(circle at 38% 32%,#aaa,#666,#333)}
 .stack-chip.sc500{background:radial-gradient(circle at 38% 32%,#64b5f6,#1976d2,#0a3d8f)}
 .stack-chip.sc1k{background:radial-gradient(circle at 38% 32%,#ef5350,#c62828,#6d0000)}
@@ -301,19 +304,17 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 
 /* ═══ CONTROLS ═══ */
 .ctrl-bar{
-  width:min(98vw,680px);
-  margin:8px auto 16px;
-  display:flex;flex-direction:column;gap:8px;align-items:center;
-  background:none;
-  border-radius:0;
-  padding:8px 0 40px;
+  position:fixed;bottom:0;left:0;right:0;z-index:90;
+  display:flex;flex-direction:column;gap:4px;align-items:center;
+  background:linear-gradient(0deg,rgba(10,10,18,.95) 70%,rgba(10,10,18,.6) 95%,transparent);
+  padding:6px 0 4px;
   border:none;
 }
-.chip-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.chip-row{display:flex;gap:5px;justify-content:center;flex-wrap:nowrap}
 .chip{
-  width:52px;height:52px;border-radius:50%;
+  width:36px;height:36px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:900;cursor:pointer;
+  font-size:10px;font-weight:900;cursor:pointer;
   border:3px dashed rgba(255,255,255,.3);
   box-shadow:
     0 4px 12px rgba(0,0,0,.6),
@@ -340,23 +341,25 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
   transform:scale(1.2);
   box-shadow:0 0 20px rgba(244,208,63,.5),0 4px 12px rgba(0,0,0,.5);
 }
+.c10{background:radial-gradient(circle at 38% 35%,#8bc34a,#558b2f,#2e5a1c);color:#fff}
+.c50{background:radial-gradient(circle at 38% 35%,#ffb74d,#e65100,#7a2900);color:#fff}
 .c100{background:radial-gradient(circle at 38% 35%,#999,#555,#333);color:#eee}
 .c500{background:radial-gradient(circle at 38% 35%,#64b5f6,#1976d2,#0d47a1);border-color:rgba(100,181,246,.4)}
 .c1k{background:radial-gradient(circle at 38% 35%,#ef5350,#c62828,#7f0000);border-color:rgba(239,83,80,.4)}
 .c5k{background:radial-gradient(circle at 38% 35%,#ce93d8,#8e24aa,#4a0072);border-color:rgba(206,147,216,.4)}
 .c10k{background:radial-gradient(circle at 38% 35%,#fff176,#D4AF37,#8B6914);color:#1a1a1a;border-color:rgba(244,208,63,.5)}
 
-.btn-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.btn-row{display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:nowrap}
 .btn{
-  padding:10px 22px;border-radius:8px;font-family:inherit;font-weight:700;
-  font-size:14px;cursor:pointer;transition:.2s;border:none;
+  padding:6px 14px;border-radius:8px;font-family:inherit;font-weight:700;
+  font-size:12px;cursor:pointer;transition:.2s;border:none;
 }
 .btn:hover{transform:scale(1.05)}.btn:active{transform:scale(.95)}
 .btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
-.btn-spin{background:linear-gradient(135deg,#D4AF37,#F4D03F);color:#000;font-size:16px;padding:12px 44px;border-radius:12px;letter-spacing:1px}
+.btn-spin{background:linear-gradient(135deg,#D4AF37,#F4D03F);color:#000;font-size:14px;padding:10px 36px;border-radius:10px;letter-spacing:1px}
 .btn-clear{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#ccc}
 .btn-undo{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#ccc}
-.total-bet{font-size:28px;color:#D4AF37;font-weight:700;text-shadow:0 2px 6px rgba(0,0,0,.5)}
+.total-bet{font-size:16px;color:#D4AF37;font-weight:700;text-shadow:0 2px 6px rgba(0,0,0,.5);margin:0}
 
 /* ═══ RESULT POPUP ═══ */
 .result-popup{
@@ -650,15 +653,16 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 .my-video.active{display:block}
 .my-video video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 .mc-bar{
-  position:fixed;bottom:90px;left:8px;z-index:31;display:flex;gap:4px;
+  position:fixed;top:6px;right:60px;z-index:101;display:flex;gap:4px;
 }
 .mc-btn{
-  width:36px;height:36px;border-radius:50%;border:none;
-  background:rgba(0,0,0,.6);border:1px solid rgba(212,175,55,.2);
-  color:#F0E6D3;font-size:16px;cursor:pointer;
+  width:30px;height:30px;border-radius:50%;border:none;
+  background:rgba(0,0,0,.5);border:1px solid rgba(212,175,55,.3);
+  color:#F0E6D3;font-size:14px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
 }
-.mc-btn.active{background:rgba(212,175,55,.2);border-color:#D4AF37}
+.mc-btn.active{background:rgba(76,175,80,.3);border-color:#4CAF50}
 
 @media(max-width:500px){
   .wheel-wrapper{width:min(60vw,220px);height:min(60vw,220px)}
@@ -666,7 +670,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
   .chip{width:38px;height:38px;font-size:9px}
   .chat-box{display:none}
   .vc-slot{width:65px;height:48px}
-  .ctrl-bar{padding:8px 0 60px;margin-top:12px}
+  .ctrl-bar{padding:6px 0 4px;margin-top:0}
   .btn-spin{padding:14px 50px;font-size:18px}
 }
 
@@ -688,10 +692,10 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 
 <!-- TOP BAR -->
 <div class="top-bar">
+  <button class="back" id="lobbyBtn" onclick="location.href='/'">← Lobby</button>
   <div class="logo">🎰 Roulette</div>
   <div class="info" id="tableInfo">Verbinde...</div>
-  <button class="phys-toggle" onclick="event.stopPropagation();document.getElementById('physPanel').classList.toggle('open')" title="Kugel-Einstellungen">⚙</button>
-  <button class="back" id="lobbyBtn" onclick="location.href='/'">← Zurück</button>
+  <button class="phys-toggle" onclick="event.stopPropagation();unlockPhysPanel()" title="Kugel-Einstellungen">⚙</button>
 </div>
 
 <div class="game-layout" id="gameLayout">
@@ -719,14 +723,14 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
     <div class="bet-grid" id="betGrid"></div>
   </div>
 
+  <div class="total-bet" id="totalBet" style="text-align:center;width:100%;padding:6px 0">Einsatz: 0 ₿</div>
   <!-- CONTROLS -->
   <div class="ctrl-bar">
     <div class="chip-row" id="chipRow"></div>
-    <div class="total-bet" id="totalBet">Einsatz: 0 ₿</div>
-    <div class="btn-row">
-      <button class="btn btn-undo" onclick="undoBet()">↩</button>
-      <button class="btn btn-clear" onclick="clearBets()">✕ Löschen</button>
-      <button class="btn btn-spin" id="btnSpin" onclick="requestSpin()">🎲 DREHEN</button>
+    <div class="btn-row" style="width:100%;justify-content:center">
+      <button class="btn btn-undo" onclick="undoBet()" style="padding:10px 14px">↩</button>
+      <button class="btn btn-spin" id="btnSpin" onclick="requestSpin()" style="flex:1;max-width:240px">🎲 DREHEN</button>
+      <button class="btn btn-clear" onclick="clearBets()" style="padding:10px 14px">✕</button>
     </div>
   </div>
 </div>
@@ -1804,10 +1808,23 @@ function addDot(cell, edge, n1, n2) {
 }
 
 // ═══════════════════════════════════════
+// PHYSICS PANEL LOCK
+// ═══════════════════════════════════════
+let physUnlocked = false;
+function unlockPhysPanel() {
+  const panel = document.getElementById('physPanel');
+  if (panel.classList.contains('open')) { panel.classList.remove('open'); return; }
+  if (physUnlocked) { panel.classList.add('open'); return; }
+  const code = prompt('Code eingeben:');
+  if (code === '1986') { physUnlocked = true; panel.classList.add('open'); }
+  else if (code !== null) { alert('Falscher Code!'); }
+}
+
+// ═══════════════════════════════════════
 // CHIPS
 // ═══════════════════════════════════════
 function buildChips() {
-  const chips = [{v:100,c:'c100'},{v:500,c:'c500'},{v:1000,c:'c1k'},{v:5000,c:'c5k'},{v:10000,c:'c10k'}];
+  const chips = [{v:10,c:'c10'},{v:50,c:'c50'},{v:100,c:'c100'},{v:500,c:'c500'},{v:1000,c:'c1k'},{v:5000,c:'c5k'},{v:10000,c:'c10k'}];
   document.getElementById('chipRow').innerHTML = chips.map(c =>
     `<div class="chip ${c.c}${selectedChip===c.v?' sel':''}" onclick="selectChip(${c.v})">${c.v>=1000?(c.v/1000)+'K':c.v}</div>`
   ).join('');

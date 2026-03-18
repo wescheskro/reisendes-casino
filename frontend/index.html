@@ -17,7 +17,8 @@
        REISENDES CASINO – Landing Page (3 Games Only)
        ============================================================ */
     html, body { overflow-x: hidden; max-width: 100vw; width: 100%; }
-    .main-content, .koberei-banner, .live-embed-wrap, .games-row-wrap { max-width: 100vw; overflow-x: hidden; box-sizing: border-box; }
+    .main-content, .koberei-banner, .live-embed-wrap { max-width: 100vw; overflow-x: hidden; box-sizing: border-box; }
+    .games-row-wrap { max-width: 100vw; box-sizing: border-box; }
     .baxt-promo { max-width: 100vw; box-sizing: border-box; }
 
     /* Full-page background */
@@ -69,12 +70,13 @@
 
     .game-subtitle {
       font-family: 'Playfair Display', serif;
-      font-size: 14px;
+      font-size: 18px;
       color: #D4AF37;
-      letter-spacing: 3px;
+      letter-spacing: 4px;
       text-transform: uppercase;
-      margin-bottom: 6px;
-      opacity: .8;
+      margin-bottom: 8px;
+      opacity: 1;
+      text-shadow: 0 0 12px rgba(212,175,55,.5);
     }
 
     /* Welcome message */
@@ -183,10 +185,14 @@
     /* ============ GAMES ROW (Laufband) ============ */
     .games-row-wrap {
       width: 100%;
-      overflow: hidden;
+      overflow-x: auto;
+      overflow-y: hidden;
       margin: 0 auto 20px;
       padding: 8px 0;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }
+    .games-row-wrap::-webkit-scrollbar { display: none; }
     .games-row {
       display: flex;
       gap: 14px;
@@ -194,6 +200,7 @@
       animation: games-scroll 30s linear infinite;
     }
     .games-row:hover { animation-play-state: paused; }
+    .games-row.touching { animation-play-state: paused !important; }
     @keyframes games-scroll {
       0% { transform: translateX(0); }
       100% { transform: translateX(-50%); }
@@ -272,109 +279,6 @@
       padding: 0;
       width: 100%;
       align-self: stretch;
-    }
-
-    /* ============ DRAGGABLE + RESIZABLE EMBED WINDOWS ============ */
-    .embed-adjustable {
-      position: relative;
-      touch-action: pan-y;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .embed-adjustable.dragging {
-      z-index: 999;
-      opacity: 0.92;
-    }
-
-    /* Drag-Handle oben */
-    .embed-drag-handle {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 28px;
-      background: linear-gradient(180deg, rgba(212,175,55,0.25) 0%, transparent 100%);
-      cursor: grab;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 14px 14px 0 0;
-      transition: background 0.2s;
-    }
-    .embed-drag-handle:active { cursor: grabbing; }
-    .embed-drag-handle::after {
-      content: '';
-      width: 40px;
-      height: 4px;
-      border-radius: 2px;
-      background: rgba(212,175,55,0.5);
-    }
-    .embed-drag-handle:hover {
-      background: linear-gradient(180deg, rgba(212,175,55,0.4) 0%, transparent 100%);
-    }
-
-    /* Resize-Handle unten rechts */
-    .embed-resize-handle {
-      position: absolute;
-      bottom: 0; right: 0;
-      width: 24px; height: 24px;
-      cursor: nwse-resize;
-      z-index: 10;
-      background: transparent;
-    }
-    .embed-resize-handle::before {
-      content: '';
-      position: absolute;
-      bottom: 4px; right: 4px;
-      width: 10px; height: 10px;
-      border-right: 2px solid rgba(212,175,55,0.5);
-      border-bottom: 2px solid rgba(212,175,55,0.5);
-    }
-
-    /* Embed Control Buttons */
-    .embed-controls {
-      position: absolute;
-      top: 4px; right: 6px;
-      display: flex;
-      gap: 4px;
-      z-index: 11;
-    }
-    .embed-ctrl-btn {
-      width: 22px; height: 22px;
-      background: rgba(0,0,0,0.6);
-      border: 1px solid rgba(212,175,55,0.3);
-      border-radius: 50%;
-      color: rgba(212,175,55,0.7);
-      font-size: 11px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      transition: all 0.2s;
-      padding: 0;
-    }
-    .embed-ctrl-btn:hover {
-      background: rgba(212,175,55,0.2);
-      color: #D4AF37;
-    }
-    .embed-ctrl-btn.saved {
-      background: rgba(46,204,113,0.3);
-      border-color: rgba(46,204,113,0.5);
-      color: #2ecc71;
-    }
-    .embed-ctrl-btn.locked {
-      background: rgba(231,76,60,0.3);
-      border-color: rgba(231,76,60,0.5);
-      color: #e74c3c;
-    }
-    .embed-adjustable.locked .embed-drag-handle {
-      pointer-events: none;
-      cursor: default;
-      opacity: 0.3;
-    }
-    .embed-adjustable.locked .embed-resize-handle {
-      pointer-events: none;
-      display: none;
     }
 
     .lp-badge {
@@ -1430,12 +1334,16 @@
       box-shadow: 0 4px 16px rgba(212,175,55,.5);
     }
     .auth-btn.logout {
-      border-color: rgba(180,40,40,.4);
-      color: rgba(255,100,100,.7);
-      font-size: 11px;
-      padding: 6px 10px;
-      min-height: 36px;
+      border: none;
+      background: none;
+      color: rgba(255,100,100,.5);
+      font-size: 9px;
+      padding: 2px 4px;
+      min-height: auto;
+      line-height: 1;
+      opacity: .6;
     }
+    .auth-btn.logout:hover { opacity: 1; }
     .user-info {
       display: flex;
       align-items: center;
@@ -2392,19 +2300,12 @@
     </div>
     <div class="live-embed-wrap">
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcBar">0</b> in der Bar</div>
-      <div class="live-embed-frame embed-adjustable" id="barEmbedWrap" data-embed="bar">
-        <div class="embed-drag-handle" data-drag="barEmbedWrap"></div>
-        <div class="embed-controls">
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();toggleLockEmbed('barEmbedWrap', this)" title="Sperren">&#x1F513;</button>
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('barEmbedWrap', this)" title="Speichern">&#x1F4BE;</button>
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('barEmbedWrap')" title="Zur&uuml;cksetzen">&#x21BA;</button>
-        </div>
+      <div class="live-embed-frame" id="barEmbedWrap" data-embed="bar">
         <iframe src="/games/bar.html?embed=1" class="live-iframe" allow="camera;microphone;autoplay" loading="lazy" style="pointer-events:none;"></iframe>
         <div class="embed-click-overlay" onclick="openBar()"></div>
         <div class="slot-fullscreen-bar" onclick="openBar()">
           <div class="live-overlay-text">&#127866; Bar betreten &#127866;</div>
         </div>
-        <div class="embed-resize-handle" data-resize="barEmbedWrap"></div>
       </div>
     </div>
     <div class="wodding-row" id="barWoddings">
@@ -2438,19 +2339,12 @@
     </div>
     <div class="live-embed-wrap">
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcPoker">0</b> am Poker</div>
-      <div class="live-embed-frame embed-adjustable" id="pokerEmbedWrap" data-embed="poker">
-        <div class="embed-drag-handle" data-drag="pokerEmbedWrap"></div>
-        <div class="embed-controls">
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();toggleLockEmbed('pokerEmbedWrap', this)" title="Sperren">&#x1F513;</button>
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('pokerEmbedWrap', this)" title="Speichern">💾</button>
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('pokerEmbedWrap')" title="Zurücksetzen">↺</button>
-        </div>
+      <div class="live-embed-frame" id="pokerEmbedWrap" data-embed="poker">
         <iframe id="pokerEmbed" src="/games/poker.html?embed=1&table=embed-preview" class="live-iframe" allow="camera;microphone;autoplay" loading="lazy" style="pointer-events:none;"></iframe>
         <div class="embed-click-overlay" onclick="openPoker()"></div>
         <div class="slot-fullscreen-bar" onclick="openPoker()">
           <div class="live-overlay-text">&#9824; Vollbild &ouml;ffnen &amp; mitspielen &#9824;</div>
         </div>
-        <div class="embed-resize-handle" data-resize="pokerEmbedWrap"></div>
       </div>
     </div>
 
@@ -2487,19 +2381,12 @@
     </div>
     <div class="live-embed-wrap">
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcBJ">0</b> am Blackjack</div>
-      <div class="live-embed-frame embed-adjustable" id="bjEmbedWrap" data-embed="blackjack">
-        <div class="embed-drag-handle" data-drag="bjEmbedWrap"></div>
-        <div class="embed-controls">
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();toggleLockEmbed('bjEmbedWrap', this)" title="Sperren">&#x1F513;</button>
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('bjEmbedWrap', this)" title="Speichern">&#x1F4BE;</button>
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('bjEmbedWrap')" title="Zur&uuml;cksetzen">&#x21BA;</button>
-        </div>
+      <div class="live-embed-frame" id="bjEmbedWrap" data-embed="blackjack">
         <iframe src="/games/blackjack.html?embed=1" class="live-iframe" allow="autoplay" loading="lazy" style="pointer-events:none;"></iframe>
         <div class="embed-click-overlay" onclick="openBlackjack()"></div>
         <div class="slot-fullscreen-bar" onclick="openBlackjack()">
           <div class="live-overlay-text">🃏 Blackjack spielen 🃏</div>
         </div>
-        <div class="embed-resize-handle" data-resize="bjEmbedWrap"></div>
       </div>
     </div>
     <div class="wodding-row" id="bjWoddings">
@@ -2534,19 +2421,12 @@
     </div>
     <div class="live-embed-wrap">
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcRoulette">0</b> am Roulette</div>
-      <div class="live-embed-frame embed-adjustable" id="rlEmbedWrap" data-embed="roulette">
-        <div class="embed-drag-handle" data-drag="rlEmbedWrap"></div>
-        <div class="embed-controls">
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();toggleLockEmbed('rlEmbedWrap', this)" title="Sperren">&#x1F513;</button>
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('rlEmbedWrap', this)" title="Speichern">&#x1F4BE;</button>
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('rlEmbedWrap')" title="Zur&uuml;cksetzen">&#x21BA;</button>
-        </div>
+      <div class="live-embed-frame" id="rlEmbedWrap" data-embed="roulette">
         <iframe src="/games/roulette.html?embed=1" class="live-iframe" allow="autoplay" loading="lazy" style="pointer-events:none;width:calc(100%/0.5);height:calc(100%/0.5);transform:scale(0.5);transform-origin:top left;"></iframe>
         <div class="embed-click-overlay" onclick="openRoulette()"></div>
         <div class="slot-fullscreen-bar" onclick="openRoulette()">
           <div class="live-overlay-text">🎰 Roulette spielen 🎰</div>
         </div>
-        <div class="embed-resize-handle" data-resize="rlEmbedWrap"></div>
       </div>
     </div>
     <div class="wodding-row" id="rlWoddings">
@@ -2566,19 +2446,12 @@
     <!-- ═══════════════════════════════════════════ -->
     <div class="live-embed-wrap">
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcSlots">0</b> an den Slots</div>
-      <div class="slot-embed-frame embed-adjustable" id="slotEmbedWrap" data-embed="slot">
-        <div class="embed-drag-handle" data-drag="slotEmbedWrap"></div>
-        <div class="embed-controls">
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();toggleLockEmbed('slotEmbedWrap', this)" title="Sperren">&#x1F513;</button>
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();saveEmbed('slotEmbedWrap', this)" title="Speichern">💾</button>
-          <button class="embed-ctrl-btn" onclick="event.stopPropagation();resetEmbed('slotEmbedWrap')" title="Zurücksetzen">↺</button>
-        </div>
+      <div class="slot-embed-frame" id="slotEmbedWrap" data-embed="slot">
         <iframe src="/games/book-of-baxt.html?embed=1" class="slot-embed-iframe" allow="autoplay" style="pointer-events:none;"></iframe>
         <div class="embed-click-overlay" onclick="playGame()"></div>
         <div class="slot-fullscreen-bar" onclick="playGame()">
           <div class="live-overlay-text">&#127920; Vollbild öffnen &#127920;</div>
         </div>
-        <div class="embed-resize-handle" data-resize="slotEmbedWrap"></div>
       </div>
     </div>
 
@@ -3897,188 +3770,6 @@
     setInterval(updateOnlineCount, 5000);
 
     // =========================================================================
-    // DRAGGABLE + RESIZABLE EMBED WINDOWS
-    // =========================================================================
-    (function() {
-      const savedPositions = JSON.parse(localStorage.getItem('embedPositions') || '{}');
-
-      function applyStored(id) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const s = savedPositions[id];
-        if (s) {
-          if (s.w) { el.style.width = s.w + 'px'; el.style.maxWidth = 'none'; }
-          if (s.h) el.style.height = s.h + 'px';
-          if (s.x !== undefined && s.x !== 0) el.style.marginLeft = s.x + 'px';
-          if (s.y !== undefined && s.y !== 0) el.style.marginTop = s.y + 'px';
-        }
-      }
-
-      function savePos(id, data) {
-        savedPositions[id] = { ...savedPositions[id], ...data };
-        localStorage.setItem('embedPositions', JSON.stringify(savedPositions));
-      }
-
-      window.saveEmbed = function(id, btn) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        savedPositions[id] = {
-          w: Math.round(rect.width),
-          h: Math.round(rect.height),
-          x: parseInt(el.style.marginLeft) || 0,
-          y: parseInt(el.style.marginTop) || 0
-        };
-        localStorage.setItem('embedPositions', JSON.stringify(savedPositions));
-        if (btn) {
-          btn.classList.add('saved');
-          btn.textContent = '✓';
-          setTimeout(() => { btn.classList.remove('saved'); btn.textContent = '💾'; }, 1500);
-        }
-      };
-
-      window.resetEmbed = function(id) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.style.width = '';
-        el.style.height = '';
-        el.style.marginLeft = '';
-        el.style.marginTop = '';
-        el.style.maxWidth = '';
-        delete savedPositions[id];
-        localStorage.setItem('embedPositions', JSON.stringify(savedPositions));
-      };
-
-      // LOCK
-      const lockedEmbeds = JSON.parse(localStorage.getItem('embedLocked') || '{}');
-      window.toggleLockEmbed = function(id, btn) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const isLocked = el.classList.toggle('locked');
-        lockedEmbeds[id] = isLocked;
-        localStorage.setItem('embedLocked', JSON.stringify(lockedEmbeds));
-        if (btn) {
-          btn.classList.toggle('locked', isLocked);
-          btn.innerHTML = isLocked ? '&#x1F512;' : '&#x1F513;';
-          btn.title = isLocked ? 'Entsperren' : 'Sperren';
-        }
-      };
-      // Restore locked state on load
-      Object.entries(lockedEmbeds).forEach(([id, locked]) => {
-        if (!locked) return;
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.classList.add('locked');
-        const btn = el.querySelector('.embed-ctrl-btn[onclick*="toggleLockEmbed"]');
-        if (btn) { btn.classList.add('locked'); btn.innerHTML = '&#x1F512;'; btn.title = 'Entsperren'; }
-      });
-
-      // DRAG
-      document.querySelectorAll('.embed-drag-handle').forEach(handle => {
-        const targetId = handle.dataset.drag;
-        let startX, startY, startML, startMT, isDragging = false;
-
-        function onStart(e) {
-          const el = document.getElementById(targetId);
-          if (!el || el.classList.contains('locked')) return;
-          e.preventDefault();
-          isDragging = true;
-          el.classList.add('dragging');
-          const t = e.touches ? e.touches[0] : e;
-          startX = t.clientX;
-          startY = t.clientY;
-          startML = parseInt(el.style.marginLeft) || 0;
-          startMT = parseInt(el.style.marginTop) || 0;
-          el.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'none');
-        }
-        function onMove(e) {
-          if (!isDragging) return;
-          const el = document.getElementById(targetId);
-          const t = e.touches ? e.touches[0] : e;
-          const dx = t.clientX - startX;
-          const dy = t.clientY - startY;
-          el.style.marginLeft = (startML + dx) + 'px';
-          el.style.marginTop = (startMT + dy) + 'px';
-        }
-        function onEnd() {
-          if (!isDragging) return;
-          isDragging = false;
-          const el = document.getElementById(targetId);
-          if (!el) return;
-          el.classList.remove('dragging');
-          el.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = '');
-          savePos(targetId, {
-            x: parseInt(el.style.marginLeft) || 0,
-            y: parseInt(el.style.marginTop) || 0
-          });
-        }
-
-        handle.addEventListener('mousedown', onStart);
-        handle.addEventListener('touchstart', onStart, { passive: false });
-        document.addEventListener('mousemove', onMove);
-        document.addEventListener('touchmove', onMove, { passive: false });
-        document.addEventListener('mouseup', onEnd);
-        document.addEventListener('touchend', onEnd);
-      });
-
-      // RESIZE
-      document.querySelectorAll('.embed-resize-handle').forEach(handle => {
-        const targetId = handle.dataset.resize;
-        let startX, startY, startW, startH, isResizing = false;
-
-        function onStart(e) {
-          const el = document.getElementById(targetId);
-          if (!el || el.classList.contains('locked')) return;
-          e.preventDefault();
-          e.stopPropagation();
-          isResizing = true;
-          const t = e.touches ? e.touches[0] : e;
-          startX = t.clientX;
-          startY = t.clientY;
-          const rect = el.getBoundingClientRect();
-          startW = rect.width;
-          startH = rect.height;
-          el.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'none');
-        }
-        function onMove(e) {
-          if (!isResizing) return;
-          const el = document.getElementById(targetId);
-          const t = e.touches ? e.touches[0] : e;
-          const dx = t.clientX - startX;
-          const dy = t.clientY - startY;
-          const newW = Math.max(150, startW + dx);
-          const newH = Math.max(120, startH + dy);
-          el.style.width = newW + 'px';
-          el.style.height = newH + 'px';
-          el.style.maxWidth = 'none';
-        }
-        function onEnd() {
-          if (!isResizing) return;
-          isResizing = false;
-          const el = document.getElementById(targetId);
-          if (!el) return;
-          el.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = '');
-          const rect = el.getBoundingClientRect();
-          savePos(targetId, { w: Math.round(rect.width), h: Math.round(rect.height) });
-        }
-
-        handle.addEventListener('mousedown', onStart);
-        handle.addEventListener('touchstart', onStart, { passive: false });
-        document.addEventListener('mousemove', onMove);
-        document.addEventListener('touchmove', onMove, { passive: false });
-        document.addEventListener('mouseup', onEnd);
-        document.addEventListener('touchend', onEnd);
-      });
-
-      // Gespeicherte Positionen wiederherstellen
-      applyStored('barEmbedWrap');
-      applyStored('pokerEmbedWrap');
-      applyStored('slotEmbedWrap');
-      applyStored('bjEmbedWrap');
-      applyStored('rlEmbedWrap');
-    })();
-
-    // =========================================================================
     // EMBED AUDIO — Sound nur für große Embeds (NICHT Slots), nur wenn sichtbar
     // =========================================================================
     (() => {
@@ -4321,6 +4012,20 @@
     updateAuthUI();
     // Onboarding für neue Besucher
     setTimeout(() => checkFirstVisit(), 500);
+
+    // Games-Row: Touch pausiert Animation zum manuellen Scrollen
+    (function(){
+      const row = document.querySelector('.games-row');
+      if (!row) return;
+      let touchTimer = null;
+      row.parentElement.addEventListener('touchstart', () => {
+        row.classList.add('touching');
+        if (touchTimer) clearTimeout(touchTimer);
+      }, {passive:true});
+      row.parentElement.addEventListener('touchend', () => {
+        touchTimer = setTimeout(() => row.classList.remove('touching'), 3000);
+      }, {passive:true});
+    })();
   </script>
 
 

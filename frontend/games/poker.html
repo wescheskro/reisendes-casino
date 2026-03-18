@@ -3695,7 +3695,9 @@ function _renderBubbles() {
     const rect = el.getBoundingClientRect();
     const bubble = document.createElement('div');
     bubble.textContent = data.text;
-    bubble.style.cssText = `position:fixed;left:${rect.left + rect.width/2}px;top:${rect.top - 4}px;transform:translate(-50%,-100%);background:rgba(0,0,0,.85);color:#F0E6D3;padding:6px 12px;border-radius:10px;font-size:12px;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;border:1px solid rgba(212,175,55,.4);box-shadow:0 2px 12px rgba(0,0,0,.6);z-index:100;pointer-events:none;backdrop-filter:blur(4px);`;
+    const bx = Math.max(60, Math.min(window.innerWidth - 60, rect.left + rect.width/2));
+    const by = Math.max(50, Math.min(window.innerHeight - 80, rect.top - 4));
+    bubble.style.cssText = `position:fixed;left:${bx}px;top:${by}px;transform:translate(-50%,-100%);background:rgba(0,0,0,.85);color:#F0E6D3;padding:8px 14px;border-radius:12px;font-size:13px;white-space:normal;max-width:200px;overflow:hidden;text-overflow:ellipsis;border:1px solid rgba(212,175,55,.4);box-shadow:0 2px 12px rgba(0,0,0,.6);z-index:10000;pointer-events:none;backdrop-filter:blur(4px);`;
     overlay.appendChild(bubble);
   }
 }

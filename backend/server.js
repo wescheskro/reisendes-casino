@@ -3104,6 +3104,9 @@ io.on('connection', (socket) => {
   socket.on('bj:addBot', ({ tableId }) => {
     const table = tables.blackjack.get(tableId);
     if (!table) return;
+    // Max 3 bots
+    const botCount = Array.from(table.players.values()).filter(p => p.isBot).length;
+    if (botCount >= 3) return;
     // Find empty seat
     let freeSeat = -1;
     for (let i = 0; i < 7; i++) { if (!table.seats[i]) { freeSeat = i; break; } }

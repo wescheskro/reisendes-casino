@@ -19,6 +19,13 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
     url('/games/img/bg.jpg') center center / cover no-repeat;
   background-color:#0a0a05;
 }
+@media (orientation: portrait) {
+  .bar-bg{
+    background:
+      url('/games/img/bar-bg-portrait.png') center center / cover no-repeat;
+    background-color:#0a0a05;
+  }
+}
 .bar-bg::after{
   content:'';position:absolute;inset:0;
   background:radial-gradient(ellipse at center,rgba(0,0,0,.2) 0%,rgba(0,0,0,.6) 100%);
@@ -53,11 +60,25 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
 .seat.dragging{opacity:.8;z-index:999;transition:none}
 .seat-avatar{
   width:96px;height:96px;border-radius:50%;
-  border:3px solid rgba(212,175,55,.4);
-  background:linear-gradient(135deg,#1a1a2e,#16213e);
+  border:2px dashed rgba(212,175,55,.3);
+  background:rgba(0,0,0,.2);
   display:flex;align-items:center;justify-content:center;
   font-size:40px;overflow:hidden;
+  box-shadow:none;
+  color:rgba(212,175,55,.35);
+  transition:all .3s;
+}
+.seat-avatar:hover{
+  border-color:rgba(212,175,55,.4);
+  background:rgba(26,26,46,.4);
+  color:rgba(212,175,55,.6);
+  box-shadow:0 0 12px rgba(212,175,55,.15);
+}
+.seat-avatar.occupied,.seat-avatar.bot{
+  border:3px solid rgba(212,175,55,.4);
+  background:linear-gradient(135deg,#1a1a2e,#16213e);
   box-shadow:0 4px 16px rgba(0,0,0,.5);
+  color:#F0E6D3;
 }
 .seat-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .seat-avatar.occupied{border-color:#D4AF37;box-shadow:0 0 12px rgba(212,175,55,.3)}
@@ -68,7 +89,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
   white-space:nowrap;overflow:visible;
 }
 .seat-empty{
-  font-size:9px;color:rgba(240,230,211,.4);margin-top:4px;
+  font-size:9px;color:rgba(240,230,211,.3);margin-top:4px;
 }
 .seat-video{
   position:absolute;top:-80px;left:50%;transform:translateX(-50%);
@@ -188,7 +209,9 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
 .bar-drinks{
   position:fixed;bottom:42%;left:50%;transform:translateX(-50%);
   z-index:50;display:flex;gap:16px;align-items:flex-end;
+  cursor:grab;touch-action:none;user-select:none;
 }
+.bar-drinks.dragging{cursor:grabbing;opacity:.85}
 .bar-drink{
   cursor:grab;transition:transform .2s;
   filter:drop-shadow(0 4px 12px rgba(0,0,0,.6));
@@ -344,14 +367,8 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
 
 <!-- GETRÄNKE AUF DEM TISCH -->
 <div class="bar-drinks">
-  <div class="bar-drink" id="drink-whiskey" data-drink="whiskey">
-    <img src="/img/whiskey.png" alt="Whiskey" draggable="false" style="width:39px;height:70px">
-  </div>
-  <div class="bar-drink" id="drink-vodka" data-drink="vodka">
-    <img src="/img/vodka.jpg" alt="Vodka" draggable="false">
-  </div>
-  <div class="bar-drink" id="drink-champagner" data-drink="champagner">
-    <img src="/img/champagne.png" alt="Champagner" draggable="false">
+  <div class="bar-drink" id="drink-ice-bucket" onclick="openDrinkMenu()" style="cursor:pointer">
+    <img src="/img/ice-bucket.png" alt="Eiskübel" draggable="false" style="width:70px;height:90px">
   </div>
 </div>
 
@@ -403,14 +420,14 @@ const MAX_SEATS = 8;
 const barRoom = new URLSearchParams(location.search).get('room') || '1';
 // Positionen um den runden Tisch
 const DEFAULT_SEAT_POSITIONS = [
-  {top:'36%',left:'40%'},   // hinten mitte (am Tresen)
-  {top:'40%',left:'54%'},   // rechts hinten
-  {top:'50%',left:'58%'},   // rechts mitte
-  {top:'60%',left:'52%'},   // rechts vorne
-  {top:'64%',left:'40%'},   // vorne mitte (Eingang)
-  {top:'60%',left:'28%'},   // links vorne
-  {top:'50%',left:'22%'},   // links mitte
-  {top:'40%',left:'28%'},   // links hinten
+  {top:'54.6%',left:'48.2%'},  // oben mitte
+  {top:'53.0%',left:'80.2%'},  // rechts oben
+  {top:'73.3%',left:'96.3%'},  // rechts mitte
+  {top:'100.3%',left:'80.9%'}, // rechts unten
+  {top:'109.2%',left:'49.4%'}, // unten mitte (vorne)
+  {top:'99.4%',left:'17.3%'},  // links unten
+  {top:'74.8%',left:'3.4%'},   // links mitte
+  {top:'51.0%',left:'20.5%'},  // links oben
 ];
 // Gespeicherte Positionen laden oder Default
 let SEAT_POSITIONS = (() => {
@@ -670,6 +687,72 @@ const DRINKS = {
 };
 let selectedDrink = null;
 
+// ── Eiskübel Drag ──
+(function(){
+  const el = document.querySelector('.bar-drinks');
+  if (!el) return;
+  let dragging = false, wasDragged = false, startX, startY, origX, origY;
+  const THRESHOLD = 8;
+  // Gespeicherte Position laden
+  const saved = JSON.parse(localStorage.getItem('bar-bucket-pos') || 'null');
+  if (saved) { el.style.bottom = 'auto'; el.style.left = saved.left + 'px'; el.style.top = saved.top + 'px'; el.style.transform = 'none'; }
+  function onStart(e) {
+    dragging = false; wasDragged = false;
+    const t = e.touches ? e.touches[0] : e;
+    startX = t.clientX; startY = t.clientY;
+    const r = el.getBoundingClientRect();
+    origX = r.left; origY = r.top;
+  }
+  function onMove(e) {
+    if (wasDragged === false && !dragging) {
+      const t = e.touches ? e.touches[0] : e;
+      if (Math.abs(t.clientX - startX) < THRESHOLD && Math.abs(t.clientY - startY) < THRESHOLD) return;
+      dragging = true; wasDragged = true;
+      el.classList.add('dragging');
+    }
+    if (!dragging) return;
+    if (e.cancelable) e.preventDefault();
+    const t = e.touches ? e.touches[0] : e;
+    el.style.bottom = 'auto'; el.style.transform = 'none';
+    el.style.left = Math.max(0, origX + (t.clientX - startX)) + 'px';
+    el.style.top = Math.max(0, origY + (t.clientY - startY)) + 'px';
+  }
+  function onEnd() {
+    if (dragging) {
+      dragging = false;
+      el.classList.remove('dragging');
+      localStorage.setItem('bar-bucket-pos', JSON.stringify({ top: parseInt(el.style.top), left: parseInt(el.style.left) }));
+    }
+  }
+  el.addEventListener('mousedown', onStart);
+  el.addEventListener('touchstart', onStart, {passive:true});
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchmove', onMove, {passive:false});
+  window.addEventListener('mouseup', onEnd);
+  window.addEventListener('touchend', onEnd);
+  // Klick nur wenn nicht gedraggt
+  el.addEventListener('click', (e) => { if (wasDragged) { e.stopPropagation(); e.preventDefault(); wasDragged = false; } }, true);
+})();
+
+function openDrinkMenu() {
+  // Build drink menu HTML
+  let html = '<h3 style="color:#D4AF37;font-family:\'Playfair Display\',serif;font-size:20px;margin:0 0 16px">Getränke bestellen</h3>';
+  for (const [id, d] of Object.entries(DRINKS)) {
+    html += '<div style="display:flex;align-items:center;gap:12px;padding:10px;border:1px solid rgba(212,175,55,.3);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:.2s" onclick="selectAndBuyDrink(\'' + id + '\')" onmouseover="this.style.borderColor=\'#D4AF37\'" onmouseout="this.style.borderColor=\'rgba(212,175,55,.3)\'">';
+    html += '<img src="' + d.img + '" style="width:40px;height:60px;object-fit:contain">';
+    html += '<div style="flex:1;text-align:left"><div style="color:#F0E6D3;font-weight:700">' + d.emoji + ' ' + d.name + '</div><div style="color:rgba(240,230,211,.5);font-size:11px">' + d.msg + '</div></div>';
+    html += '<div style="color:#F4D03F;font-weight:900">' + d.price.toLocaleString('de-DE') + ' ₿</div>';
+    html += '</div>';
+  }
+  html += '<button class="champagne-cancel" onclick="closeDrinkModal()" style="margin-top:12px">Abbrechen</button>';
+  document.querySelector('.champagne-card').innerHTML = html;
+  document.getElementById('drinkModal').classList.add('active');
+}
+function selectAndBuyDrink(drinkId) {
+  selectedDrink = DRINKS[drinkId];
+  if (!selectedDrink) return;
+  buyDrink();
+}
 function openDrinkModal(drinkId) {
   selectedDrink = DRINKS[drinkId];
   if (!selectedDrink) return;

@@ -18,13 +18,17 @@ style.textContent = `
 .friends-badge {
   position: fixed; bottom: 80px; right: 12px; z-index: 100001;
   width: 44px; height: 44px; border-radius: 50%;
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
-  border: 2px solid rgba(100,200,255,0.4);
+  background: rgba(26,26,46,0.35);
+  border: 2px solid rgba(100,200,255,0.3);
   display: flex; align-items: center; justify-content: center;
   font-size: 22px; cursor: grab;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  backdrop-filter: blur(6px);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
   user-select: none;
+}
+.friends-badge:active, .friends-badge:hover {
+  background: rgba(26,26,46,0.6);
 }
 .friends-badge.dragging { cursor: grabbing; transform: scale(1.15); }
 .friends-badge:hover {
