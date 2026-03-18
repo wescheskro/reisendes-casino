@@ -205,6 +205,10 @@
       0% { transform: translateX(0); }
       100% { transform: translateX(-50%); }
     }
+    @keyframes games-scroll-dynamic {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(var(--scroll-pct, -50%)); }
+    }
     .game-card {
       flex: 0 0 240px;
       position: relative;
@@ -1633,7 +1637,26 @@
 
     @media (min-width: 768px) {
       .game-logo { font-size: 52px; }
-      .game-hero { padding-top: 60px; }
+      .game-hero { padding-top: 60px; max-width: 900px; }
+      .game-card { flex: 0 0 320px; }
+      .games-row { gap: 20px; animation-duration: 40s; }
+      .live-embed-frame { max-width: 800px; }
+      .koberei-banner, .live-embed-wrap { max-width: 900px; }
+      .welcome-box { max-width: 700px; }
+      .jackpot-banner { max-width: 700px; }
+      .baxt-info-section { max-width: 900px; }
+      .slot-embed-frame { max-width: 900px; margin: 0 auto; }
+    }
+    @media (min-width: 1200px) {
+      .game-hero { max-width: 1100px; }
+      .game-card { flex: 0 0 380px; }
+      .games-row { gap: 24px; animation-duration: 50s; }
+      .live-embed-frame { max-width: 960px; }
+      .koberei-banner, .live-embed-wrap { max-width: 1100px; }
+      .welcome-box { max-width: 800px; }
+      .jackpot-banner { max-width: 800px; }
+      .baxt-info-section { max-width: 1100px; }
+      .slot-embed-frame { max-width: 1100px; }
     }
 
     /* ============ GLOBAL JACKPOT TICKER ============ */
@@ -4454,6 +4477,33 @@
         document.body.appendChild(overlay);
       }
     });
+
+    // Games-Row: Nahtlose Endlos-Schleife sicherstellen
+    (function(){
+      const row = document.getElementById('gamesRow');
+      if (!row) return;
+      const cards = row.querySelectorAll('.game-card');
+      const origCount = cards.length / 2; // Hälfte sind schon HTML-Duplikate
+      // Genug Karten klonen damit die Gesamtbreite > 2x Viewport ist
+      const cardWidth = cards[0] ? cards[0].offsetWidth : 240;
+      const gap = 14;
+      const totalOrigWidth = origCount * (cardWidth + gap);
+      const needed = Math.ceil((window.innerWidth * 2) / totalOrigWidth);
+      // Mindestens 1 Extra-Set klonen wenn nötig
+      if (needed > 2) {
+        for (let set = 0; set < needed - 2; set++) {
+          for (let i = 0; i < origCount; i++) {
+            row.appendChild(cards[i].cloneNode(true));
+          }
+        }
+      }
+      // Animation-Prozent: scrolle genau 1 Original-Set (= 1/Anzahl-Sets)
+      const totalSets = Math.max(needed, 2);
+      const pct = (100 / totalSets).toFixed(2);
+      row.style.setProperty('--scroll-pct', '-' + pct + '%');
+      const duration = Math.max(30, totalSets * 15);
+      row.style.animation = 'games-scroll-dynamic ' + duration + 's linear infinite';
+    })();
 
     // Games-Row: Touch pausiert Animation zum manuellen Scrollen
     (function(){
