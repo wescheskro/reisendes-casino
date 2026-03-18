@@ -786,8 +786,8 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 <div class="my-video" id="myVideo"><video id="localVideo" autoplay playsinline muted></video></div>
 <button class="settings-fab" id="settingsFab" onclick="toggleSettingsMenu()">⚙</button>
 <div class="settings-menu" id="settingsMenu">
-  <button class="settings-menu-btn" id="btnMic" onclick="RTC.toggleMic(); this.classList.toggle('active', RTC.micOn)" title="Mikrofon">🎤</button>
-  <button class="settings-menu-btn" id="btnCam" onclick="RTC.toggleCam(); this.classList.toggle('active', RTC.camOn)" title="Kamera">📷</button>
+  <button class="settings-menu-btn" id="btnMic" onclick="toggleGameMic(this)" title="Mikrofon">🎤</button>
+  <button class="settings-menu-btn" id="btnCam" onclick="toggleGameCam(this)" title="Kamera">📷</button>
   <button class="settings-menu-btn" id="btnMute" onclick="toggleMute()" title="Ton an/aus">🔊</button>
   <input type="range" id="volumeSlider" min="0" max="100" value="100" oninput="setVolume(this.value)" style="width:40px;writing-mode:vertical-lr;direction:rtl;height:80px;accent-color:#D4AF37;cursor:pointer">
 </div>
@@ -946,6 +946,15 @@ const isEmbed = location.search.includes('embed=1');
 let socket = null;
 let selectedChip = 500;
 let myBets = [];
+
+async function toggleGameMic(btn) {
+  if (!RTC.stream) await RTC.start(socket, 'rl-' + tableId);
+  if (RTC.stream) { RTC.toggleMic(); btn.classList.toggle('active', RTC.micOn); }
+}
+async function toggleGameCam(btn) {
+  if (!RTC.stream) await RTC.start(socket, 'rl-' + tableId);
+  if (RTC.stream) { RTC.toggleCam(); btn.classList.toggle('active', RTC.camOn); }
+}
 
 // ── BAXT COINS HELPER ──
 // Wer hat den Einsatz abgezogen? 'socket' = Server hat schon, 'none' = noch niemand
@@ -2712,6 +2721,7 @@ function initSocket() {
     // Voice Chat: RTC initialisieren + Auto-Join bei erstem Klick
     RTC.init(socket, 'rl-' + tableId);
     if (!isEmbed) {
+      RTC.start(socket, 'rl-' + tableId).catch(()=>{});
       document.addEventListener('click', async function rlAutoMic() {
         if (RTC.stream) { document.removeEventListener('click', rlAutoMic); return; }
         await RTC.start(socket, 'rl-' + tableId);
