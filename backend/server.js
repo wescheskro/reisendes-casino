@@ -1955,19 +1955,22 @@ app.get('/api/shop/history', authMiddleware, (req, res) => {
 });
 
 // ── Roulette Ergebnis abrechnen ──
+// bet=0 wenn Socket schon abgezogen hat, bet>0 wenn Bot-Auto-Spin
 app.post('/api/baxt/roulette-result', authMiddleware, (req, res) => {
   const { bet, winnings } = req.body;
-  if (typeof bet !== 'number' || typeof winnings !== 'number') {
+  if (typeof winnings !== 'number') {
     return res.status(400).json({ error: 'Ungültige Daten' });
   }
   const user = db.users.get(req.user.id);
   if (!user) return res.status(404).json({ error: 'User nicht gefunden' });
 
-  // Einsatz abziehen, Gewinn gutschreiben
-  const net = winnings - bet;
-  user.baxtCoins = Math.max(0, (user.baxtCoins || 0) + net);
-  dbDirty = true;
-  saveDB();
+  const betAmount = (typeof bet === 'number' && bet > 0) ? bet : 0;
+  const net = winnings - betAmount;
+  if (net !== 0) {
+    user.baxtCoins = Math.max(0, (user.baxtCoins || 0) + net);
+    dbDirty = true;
+    saveDB();
+  }
   res.json({ baxtCoins: user.baxtCoins, net });
 });
 
