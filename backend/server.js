@@ -2233,7 +2233,7 @@ function createBJTable(id) {
     id, players: new Map(), seats: [null,null,null,null,null,null,null],
     deck: createDeck(), dealer: { cards: [], value: 0 },
     phase: 'waiting', // waiting, betting, playing, dealer, payout
-    currentSeat: -1, minBet: 100, maxBet: 50000,
+    currentSeat: -1, minBet: 50, maxBet: 50000,
     timer: null
   };
 }
