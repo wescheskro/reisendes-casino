@@ -1766,6 +1766,16 @@
       -webkit-tap-highlight-color: transparent;
     }
     .scroll-hint.hidden { opacity: 0; pointer-events: none; }
+    .scroll-hint.scroll-up {
+      bottom: auto; top: 60px;
+      opacity: 0; pointer-events: none;
+    }
+    .scroll-hint.scroll-up.visible { opacity: 1; pointer-events: auto; }
+    .scroll-hint.scroll-up img { animation-name: scrollBounceUp; }
+    @keyframes scrollBounceUp {
+      0%, 100% { transform: rotate(180deg) translateY(0); opacity: 0.6; }
+      50% { transform: rotate(180deg) translateY(10px); opacity: 1; }
+    }
     .scroll-hint img {
       width: 70px; height: auto;
       animation: scrollBounce 1.8s ease-in-out infinite;
@@ -4823,45 +4833,40 @@
 <script src="/js/friends.js"></script>
 <script src="/js/jukebox.js"></script>
 
-<!-- Scroll-Pfeil (runter/hoch je nach Position) -->
-<div class="scroll-hint" id="scrollHint" onclick="scrollArrowClick()">
-  <img id="scrollArrowImg" src="/img/scroll-arrow.png" alt="Scrollen">
+<!-- Scroll-Runter Pfeil (fixed unten) -->
+<div class="scroll-hint" id="scrollHintDown" onclick="window.scrollBy({top:window.innerHeight,behavior:'smooth'})">
+  <img src="/img/scroll-arrow.png" alt="Runterscrollen">
+</div>
+<!-- Scroll-Hoch Pfeil (fixed oben, erscheint beim Runterscrollen) -->
+<div class="scroll-hint scroll-up" id="scrollHintUp" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <img src="/img/scroll-arrow.png" alt="Nach oben" style="transform:rotate(180deg)">
 </div>
 <script>
 (function(){
-  var hint = document.getElementById('scrollHint');
-  var img = document.getElementById('scrollArrowImg');
-  if (!hint || !img) return;
-  var isUp = false;
+  var down = document.getElementById('scrollHintDown');
+  var up = document.getElementById('scrollHintUp');
+  if (!down || !up) return;
 
   function checkScroll() {
     var gameOpen = document.getElementById('gameOverlay');
-    if (gameOpen && gameOpen.style.display === 'block') {
-      hint.classList.add('hidden');
-      return;
-    }
-    hint.classList.remove('hidden');
-
+    var isGame = gameOpen && gameOpen.style.display === 'block';
     var scrollBottom = window.scrollY + window.innerHeight;
     var docHeight = document.documentElement.scrollHeight;
-    var pastHalf = window.scrollY > docHeight * 0.4;
 
-    if (pastHalf && !isUp) {
-      isUp = true;
-      img.style.transform = 'rotate(180deg)';
-    } else if (!pastHalf && isUp) {
-      isUp = false;
-      img.style.transform = 'rotate(0deg)';
+    // Runter-Pfeil: sichtbar wenn oben, versteckt wenn unten oder im Spiel
+    if (scrollBottom >= docHeight - 200 || isGame) {
+      down.classList.add('hidden');
+    } else {
+      down.classList.remove('hidden');
+    }
+
+    // Hoch-Pfeil: sichtbar wenn runtergescrollt (>300px), versteckt wenn oben oder im Spiel
+    if (window.scrollY > 300 && !isGame) {
+      up.classList.add('visible');
+    } else {
+      up.classList.remove('visible');
     }
   }
-
-  window.scrollArrowClick = function() {
-    if (isUp) {
-      window.scrollTo({top: 0, behavior: 'smooth'});
-    } else {
-      window.scrollBy({top: window.innerHeight, behavior: 'smooth'});
-    }
-  };
 
   window.addEventListener('scroll', checkScroll, {passive: true});
   checkScroll();
