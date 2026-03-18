@@ -390,19 +390,24 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 /* ═══ PLAYERS ═══ */
 .players-strip{
   position:relative;
-  margin:4px auto;max-width:min(96vw,600px);
-  min-height:40px;
-  display:flex;gap:4px;justify-content:center;flex-wrap:wrap;
+  margin:6px auto;max-width:min(98vw,720px);
+  min-height:50px;
+  display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+  padding:4px 8px;
 }
 .p-chip{
-  display:flex;align-items:center;gap:5px;
-  background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.15);
-  padding:4px 12px;border-radius:20px;font-size:13px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.18);
+  padding:6px 10px 5px;border-radius:14px;font-size:11px;
   cursor:grab;user-select:none;
+  color:rgba(240,230,211,.8);
+  transition:transform .2s,box-shadow .2s;
+  min-width:60px;
 }
+.p-chip:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(212,175,55,.2)}
 .p-chip.dragging{cursor:grabbing;opacity:0.8;z-index:200;position:fixed;}
 .p-chip .dot{width:6px;height:6px;border-radius:50%;background:#4caf50}
-.p-chip .avatar{width:48px;height:48px;border-radius:50%;border:2px solid rgba(212,175,55,.4);flex-shrink:0;animation:av-bob 3s ease-in-out infinite;box-shadow:0 2px 8px rgba(0,0,0,.4),0 0 6px rgba(212,175,55,.15)}
+.p-chip .avatar{width:44px;height:44px;border-radius:50%;border:2px solid rgba(212,175,55,.4);flex-shrink:0;animation:av-bob 3s ease-in-out infinite;box-shadow:0 2px 8px rgba(0,0,0,.4),0 0 6px rgba(212,175,55,.15)}
 @keyframes av-bob{
   0%{transform:translateY(0) rotate(0) scale(1)}
   15%{transform:translateY(-3px) rotate(3deg) scale(1.05)}
@@ -425,7 +430,12 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
   30%{transform:translateY(-4px) scale(1.08)}
   60%{transform:translateY(1px) scale(.95)}
 }
-.p-chip.you{border-color:#D4AF37;color:#D4AF37}
+.p-chip.you{border-color:#D4AF37;color:#D4AF37;background:rgba(212,175,55,.12)}
+@media(max-width:480px){
+  .players-strip{gap:6px;padding:2px 4px}
+  .p-chip{padding:4px 8px 4px;min-width:52px;font-size:10px}
+  .p-chip .avatar{width:36px;height:36px}
+}
 
 /* Bot Chips auf dem Tisch */
 .bot-bet-chip{
@@ -726,7 +736,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 <div class="game-layout" id="gameLayout">
 
   <!-- PLAYERS -->
-  <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;max-width:min(96vw,640px);margin:4px auto">
+  <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;max-width:min(96vw,640px);margin:4px auto;position:fixed;top:44px;left:0;right:0;z-index:50;padding:4px 8px;background:linear-gradient(180deg,rgba(10,10,18,.95),transparent)">
     <div class="players-strip" id="playersBar" style="margin:0"></div>
     <label class="bot-toggle" id="botToggleWrap">
       <input type="checkbox" id="botToggle" checked onchange="toggleBots(this.checked)">
@@ -2837,15 +2847,16 @@ function toggleBots(on) {
 
 function renderBotPlayers() {
   const bar = document.getElementById('playersBar');
-  let html = `<div class="p-chip you"><span class="dot"></span>${username} (Du)</div>`;
+  let html = `<div class="p-chip you" data-name="${username}"><img class="avatar" src="${diceBearUrl(username)}" alt="${username}">${username} (Du)</div>`;
   if (botsEnabled) {
     bots.forEach((b, i) => {
-      html += `<div class="p-chip"><img class="avatar" style="animation-delay:${(i*0.7)%3}s" src="${botAvatar(b.name)}" alt="${b.name}">${b.name}</div>`;
+      html += `<div class="p-chip" data-name="${b.name}"><img class="avatar" style="animation-delay:${(i*0.7)%3}s" src="${botAvatar(b.name)}" alt="${b.name}">${b.name}</div>`;
     });
   }
   bar.innerHTML = html;
   const total = (botsEnabled ? bots.length : 0) + 1;
   document.getElementById('tableInfo').textContent = `Tisch ${tableId} · ${total} Spieler`;
+  initDraggableChips();
 }
 
 function botsPlaceBets() {
@@ -2957,7 +2968,7 @@ function startBotAutoPlay() {
     const chatter = bots[Math.floor(Math.random() * bots.length)];
     const msgs = ['Ich setze auf Rot!','Schwarz muss kommen!','Die 17 ist meine Glückszahl!','Alles auf Gerade!','Heute ist mein Tag!','Rien ne va plus!'];
     addChat('🎰', `${chatter.name}: "${msgs[Math.floor(Math.random() * msgs.length)]}"`);
-    // Nach 3s drehen (wenn Spieler nicht selbst dreht)
+    // Nach 3s drehen
     setTimeout(() => {
       if (spinning) return;
       const number = WHEEL_NUMS[Math.floor(Math.random() * WHEEL_NUMS.length)];
@@ -2973,7 +2984,7 @@ function startBotAutoPlay() {
         btn.textContent = '🎲 DREHEN';
       });
     }, 3000);
-  }, 8000 + Math.random() * 7000); // alle 8-15s
+  }, 10000 + Math.random() * 8000); // alle 10-18s
 }
 
 // ═══════════════════════════════════════
@@ -2983,7 +2994,7 @@ buildTable();
 addSplitDots();
 buildChips();
 if (!isEmbed) {
-  initSocket();
+  try { initSocket(); } catch(e) { console.warn('Socket init failed:', e); }
 }
 initBots();
 startBotAutoPlay();
