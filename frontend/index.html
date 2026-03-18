@@ -2874,7 +2874,7 @@
         <p>Sammle <strong>Baxt Coins</strong> &mdash; deine digitale Währung im Reisendes Casino.
         Spiele, gewinne und steige auf. Je mehr du spielst, desto mehr verdienst du!</p>
       </div>
-      <button class="welcome-tts-btn" onclick="speakText(document.getElementById('baxtPromo').textContent.replace(/[🎰🎁🏆⬆️✨📋🔒📜❓]/g,'').substring(0,500), this)" style="margin:0 auto 12px;display:block;font-size:12px;padding:6px 14px">&#x1F50A; Vorlesen</button>
+      <button class="welcome-tts-btn" onclick="speakText([...document.querySelectorAll('#baxtPromo .baxt-promo-title, #baxtPromo .baxt-promo-subtitle, #baxtPromoText p, #baxtPromo .baxt-feature-card h3, #baxtPromo .baxt-feature-card p')].map(e=>e.textContent).join('. '), this)" style="margin:0 auto 12px;display:block;font-size:12px;padding:6px 14px">&#x1F50A; Vorlesen</button>
 
       <div class="baxt-features">
         <div class="baxt-feature-card" onclick="speakText(this.textContent)">
