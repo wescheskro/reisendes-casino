@@ -921,6 +921,15 @@ function startTimer(duration) {
 let prevState = null;
 
 function renderState(state) {
+  // Karten-Sound: prüfe ob sich Kartenanzahl geändert hat
+  var prevCardCount = 0, newCardCount = 0;
+  if (prevState) {
+    prevCardCount = (prevState.dealer.cards || []).length;
+    (prevState.seats || []).forEach(function(s) { if (s) prevCardCount += (s.cards || []).length; });
+  }
+  newCardCount = (state.dealer.cards || []).length;
+  (state.seats || []).forEach(function(s) { if (s) newCardCount += (s.cards || []).length; });
+  var hasNewCards = newCardCount > prevCardCount;
   const isNewCards = !prevState || prevState.phase !== state.phase;
   prevState = JSON.parse(JSON.stringify(state));
   myState = state;
@@ -1036,8 +1045,8 @@ function renderState(state) {
   // Controls
   renderControls(state);
 
-  // Sound effects
-  if (isNewCards && state.phase === 'playing') BJSFX.cardDeal();
+  // Sound effects — Karten-Sound bei jeder neuen Karte
+  if (hasNewCards) BJSFX.cardDeal();
 
   // Players bar disabled - seats show everything
 }
@@ -1374,7 +1383,7 @@ function placeBet() {
 }
 
 function doHit() {
-  BJSFX.cardHit();
+  BJSFX.cardDeal();
   socket.emit('bj:hit');
 }
 
