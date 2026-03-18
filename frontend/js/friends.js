@@ -1000,6 +1000,7 @@ if (getToken()) {
 
 // ─── GLOBAL API ───
 window._friends = {
+  open: togglePanel,
   close: closePanel,
   tab: setTab,
   search: onSearch,

@@ -4694,8 +4694,7 @@
           if (window._baxt) window._baxt.togglePanel();
           break;
         case 'freunde':
-          var fb = document.querySelector('.friends-badge');
-          if (fb) { fb.style.display = 'flex'; fb.click(); }
+          if (window._friends) window._friends.open();
           break;
         case 'admin': openAdminPanel(); break;
         case 'hilfe':
