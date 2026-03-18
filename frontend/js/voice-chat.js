@@ -11,7 +11,9 @@
   let camOn = false;
   let peerConnections = {};
   let localVideoEl = null;
-  let _socket = null; // gespeicherter Socket für vc:user-joined
+  let _socket = null;
+  let _signalingAttached = false; // Guard gegen doppelte Listener
+  let _joined = false; // Ob wir schon im VC-Room sind
 
   // ─── Media ───
   async function ensureMedia(wantVideo) {
@@ -25,7 +27,7 @@
       try {
         myStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       } catch(e2) {
-        console.error('Mikrofon/Kamera Fehler:', e2);
+        console.error('[VC] Mikrofon/Kamera Fehler:', e2);
         return null;
       }
     }
@@ -34,6 +36,7 @@
       myStream.getVideoTracks().forEach(t => { t.enabled = false; }); // Cam default aus
       micOn = true;
       camOn = false;
+      console.log('[VC] Media erhalten: audio=' + myStream.getAudioTracks().length + ' video=' + myStream.getVideoTracks().length);
     }
     return myStream;
   }
@@ -47,11 +50,26 @@
     camOn = false;
     Object.values(peerConnections).forEach(pc => pc.close());
     peerConnections = {};
+    if (_socket && _joined) {
+      _socket.emit('vc:leave');
+      _joined = false;
+    }
   }
 
   // ─── WebRTC ───
   function createPeerConnection(socket, peerId, isInitiator) {
-    if (peerConnections[peerId]) return peerConnections[peerId];
+    // Bei Glare: wenn bereits eine PC existiert UND wir Initiator sind,
+    // die alte schliessen und neu aufbauen
+    if (peerConnections[peerId]) {
+      if (isInitiator) {
+        // PC existiert schon - nicht nochmal initiieren
+        return peerConnections[peerId];
+      }
+      // Non-initiator: alte PC schliessen, neu aufbauen (wir antworten auf ein Offer)
+      peerConnections[peerId].close();
+      delete peerConnections[peerId];
+    }
+
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
     });
@@ -63,17 +81,21 @@
 
     pc.ontrack = function(e) {
       // Remote Audio/Video abspielen
-      let el = document.getElementById('vc-remote-' + peerId);
+      // Für jeden Track-Typ ein eigenes Element
+      const kind = e.track.kind; // 'audio' oder 'video'
+      const elId = 'vc-remote-' + kind + '-' + peerId;
+      let el = document.getElementById(elId);
       if (!el) {
-        el = document.createElement(e.track.kind === 'video' ? 'video' : 'audio');
-        el.id = 'vc-remote-' + peerId;
+        el = document.createElement(kind === 'video' ? 'video' : 'audio');
+        el.id = elId;
         el.autoplay = true;
         el.playsInline = true;
-        if (e.track.kind === 'audio') el.style.display = 'none';
-        if (e.track.kind === 'video') {
+        if (kind === 'audio') {
+          el.style.display = 'none';
+        }
+        if (kind === 'video') {
           el.style.cssText = 'position:fixed;bottom:80px;right:10px;width:120px;height:90px;border-radius:10px;border:2px solid #d4af37;z-index:95;object-fit:cover;background:#000;cursor:pointer;';
           el.onclick = function() {
-            // Toggle groß/klein
             if (el.style.width === '120px') {
               el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:80vw;height:60vh;border-radius:12px;border:3px solid #d4af37;z-index:9999;object-fit:contain;background:#000;cursor:pointer;';
             } else {
@@ -92,14 +114,41 @@
       }
     };
 
+    pc.onconnectionstatechange = function() {
+      console.log('[VC] PC ' + peerId + ' state: ' + pc.connectionState);
+      if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+        cleanupPeer(peerId);
+      }
+    };
+
     if (isInitiator) {
       pc.createOffer().then(function(offer) {
-        pc.setLocalDescription(offer);
-        socket.emit('vc:offer', { to: peerId, offer: offer });
+        return pc.setLocalDescription(offer);
+      }).then(function() {
+        socket.emit('vc:offer', { to: peerId, offer: pc.localDescription });
+        console.log('[VC] Offer gesendet an ' + peerId);
+      }).catch(function(err) {
+        console.error('[VC] Offer Fehler:', err);
       });
     }
 
     return pc;
+  }
+
+  function cleanupPeer(peerId) {
+    const pc = peerConnections[peerId];
+    if (pc) {
+      pc.close();
+      delete peerConnections[peerId];
+    }
+    // Alle Remote-Elemente dieses Peers entfernen
+    var audioEl = document.getElementById('vc-remote-audio-' + peerId);
+    if (audioEl) audioEl.remove();
+    var videoEl = document.getElementById('vc-remote-video-' + peerId);
+    if (videoEl) videoEl.remove();
+    // Legacy Element-ID auch bereinigen
+    var legacyEl = document.getElementById('vc-remote-' + peerId);
+    if (legacyEl) legacyEl.remove();
   }
 
   function setupPeers(socket, players, myId) {
@@ -113,8 +162,23 @@
   function attachSignaling(socket) {
     _socket = socket;
 
+    // Bei Reconnect: alte Peer-Connections bereinigen, VC-Status zurücksetzen
+    if (_joined) {
+      Object.keys(peerConnections).forEach(function(pid) {
+        cleanupPeer(pid);
+      });
+      _joined = false;
+    }
+
+    // Guard: nur einmal Listener registrieren
+    if (_signalingAttached) return;
+    _signalingAttached = true;
+
     // Liste aller bereits anwesenden Peers erhalten → Peer-Connections aufbauen
+    // NUR der Joiner (der vc:join gesendet hat) bekommt vc:peers
+    // → Er ist Initiator für alle bestehenden Peers
     socket.on('vc:peers', function(peers) {
+      console.log('[VC] vc:peers erhalten:', peers ? peers.length : 0);
       if (myStream && peers && peers.length > 0) {
         peers.forEach(function(p) {
           createPeerConnection(socket, p.id, true);
@@ -122,42 +186,66 @@
       }
     });
 
-    // Neuer User joined → Peer-Connection aufbauen
+    // Neuer User joined → NICHT initiieren!
+    // Der neue User bekommt vc:peers und wird selbst Offers senden.
+    // Wir warten einfach auf sein vc:offer.
     socket.on('vc:user-joined', function(data) {
-      if (myStream && data.userId) {
-        createPeerConnection(socket, data.userId, true);
-      }
+      console.log('[VC] User joined VC:', data.userId);
+      // Nichts tun - wir warten auf sein Offer
     });
 
     socket.on('vc:offer', async function(data) {
+      console.log('[VC] Offer erhalten von ' + data.from);
+      // Media holen falls noch nicht vorhanden (der User hat VC noch nicht gestartet)
+      if (!myStream) {
+        await ensureMedia(false);
+      }
+      if (!myStream) {
+        console.warn('[VC] Kein Media - kann Offer nicht beantworten');
+        return;
+      }
+      // PC als Non-Initiator erstellen (ersetzt ggf. vorhandene PC)
       createPeerConnection(socket, data.from, false);
       const pc = peerConnections[data.from];
       if (pc) {
-        await pc.setRemoteDescription(data.offer);
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        socket.emit('vc:answer', { to: data.from, answer: answer });
+        try {
+          await pc.setRemoteDescription(data.offer);
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          socket.emit('vc:answer', { to: data.from, answer: answer });
+          console.log('[VC] Answer gesendet an ' + data.from);
+        } catch(err) {
+          console.error('[VC] Offer-Handling Fehler:', err);
+        }
       }
     });
 
     socket.on('vc:answer', async function(data) {
+      console.log('[VC] Answer erhalten von ' + data.from);
       const pc = peerConnections[data.from];
-      if (pc) await pc.setRemoteDescription(data.answer);
+      if (pc) {
+        try {
+          await pc.setRemoteDescription(data.answer);
+        } catch(err) {
+          console.error('[VC] Answer-Handling Fehler:', err);
+        }
+      }
     });
 
     socket.on('vc:ice', async function(data) {
       const pc = peerConnections[data.from];
-      if (pc) await pc.addIceCandidate(data.candidate);
+      if (pc) {
+        try {
+          await pc.addIceCandidate(data.candidate);
+        } catch(err) {
+          // ICE candidates können vor setRemoteDescription ankommen - ignorieren
+        }
+      }
     });
 
     socket.on('vc:user-left', function(data) {
-      const pc = peerConnections[data.userId];
-      if (pc) {
-        pc.close();
-        delete peerConnections[data.userId];
-      }
-      const el = document.getElementById('vc-remote-' + data.userId);
-      if (el) el.remove();
+      console.log('[VC] User left VC:', data.userId);
+      cleanupPeer(data.userId);
     });
   }
 
@@ -179,12 +267,18 @@
   // ─── Auto-Mic bei erstem Klick ───
   // room = eindeutiger Raum-Name (z.B. "rl-tisch-1", "bj-tisch-1")
   async function autoStart(socket, room, myId) {
+    if (_joined) return; // Schon beigetreten
     if (!socket && _socket) socket = _socket;
     if (!socket) return;
     _socket = socket;
+    console.log('[VC] autoStart für Room:', room);
     const stream = await ensureMedia(false); // nur Audio
-    if (!stream) return;
+    if (!stream) {
+      console.warn('[VC] Kein Media - autoStart abgebrochen');
+      return;
+    }
     // vc:join mit Room-Name → Server sendet vc:peers zurück
+    _joined = true;
     socket.emit('vc:join', { room: room || 'default' });
   }
 

@@ -3998,8 +3998,7 @@ io.on('connection', (socket) => {
 
   // Bar: Platz freigeben bei Disconnect
   socket.on('disconnect', () => {
-    // VC: allen mitteilen dass User weg ist
-    socket.broadcast.emit('vc:user-left', { userId: socket.id });
+    // VC cleanup wird jetzt im Haupt-Disconnect-Handler erledigt
     const room = socket.barRoom;
     if (room && global.barRooms[room]) {
       global.barRooms[room].forEach((seat, i) => {
@@ -4177,6 +4176,11 @@ io.on('connection', (socket) => {
     // WebRTC cleanup
     if (socket._rtcRoom) {
       socket.to('rtc-' + socket._rtcRoom).emit('rtc:peerLeft', { peerId: socket.id });
+    }
+
+    // VC cleanup
+    if (socket._vcRoom) {
+      socket.to(socket._vcRoom).emit('vc:user-left', { userId: socket.id });
     }
 
     // Clean up BJ tables
