@@ -473,24 +473,60 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
 const MAX_SEATS = 8;
 const barRoom = new URLSearchParams(location.search).get('room') || '1';
 // Positionen um den runden Tisch
-const DEFAULT_SEAT_POSITIONS = [
+// Mobile (Hochformat): Oval um den runden Tisch
+const MOBILE_SEAT_POSITIONS = [
   {top:'54.6%',left:'48.2%'},  // oben mitte
   {top:'53.0%',left:'80.2%'},  // rechts oben
   {top:'73.3%',left:'96.3%'},  // rechts mitte
   {top:'100.3%',left:'80.9%'}, // rechts unten
-  {top:'109.2%',left:'49.4%'}, // unten mitte (vorne)
+  {top:'109.2%',left:'49.4%'}, // unten mitte
   {top:'99.4%',left:'17.3%'},  // links unten
   {top:'74.8%',left:'3.4%'},   // links mitte
   {top:'51.0%',left:'20.5%'},  // links oben
 ];
+// Desktop (Querformat): Oval um den Tisch im breiten Bild
+const DESKTOP_SEAT_POSITIONS = [
+  {top:'28%',left:'50%'},   // oben mitte (hinter dem Tisch)
+  {top:'35%',left:'68%'},   // rechts oben
+  {top:'55%',left:'76%'},   // rechts mitte
+  {top:'72%',left:'68%'},   // rechts unten
+  {top:'80%',left:'50%'},   // unten mitte (vorne)
+  {top:'72%',left:'32%'},   // links unten
+  {top:'55%',left:'24%'},   // links mitte
+  {top:'35%',left:'32%'},   // links oben
+];
+
+function getDefaultPositions() {
+  return window.innerWidth > window.innerHeight ? DESKTOP_SEAT_POSITIONS : MOBILE_SEAT_POSITIONS;
+}
+
+let DEFAULT_SEAT_POSITIONS = getDefaultPositions();
+
 // Gespeicherte Positionen laden oder Default
 let SEAT_POSITIONS = (() => {
   try {
-    const saved = JSON.parse(localStorage.getItem('bar_seat_positions'));
+    var key = window.innerWidth > window.innerHeight ? 'bar_seat_positions_desktop' : 'bar_seat_positions';
+    var saved = JSON.parse(localStorage.getItem(key));
     if (saved && saved.length === 8) return saved;
   } catch(e) {}
-  return DEFAULT_SEAT_POSITIONS.map(p => ({...p}));
+  return getDefaultPositions().map(p => ({...p}));
 })();
+
+// Bei Resize: Positionen neu laden
+window.addEventListener('resize', function() {
+  var wasLandscape = DEFAULT_SEAT_POSITIONS === DESKTOP_SEAT_POSITIONS;
+  var isLandscape = window.innerWidth > window.innerHeight;
+  if (wasLandscape !== isLandscape) {
+    DEFAULT_SEAT_POSITIONS = getDefaultPositions();
+    var key = isLandscape ? 'bar_seat_positions_desktop' : 'bar_seat_positions';
+    try {
+      var saved = JSON.parse(localStorage.getItem(key));
+      if (saved && saved.length === 8) { SEAT_POSITIONS = saved; }
+      else { SEAT_POSITIONS = getDefaultPositions().map(p => ({...p})); }
+    } catch(e) { SEAT_POSITIONS = getDefaultPositions().map(p => ({...p})); }
+    renderSeats();
+  }
+});
 
 let socket = null;
 let mySeatIdx = -1;
@@ -591,7 +627,8 @@ function addSeatDrag(el, idx) {
     el._dragMoved = moved;
     if (dragging && moved) {
       el.classList.remove('dragging');
-      localStorage.setItem('bar_seat_positions', JSON.stringify(SEAT_POSITIONS));
+      var posKey = window.innerWidth > window.innerHeight ? 'bar_seat_positions_desktop' : 'bar_seat_positions';
+      localStorage.setItem(posKey, JSON.stringify(SEAT_POSITIONS));
     }
     dragging = false;
     setTimeout(() => { el._dragMoved = false; }, 50);
