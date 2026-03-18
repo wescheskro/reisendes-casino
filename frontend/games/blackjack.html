@@ -1511,6 +1511,10 @@ socket.on('connect', () => {
 });
 
 socket.on('bj:state', renderState);
+socket.on('baxt:update', function(d) {
+  if (window._baxt) window._baxt.refresh();
+  try { if (window.top && window.top._baxt) window.top._baxt.refresh(); } catch(e) {}
+});
 
 socket.on('bj:playerJoined', d => {
   if (window.playDoorSound) window.playDoorSound();

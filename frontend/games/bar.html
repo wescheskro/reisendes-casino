@@ -754,12 +754,9 @@ function sendChat() {
   input.value = '';
 }
 
-// ── GETRÄNKE: drinks.js (shared) wird am Ende geladen ──
-
-// ── Eiskübel Drag: ENTFERNT — drinks.js übernimmt ──
-(function(){
-  const el = null; // drinks.js handles everything
-  if (!el) return;
+// ── GETRÄNKE: komplett von drinks.js übernommen ──
+// Alter Bar-Drink-Code entfernt.
+(function(){ return; // Alles überspringen — drinks.js lädt am Ende
   let dragging = false, wasDragged = false, startX, startY, origX, origY;
   const THRESHOLD = 8;
   // Gespeicherte Position laden

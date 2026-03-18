@@ -3847,7 +3847,10 @@ function setupSocketEvents() {
   });
 
   socket.on('poker:state', renderState);
-  socket.on('baxt:update', (d) => { if (window._baxt && d.baxtCoins !== undefined) { window._baxt.loadBalance(); } });
+  socket.on('baxt:update', (d) => {
+    if (window._baxt) window._baxt.refresh();
+    try { if (window.top && window.top._baxt) window.top._baxt.refresh(); } catch(e) {}
+  });
   socket.on('poker:playerJoined', d => { if (window.playDoorSound) window.playDoorSound(); PokerSFX.playerJoin(); showPhase(d.username + ' setzt sich!'); });
   socket.on('poker:playerLeft', d => { if (window.playDoorSound) window.playDoorSound(); PokerSFX.playerLeave(); showPhase(d.username + ' geht...'); });
   socket.on('poker:winner', d => {

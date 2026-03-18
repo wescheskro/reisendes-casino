@@ -406,6 +406,11 @@
       if (data) {
         baxtCoins = data.baxtCoins;
         updateBadge();
+        // localStorage synchronisieren
+        try {
+          const u = JSON.parse(localStorage.getItem('casinoUser') || '{}');
+          if (u.id) { u.baxtCoins = baxtCoins; localStorage.setItem('casinoUser', JSON.stringify(u)); }
+        } catch(e) {}
       }
     } catch (e) { /* nicht eingeloggt */ }
   }
@@ -425,16 +430,19 @@
 
     document.body.appendChild(widget);
 
-    // Gespeicherte Position wiederherstellen
-    const saved = localStorage.getItem('baxt-widget-pos');
-    if (saved) {
-      try {
-        const pos = JSON.parse(saved);
-        widget.style.top = pos.top + 'px';
+    // Gespeicherte Position wiederherstellen (Admin-Layout hat Vorrang)
+    function applyWidgetPos() {
+      const adminPos = window._adminLayout && window._adminLayout['baxt-widget'];
+      const saved = adminPos || JSON.parse(localStorage.getItem('baxt-widget-pos') || 'null');
+      if (saved) {
+        widget.style.top = saved.top + 'px';
         widget.style.right = 'auto';
-        widget.style.left = pos.left + 'px';
-      } catch (e) {}
+        widget.style.left = saved.left + 'px';
+      }
     }
+    applyWidgetPos();
+    // Nochmal nach 1.5s (falls Admin-Layout noch nicht geladen war)
+    setTimeout(applyWidgetPos, 1500);
 
     // ── Drag-Logik (mit Threshold damit Klicks durchkommen) ──
     let pointerDown = false, dragging = false, startX, startY, origX, origY;
@@ -479,10 +487,12 @@
       if (dragging) {
         dragging = false;
         widget.classList.remove('dragging');
-        localStorage.setItem('baxt-widget-pos', JSON.stringify({
-          top: parseInt(widget.style.top),
-          left: parseInt(widget.style.left)
-        }));
+        const posData = { top: parseInt(widget.style.top), left: parseInt(widget.style.left) };
+        localStorage.setItem('baxt-widget-pos', JSON.stringify(posData));
+        // Admin: auch server-seitig speichern (gilt für alle)
+        if (window._isAdmin && window.adminSaveLayout) {
+          window.adminSaveLayout('baxt-widget', posData);
+        }
         // Drag beenden → Click unterdrücken
         e.preventDefault();
         e.stopPropagation();
@@ -857,6 +867,13 @@
     createWidget();
     loadBalance();
     if (token) setupSocketEvents();
+
+    // Balance bei Sichtbarkeit (Tab-Wechsel, App zurück) neu laden
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) loadBalance();
+    });
+    // Periodisch alle 30s synchronisieren
+    setInterval(loadBalance, 30000);
 
     // Gast-Balance live tracken (localStorage Änderungen)
     if (guest) {

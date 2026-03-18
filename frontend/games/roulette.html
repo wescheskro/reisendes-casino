@@ -944,10 +944,13 @@ let players = [];
 let myStream = null, micOn = false, camOn = false;
 let peerConnections = {};
 
-// ─── EMBED / IFRAME ───
-if (isEmbed || window.self !== window.top) {
+// ─── IFRAME: Lobby-Button verstecken ───
+if (window.self !== window.top) {
   var lobbyBtn = document.getElementById('lobbyBtn');
   if (lobbyBtn) lobbyBtn.style.display = 'none';
+}
+// ─── EMBED (Landing Page Preview) ───
+if (isEmbed) {
   var mcBar = document.getElementById('mcBar');
   if (mcBar) mcBar.style.display = 'none';
   var settFab = document.getElementById('settingsFab');
@@ -2718,8 +2721,9 @@ function initSocket() {
   socket.on('rl:ice', async data => { const pc=peerConnections[data.from]; if(pc) await pc.addIceCandidate(data.candidate); });
   socket.on('rl:chat', data => addChat(data.username, data.msg));
   socket.on('rl:balanceUpdate', (data) => {
-    // Update Baxt widget if loaded
     if (window.baxtUpdateBalance) window.baxtUpdateBalance(data.baxtCoins);
+    if (window._baxt) window._baxt.refresh();
+    try { if (window.top && window.top._baxt) window.top._baxt.refresh(); } catch(e) {}
   });
   socket.on('rl:payout', (data) => {
     if (data.won > 0) {
