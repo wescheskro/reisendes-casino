@@ -2272,6 +2272,7 @@ function bjTableState(table, forSocket) {
       bet: p.bet, cards: p.cards.map(cardStr), value: handValue(p.cards),
       status: p.status, isYou: forSocket && pid === forSocket.user.id,
       isBot: !!p.isBot,
+      socketId: p.socketId || pid,
       avatarUrl: (userObj && userObj.avatarUrl) || p.avatarUrl || null,
       avatarConfig: (userObj && userObj.avatarConfig) || null,
       rang: p.isBot ? 'KI' : (getRangFromLevel(getLevelFromXP((userObj || {}).xp || 0)).label || 'Reisender')

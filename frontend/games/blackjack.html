@@ -1605,16 +1605,22 @@ socket.on('connect', () => {
 
 // ─── WebRTC Signaling (bj: prefix) ───
 socket.on('bj:offer', async (data) => {
-  if (!myStream) await ensureMedia();
-  if (!myStream) return;
+  // WICHTIG: Media holen bevor PC erstellt wird (sonst keine Tracks)
+  if (!myStream) {
+    micOn = true;
+    await ensureMedia();
+  }
+  if (!myStream) return; // Mic blockiert
   const seatIdx = -1;
   createPeerConnection(data.from, seatIdx, false);
   const pc = peerConnections[data.from];
   if (!pc) return;
-  await pc.setRemoteDescription(data.offer);
-  const answer = await pc.createAnswer();
-  await pc.setLocalDescription(answer);
-  socket.emit('bj:answer', { to: data.from, answer });
+  try {
+    await pc.setRemoteDescription(data.offer);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit('bj:answer', { to: data.from, answer });
+  } catch(e) { console.error('bj:offer error:', e); }
 });
 
 socket.on('bj:answer', async (data) => {

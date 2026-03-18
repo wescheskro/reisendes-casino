@@ -2812,8 +2812,9 @@ function initSocket() {
   socket.on('connect', () => {
     socket.emit('rl:join', { tableId, username });
     document.getElementById('tableInfo').textContent = 'Verbunden!';
-    // Auto-Mic: bei erstem Klick Mikrofon aktivieren
+    // Auto-Mic: wie Bar — nach 2s automatisch aktivieren (braucht User-Geste vom iframe-Klick)
     if (!isEmbed) {
+      // Erster Klick startet Media (Browser braucht User-Geste für getUserMedia)
       document.addEventListener('click', async function rlAutoMic() {
         if (myStream) { document.removeEventListener('click', rlAutoMic); return; }
         micOn = true;
@@ -2821,6 +2822,7 @@ function initSocket() {
         if (myStream) {
           document.removeEventListener('click', rlAutoMic);
           document.getElementById('btnMic').classList.add('active');
+          setupPeerConnections();
         }
       });
     }
@@ -2873,13 +2875,21 @@ function initSocket() {
   });
   // WebRTC Signaling (inline, wie bar.html)
   socket.on('rl:offer', async (data) => {
+    // WICHTIG: Media holen bevor PC erstellt wird (sonst keine Tracks)
+    if (!myStream) {
+      micOn = true;
+      await ensureMedia();
+    }
+    if (!myStream) return; // Mic blockiert — kann nicht antworten
     createPeerConnection(data.from, false);
     const pc = peerConnections[data.from];
     if (!pc) return;
-    await pc.setRemoteDescription(data.offer);
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    socket.emit('rl:answer', { to: data.from, answer });
+    try {
+      await pc.setRemoteDescription(data.offer);
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      socket.emit('rl:answer', { to: data.from, answer });
+    } catch(e) { console.error('rl:offer error:', e); }
   });
   socket.on('rl:answer', async (data) => {
     const pc = peerConnections[data.from];
