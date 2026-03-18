@@ -946,6 +946,12 @@ let socket = null;
 let selectedChip = 500;
 let myBets = [];
 let _betDeducted = false;
+
+function _refreshBaxt() {
+  // Baxt-Widget refreshen (funktioniert im iframe und direkt)
+  if (window._baxt) window._baxt.refresh();
+  try { if (window.parent && window.parent._baxt) window.parent._baxt.refresh(); } catch(e) {}
+}
 let spinning = false;
 const spinSound = new Audio('/games/sounds/spinopel-spinning-roulette-wheel-429832.mp3');
 spinSound.volume = 0.5;
@@ -2080,27 +2086,26 @@ function showResult(number) {
   if (resultHistory.length > 20) resultHistory.pop();
   renderHistory();
 
-  // Baxt Coins abrechnen
-  if (myBets.length > 0) {
+  // Baxt Coins abrechnen — nur wenn NICHT über Socket gespielt (Socket hat eigenen Payout)
+  if (myBets.length > 0 && !_betDeducted) {
+    // Bot-Auto-Spin: Einsatz + Gewinn über REST abrechnen
     var totalBet = myBets.reduce(function(s,b){ return s + b.amount; }, 0);
     var token = '';
     try { token = JSON.parse(localStorage.getItem('casinoUser') || '{}').token; } catch(e){}
     if (token) {
-      // betDeducted: true wenn Socket rl:placeBets den Einsatz schon abgezogen hat
-      var sendWinnings = winnings;
-      var sendBet = _betDeducted ? 0 : totalBet;
       fetch('/api/baxt/roulette-result', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ bet: sendBet, winnings: sendWinnings })
+        body: JSON.stringify({ bet: totalBet, winnings: winnings })
       }).then(function(r){ return r.json(); }).then(function(d){
-        if (d.baxtCoins !== undefined && window._baxt) window._baxt.refresh();
+        _refreshBaxt();
       }).catch(function(){});
     }
-    _betDeducted = false;
-  } else if (window._baxt) {
-    window._baxt.refresh();
+  } else {
+    // Socket-Spin: Server hat Payout schon gemacht, nur Widget refreshen
+    _refreshBaxt();
   }
+  _betDeducted = false;
 
   myBets = [];
   updateBets();
