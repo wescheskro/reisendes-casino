@@ -2749,10 +2749,7 @@ function initSocket() {
   socket.on('connect', () => {
     socket.emit('rl:join', { tableId, username });
     document.getElementById('tableInfo').textContent = 'Verbunden!';
-    // Auto-Mic: Mikrofon automatisch starten
-    if (!isEmbed && !micOn) {
-      setTimeout(function() { toggleMic(); }, 2000);
-    }
+    // Mic muss manuell gestartet werden (Browser blockiert getUserMedia ohne User-Geste)
   });
   socket.on('rl:state', data => {
     players = data.players || [];

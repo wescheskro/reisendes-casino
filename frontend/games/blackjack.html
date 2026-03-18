@@ -1531,10 +1531,7 @@ socket.on('connect', () => {
   if (document.getElementById('botToggle').checked) {
     setTimeout(() => toggleBots(true), 1000);
   }
-  // Auto-Mic: Sprachchat automatisch beitreten
-  if (!isEmbed && !localStream) {
-    setTimeout(function() { joinVC(); }, 2000);
-  }
+  // Mic muss manuell gestartet werden (Browser blockiert getUserMedia ohne User-Geste)
 });
 
 socket.on('bj:state', renderState);
