@@ -3363,10 +3363,12 @@
       overlay.style.display = 'block';
       document.body.style.overflow = 'hidden';
       if (window.playDoorSound) window.playDoorSound();
-      // Alle Embed-iframes muten damit kein Doppel-Sound
-      document.querySelectorAll('.live-iframe, .slot-embed-iframe, .game-card iframe').forEach(function(f) {
+      // Landing-Embeds muten + Jukebox pausieren
+      document.querySelectorAll('.live-iframe, .slot-embed-iframe').forEach(function(f) {
         try { f.contentWindow.postMessage({ type: 'embedAudioOff' }, '*'); } catch(e) {}
       });
+      // Jukebox auf Landing Page pausieren damit kein Doppel-Sound mit Spiel-Jukebox
+      if (window._jk && window._jk.pause) window._jk.pause();
     }
 
     function closeGame() {
@@ -3381,10 +3383,8 @@
       if (window._jk) window._jk.show();
       // Tür-Sound
       if (window.playDoorSound) window.playDoorSound();
-      // Embed-iframes wieder unmuten (die sichtbaren)
-      document.querySelectorAll('.live-iframe, .slot-embed-iframe').forEach(function(f) {
-        try { f.contentWindow.postMessage({ type: 'embedAudioOff' }, '*'); } catch(e) {}
-      });
+      // Jukebox wieder starten
+      if (window._jk && window._jk.resume) window._jk.resume();
     }
 
     function playGame() {

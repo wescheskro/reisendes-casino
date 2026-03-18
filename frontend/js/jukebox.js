@@ -1159,6 +1159,12 @@ window._jk = {
   show: function() {
     var jk = document.getElementById('jukebox');
     if (jk) { jk.style.display = ''; sessionStorage.removeItem('jukeboxHidden'); }
+  },
+  pause: function() {
+    if (player && player.pauseVideo) player.pauseVideo();
+  },
+  resume: function() {
+    if (player && player.playVideo && isPlaying) player.playVideo();
   }
 };
 
