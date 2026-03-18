@@ -3363,8 +3363,7 @@
       overlay.style.display = 'block';
       document.body.style.overflow = 'hidden';
       if (window.playDoorSound) window.playDoorSound();
-      // Landing-Jukebox pausieren + verstecken
-      if (window._jk) { window._jk.pause(); window._jk.hide(); }
+      // Jukebox bleibt an — spielt in allen Spielen weiter
     }
 
     function closeGame() {
@@ -3379,8 +3378,7 @@
       if (window._jk) window._jk.show();
       // Tür-Sound
       if (window.playDoorSound) window.playDoorSound();
-      // Landing-Jukebox wieder zeigen + starten
-      if (window._jk) { window._jk.show(); window._jk.resume(); }
+      // Jukebox bleibt durchgehend an
     }
 
     function playGame() {
