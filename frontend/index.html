@@ -21,6 +21,69 @@
     .games-row-wrap { max-width: 100vw; box-sizing: border-box; }
     .baxt-promo { max-width: 100vw; box-sizing: border-box; }
 
+    /* ── SIDEBAR MENU ── */
+    .hamburger {
+      background:none; border:none; color:#D4AF37; font-size:26px;
+      cursor:pointer; padding:6px 10px; line-height:1; z-index:1001;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .sidebar-overlay {
+      display:none; position:fixed; inset:0; z-index:9999;
+      background:rgba(0,0,0,.6); backdrop-filter:blur(3px);
+    }
+    .sidebar-overlay.open { display:block; }
+    .sidebar {
+      position:fixed; top:0; left:0; bottom:0; width:280px; z-index:10000;
+      background:linear-gradient(180deg,#1a1a2e 0%,#0f0f1e 100%);
+      border-right:2px solid rgba(212,175,55,.4);
+      transform:translateX(-100%); transition:transform .3s ease;
+      overflow-y:auto; -webkit-overflow-scrolling:touch;
+      display:flex; flex-direction:column;
+    }
+    .sidebar.open { transform:translateX(0); }
+    .sidebar-header {
+      padding:24px 20px 16px; border-bottom:1px solid rgba(212,175,55,.15);
+      display:flex; align-items:center; gap:14px;
+    }
+    .sidebar-avatar {
+      width:50px; height:50px; border-radius:50%; border:2px solid #D4AF37;
+      overflow:hidden; background:#1a1a2e; display:flex; align-items:center;
+      justify-content:center; font-size:24px; flex-shrink:0;
+    }
+    .sidebar-avatar img { width:100%; height:100%; object-fit:cover; }
+    .sidebar-user-name { color:#F0E6D3; font-size:16px; font-weight:700; }
+    .sidebar-user-rank { color:rgba(240,230,211,.5); font-size:12px; }
+    .sidebar-user-baxt { color:#D4AF37; font-size:13px; font-weight:600; margin-top:2px; }
+    .sidebar-section {
+      padding:8px 0;
+      border-bottom:1px solid rgba(255,255,255,.05);
+    }
+    .sidebar-section:last-child { border-bottom:none; }
+    .sidebar-label {
+      color:rgba(240,230,211,.3); font-size:10px; text-transform:uppercase;
+      letter-spacing:1.5px; padding:8px 20px 4px; font-weight:600;
+    }
+    .sidebar-item {
+      display:flex; align-items:center; gap:14px; padding:12px 20px;
+      color:#F0E6D3; font-size:15px; cursor:pointer; transition:.15s;
+      -webkit-tap-highlight-color:rgba(212,175,55,.15);
+      text-decoration:none; min-height:48px;
+    }
+    .sidebar-item:hover, .sidebar-item:active {
+      background:rgba(212,175,55,.1); color:#D4AF37;
+    }
+    .sidebar-item-icon {
+      font-size:20px; width:28px; text-align:center; flex-shrink:0;
+    }
+    .sidebar-item-admin { color:#D4AF37; }
+    .sidebar-close {
+      position:absolute; top:16px; right:16px; background:none; border:none;
+      color:#aaa; font-size:24px; cursor:pointer; line-height:1; padding:4px;
+    }
+    @media (min-width:768px) {
+      .sidebar { width:320px; }
+    }
+
     /* Full-page background */
     .landing-bg {
       position: fixed; inset: 0; z-index: 0;
@@ -2273,8 +2336,53 @@
   <!-- BACKGROUND -->
   <div class="landing-bg"></div>
 
+  <!-- SIDEBAR MENU -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-close" onclick="closeSidebar()">&times;</button>
+    <div class="sidebar-header" id="sidebarHeader">
+      <div class="sidebar-avatar" id="sidebarAvatar">🦔</div>
+      <div>
+        <div class="sidebar-user-name" id="sidebarName">Gast</div>
+        <div class="sidebar-user-rank" id="sidebarRank">Willkommen!</div>
+        <div class="sidebar-user-baxt" id="sidebarBaxt"></div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Spiele</div>
+      <div class="sidebar-item" onclick="sidebarNav('home')"><span class="sidebar-item-icon">🏠</span> Startseite</div>
+      <div class="sidebar-item" onclick="sidebarNav('poker')"><span class="sidebar-item-icon">♠</span> Poker</div>
+      <div class="sidebar-item" onclick="sidebarNav('blackjack')"><span class="sidebar-item-icon">🃏</span> Blackjack</div>
+      <div class="sidebar-item" onclick="sidebarNav('roulette')"><span class="sidebar-item-icon">🎰</span> Roulette</div>
+      <div class="sidebar-item" onclick="sidebarNav('slots')"><span class="sidebar-item-icon">🎰</span> Slots</div>
+      <div class="sidebar-item" onclick="sidebarNav('bar')"><span class="sidebar-item-icon">🍺</span> Koberei (Bar)</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Mein Konto</div>
+      <div class="sidebar-item" onclick="sidebarNav('profil')"><span class="sidebar-item-icon">👤</span> Profil</div>
+      <div class="sidebar-item" onclick="sidebarNav('avatar')"><span class="sidebar-item-icon">🎨</span> Avatar erstellen</div>
+      <div class="sidebar-item" onclick="sidebarNav('baxt')"><span class="sidebar-item-icon">💰</span> Baxt Coins</div>
+    </div>
+
+    <div class="sidebar-section" id="sidebarAdminSection" style="display:none">
+      <div class="sidebar-label">Administration</div>
+      <div class="sidebar-item sidebar-item-admin" onclick="sidebarNav('admin')"><span class="sidebar-item-icon">👑</span> Admin Panel</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Info</div>
+      <a class="sidebar-item" href="/impressum.html"><span class="sidebar-item-icon">📋</span> Impressum</a>
+      <a class="sidebar-item" href="/datenschutz.html"><span class="sidebar-item-icon">🔒</span> Datenschutz</a>
+      <a class="sidebar-item" href="/agb.html"><span class="sidebar-item-icon">📜</span> AGB</a>
+      <div class="sidebar-item" onclick="sidebarNav('hilfe')"><span class="sidebar-item-icon">❓</span> Hilfe & Kontakt</div>
+    </div>
+  </div>
+
   <!-- TOP NAVIGATION -->
   <nav class="top-nav">
+    <button class="hamburger" onclick="openSidebar()" aria-label="Menü">☰</button>
     <div class="logo">
       <span class="logo-icon">🦔</span>
       <div>
@@ -4397,6 +4505,75 @@
     };
 
     // =========================================================================
+    // =========================================================================
+    // SIDEBAR MENU
+    // =========================================================================
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('sidebarOverlay').classList.add('open');
+      updateSidebarUser();
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    }
+    function updateSidebarUser() {
+      const user = getUser();
+      const guest = !user && JSON.parse(localStorage.getItem('casinoGuest') || 'null');
+      const nameEl = document.getElementById('sidebarName');
+      const rankEl = document.getElementById('sidebarRank');
+      const baxtEl = document.getElementById('sidebarBaxt');
+      const avatarEl = document.getElementById('sidebarAvatar');
+      const adminEl = document.getElementById('sidebarAdminSection');
+
+      if (user) {
+        nameEl.textContent = user.username;
+        rankEl.textContent = (user.rang || 'Reisender') + ' · Level ' + (user.level || 1);
+        baxtEl.textContent = '💰 ' + (user.baxtCoins || 0).toLocaleString('de-DE') + ' ₿';
+        if (user.avatarUrl || (user.avatarConfig && user.avatarConfig.avatarUrl)) {
+          avatarEl.innerHTML = '<img src="' + (user.avatarUrl || user.avatarConfig.avatarUrl) + '">';
+        }
+      } else if (guest) {
+        nameEl.textContent = guest.username || 'Gast';
+        rankEl.textContent = 'Gast-Modus';
+        baxtEl.textContent = '💰 ' + (parseInt(localStorage.getItem('guestBaxt') || '0')).toLocaleString('de-DE') + ' ₿';
+      } else {
+        nameEl.textContent = 'Nicht eingeloggt';
+        rankEl.textContent = 'Jetzt registrieren!';
+        baxtEl.textContent = '';
+      }
+      if (adminEl) adminEl.style.display = window._isAdmin ? '' : 'none';
+    }
+    function sidebarNav(target) {
+      closeSidebar();
+      // Wenn im gameOverlay → erst schließen
+      const overlay = document.getElementById('gameOverlay');
+      if (overlay && overlay.style.display === 'block' && target === 'home') {
+        closeGame();
+        return;
+      }
+      switch(target) {
+        case 'home':
+          if (overlay && overlay.style.display === 'block') closeGame();
+          window.scrollTo({top:0, behavior:'smooth'});
+          break;
+        case 'poker': openPoker(); break;
+        case 'blackjack': openBlackjack(); break;
+        case 'roulette': openRoulette(); break;
+        case 'slots': playGame(); break;
+        case 'bar': openBar(); break;
+        case 'profil': openProfile(); break;
+        case 'avatar': openAvatarEditor(); break;
+        case 'baxt':
+          if (window._baxt) window._baxt.togglePanel();
+          break;
+        case 'admin': openAdminPanel(); break;
+        case 'hilfe':
+          if (typeof showSupport === 'function') showSupport();
+          break;
+      }
+    }
+
     // ADMIN PANEL FUNCTIONS
     // =========================================================================
     function openAdminPanel() {
