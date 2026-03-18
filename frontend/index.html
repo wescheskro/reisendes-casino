@@ -2447,6 +2447,10 @@
       <a class="sidebar-item" href="/agb.html"><span class="sidebar-item-icon">📜</span> AGB</a>
       <div class="sidebar-item" onclick="sidebarNav('hilfe')"><span class="sidebar-item-icon">❓</span> Hilfe & Kontakt</div>
     </div>
+
+    <div class="sidebar-section" id="sidebarLogoutSection">
+      <div class="sidebar-item" onclick="closeSidebar();logout()" style="color:#e74c3c"><span class="sidebar-item-icon">🚪</span> Abmelden</div>
+    </div>
   </div>
 
   <!-- TOP NAVIGATION -->
@@ -3293,6 +3297,7 @@
       frame.src = url;
       overlay.style.display = 'block';
       document.body.style.overflow = 'hidden';
+      if (window.playDoorSound) window.playDoorSound();
     }
 
     function closeGame() {
@@ -3303,6 +3308,10 @@
       document.body.style.overflow = '';
       // Balance neu laden nach Spiel-Wechsel
       if (window._baxt) window._baxt.refresh();
+      // Jukebox wieder zeigen wenn zurück in Lobby
+      if (window._jk) window._jk.show();
+      // Tür-Sound
+      if (window.playDoorSound) window.playDoorSound();
     }
 
     function playGame() {
@@ -4830,6 +4839,7 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/baxt-coins.js"></script>
 <script src="/js/friends.js"></script>
+<script src="/js/door-sound.js"></script>
 <script src="/js/jukebox.js"></script>
 
 <!-- Scroll-Runter Pfeil (fixed unten) -->

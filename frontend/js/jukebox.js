@@ -200,7 +200,9 @@ function prevTrack() {
 
 function setVolume(v) {
   volume = Math.max(0, Math.min(100, parseInt(v)));
-  if (player && player.setVolume) player.setVolume(volume);
+  // Exponentielle Kurve: leise ist wirklich leise
+  const realVol = volume === 0 ? 0 : Math.round(Math.pow(volume / 100, 2.5) * 100);
+  if (player && player.setVolume) player.setVolume(realVol);
   const volSlider = document.getElementById('jk-vol');
   if (volSlider) volSlider.value = volume;
   updateMuteBtn();
@@ -410,6 +412,7 @@ function buildUI() {
   wrap.innerHTML = `
     <div class="jk-img" id="jkImg">
       <img src="/img/jukebox-cutout.png" alt="Jukebox" draggable="false" title="Jukebox öffnen">
+      <div class="jk-hide-btn" onclick="event.stopPropagation();window._jk.hide()" title="Jukebox ausblenden">✕</div>
     </div>
     <div class="jk-panel" id="jkPanel">
       <div class="jk-header" id="jkHeader">
@@ -500,6 +503,8 @@ function buildUI() {
     #jukebox.jk-open .jk-panel{display:block}
     #jukebox.jk-mini .jk-panel{display:none}
     #jukebox.jk-mini .jk-img{display:block}
+    .jk-hide-btn{position:absolute;top:-4px;right:-4px;width:20px;height:20px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);border-radius:50%;color:#aaa;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
+    .jk-hide-btn:active{background:rgba(231,76,60,.8);color:#fff}
     #jk-yt-player{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
     .jk-header{
       display:flex;align-items:center;gap:6px;padding:10px 12px;
@@ -521,19 +526,20 @@ function buildUI() {
     }
     #jukebox.jk-maximized .jk-playlist{max-height:calc(100vh - 250px)}
     #jukebox.jk-maximized .jk-search-results{max-height:40vh}
-    .jk-body{padding:8px 10px}
+    .jk-body{padding:10px 12px}
     .jk-track{
-      font-size:10px;color:rgba(240,230,211,.6);margin-bottom:6px;
+      font-size:12px;color:rgba(240,230,211,.7);margin-bottom:8px;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     }
-    .jk-controls{display:flex;align-items:center;gap:4px;margin-bottom:6px}
+    .jk-controls{display:flex;align-items:center;gap:6px;margin-bottom:8px}
     .jk-btn{
-      width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(212,175,55,.3);
-      background:rgba(212,175,55,.08);color:#D4AF37;font-size:11px;
+      width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(212,175,55,.3);
+      background:rgba(212,175,55,.08);color:#D4AF37;font-size:14px;
       cursor:pointer;display:flex;align-items:center;justify-content:center;
       transition:.15s;
     }
     .jk-btn:active{transform:scale(.9);background:rgba(212,175,55,.2)}
+    .jk-btn.jk-mute{width:44px;height:44px;font-size:22px;border-width:2px;border-color:rgba(212,175,55,.5)}
     .jk-play{
       width:36px;height:36px;font-size:14px;
       background:linear-gradient(135deg,rgba(160,120,255,.2),rgba(212,175,55,.15));
@@ -689,7 +695,8 @@ function buildUI() {
     @media(max-width:600px){
       .jk-img{width:75px;height:75px}
       .jk-panel{width:220px}
-      .jk-btn{width:26px;height:26px;font-size:10px}
+      .jk-btn{width:30px;height:30px;font-size:12px}
+      .jk-btn.jk-mute{width:40px;height:40px;font-size:20px}
       .jk-play{width:30px;height:30px;font-size:12px}
       .jk-playlist{max-height:100px}
       .jk-search-results{max-height:130px}
@@ -1121,6 +1128,14 @@ window._jk = {
   dragLeave: onDragLeave,
   drop: onDrop,
   dragEnd: onDragEnd,
+  hide: function() {
+    var jk = document.getElementById('jukebox');
+    if (jk) { jk.style.display = 'none'; sessionStorage.setItem('jukeboxHidden', '1'); }
+  },
+  show: function() {
+    var jk = document.getElementById('jukebox');
+    if (jk) { jk.style.display = ''; sessionStorage.removeItem('jukeboxHidden'); }
+  }
 };
 
 // ---- Init ----
