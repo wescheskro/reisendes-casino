@@ -1952,6 +1952,23 @@ app.get('/api/shop/history', authMiddleware, (req, res) => {
   res.json({ purchases: purchases.slice(0, 20) });
 });
 
+// ── Roulette Ergebnis abrechnen ──
+app.post('/api/baxt/roulette-result', authMiddleware, (req, res) => {
+  const { bet, winnings } = req.body;
+  if (typeof bet !== 'number' || typeof winnings !== 'number') {
+    return res.status(400).json({ error: 'Ungültige Daten' });
+  }
+  const user = db.users.get(req.user.id);
+  if (!user) return res.status(404).json({ error: 'User nicht gefunden' });
+
+  // Einsatz abziehen, Gewinn gutschreiben
+  const net = winnings - bet;
+  user.baxtCoins = Math.max(0, (user.baxtCoins || 0) + net);
+  dbDirty = true;
+  saveDB();
+  res.json({ baxtCoins: user.baxtCoins, net });
+});
+
 // Pakete anzeigen (öffentlich)
 app.get('/api/shop/packages', (req, res) => {
   res.json({ packages: COIN_PACKAGES });

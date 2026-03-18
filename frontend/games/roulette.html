@@ -2077,6 +2077,23 @@ function showResult(number) {
   if (resultHistory.length > 20) resultHistory.pop();
   renderHistory();
 
+  // Baxt Coins abrechnen (Einsatz abziehen, Gewinn gutschreiben)
+  if (myBets.length > 0) {
+    var totalBet = myBets.reduce(function(s,b){ return s + b.amount; }, 0);
+    var net = winnings - totalBet;
+    var token = '';
+    try { token = JSON.parse(localStorage.getItem('casinoUser') || '{}').token; } catch(e){}
+    if (token && net !== 0) {
+      fetch('/api/baxt/roulette-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ bet: totalBet, winnings: winnings, number: number })
+      }).then(function(r){ return r.json(); }).then(function(d){
+        if (d.baxtCoins !== undefined && window._baxt) window._baxt.refresh();
+      }).catch(function(){});
+    }
+  }
+
   myBets = [];
   updateBets();
 }
