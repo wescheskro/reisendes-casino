@@ -3363,12 +3363,8 @@
       overlay.style.display = 'block';
       document.body.style.overflow = 'hidden';
       if (window.playDoorSound) window.playDoorSound();
-      // Landing-Embeds muten + Jukebox pausieren
-      document.querySelectorAll('.live-iframe, .slot-embed-iframe').forEach(function(f) {
-        try { f.contentWindow.postMessage({ type: 'embedAudioOff' }, '*'); } catch(e) {}
-      });
-      // Jukebox auf Landing Page pausieren damit kein Doppel-Sound mit Spiel-Jukebox
-      if (window._jk && window._jk.pause) window._jk.pause();
+      // Landing-Jukebox pausieren + verstecken
+      if (window._jk) { window._jk.pause(); window._jk.hide(); }
     }
 
     function closeGame() {
@@ -3383,8 +3379,8 @@
       if (window._jk) window._jk.show();
       // Tür-Sound
       if (window.playDoorSound) window.playDoorSound();
-      // Jukebox wieder starten
-      if (window._jk && window._jk.resume) window._jk.resume();
+      // Landing-Jukebox wieder zeigen + starten
+      if (window._jk) { window._jk.show(); window._jk.resume(); }
     }
 
     function playGame() {
