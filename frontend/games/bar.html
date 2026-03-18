@@ -535,6 +535,7 @@ let micOn = false;
 let camOn = false;
 let seats = Array(MAX_SEATS).fill(null);
 let peerConnections = {};
+const _barActiveVideos = {};
 const guest = (() => { try { return JSON.parse(localStorage.getItem('casinoGuest')); } catch(e) { return null; } })();
 const username = (() => { try { const u = JSON.parse(localStorage.getItem('casinoUser')); return u?.username; } catch(e) { return null; } })() || (guest ? guest.username : null) || localStorage.getItem('pokerPlayerName') || 'Gast';
 const token = localStorage.getItem('casinoToken') || localStorage.getItem('token');
@@ -568,9 +569,14 @@ function renderSeats() {
 
     if (seat) {
       const botDelay = seat.isBot ? `animation-delay:${(i * 0.7) % 3}s` : '';
+      let avHtml = '';
+      if (_barActiveVideos[i]) {
+        avHtml = `<div class="seat-avatar video-active" id="av-${i}" style="border:2px solid #4CAF50;overflow:hidden;background:#000;"></div>`;
+      } else {
+        avHtml = `<div class="seat-avatar ${seat.isBot ? 'bot' : (seat.video ? 'video-active' : 'occupied')}" id="av-${i}" style="${botDelay}">${seat.avatarConfig && seat.avatarConfig.emoji ? '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:'+seat.avatarConfig.color+';border-radius:50%;font-size:28px">'+seat.avatarConfig.emoji+'</div>' : '<img src="'+(seat.avatar || 'https://api.dicebear.com/9.x/toon-head/svg?seed='+encodeURIComponent(seat.username))+'">'}</div>`;
+      }
       div.innerHTML = `
-        <div class="seat-video" id="video-${i}"><video id="rv-${i}" autoplay playsinline></video></div>
-        <div class="seat-avatar ${seat.isBot ? 'bot' : (seat.video ? 'video-active' : 'occupied')}" style="${botDelay}">${seat.avatarConfig && seat.avatarConfig.emoji ? '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:'+seat.avatarConfig.color+';border-radius:50%;font-size:28px">'+seat.avatarConfig.emoji+'</div>' : '<img src="'+(seat.avatar || 'https://api.dicebear.com/9.x/toon-head/svg?seed='+encodeURIComponent(seat.username))+'">'}</div>
+        ${avHtml}
         <div class="seat-name${seat.isBot ? ' bot' : ''}">${seat.username}</div>
       `;
       div.addEventListener('click', () => { if (!div._dragMoved) openPlayerMenu(div); });
@@ -586,9 +592,18 @@ function renderSeats() {
   });
   document.getElementById('barCount').textContent = seats.filter(s => s).length;
   // Video-Streams wieder einsetzen nach DOM-Rebuild
-  if (mySeatIdx >= 0 && camOn && myStream) {
-    updateSeatVideo(mySeatIdx, myStream);
-  }
+  setTimeout(() => {
+    if (mySeatIdx >= 0 && camOn && myStream) {
+      _barActiveVideos[mySeatIdx] = myStream;
+      updateSeatVideo(mySeatIdx, myStream);
+    }
+    Object.keys(_barActiveVideos).forEach(idxStr => {
+      const idx = parseInt(idxStr);
+      if (idx !== mySeatIdx && _barActiveVideos[idx]) {
+        updateSeatVideo(idx, _barActiveVideos[idx]);
+      }
+    });
+  }, 10);
 }
 
 // ─── SITZPLÄTZE VERSCHIEBEN ───
@@ -737,23 +752,31 @@ async function toggleCam() {
 }
 
 function updateSeatVideo(seatIdx, stream) {
-  const vidEl = document.getElementById('video-' + seatIdx);
-  if (!vidEl) return;
-  const video = vidEl.querySelector('video');
+  const avEl = document.getElementById('av-' + seatIdx);
+  if (!avEl) return;
+  
   if (stream) {
-    video.srcObject = stream;
-    video.play().catch(function(){});
-    vidEl.classList.add('active');
-    // Klick auf Video → Fullscreen
-    vidEl.onclick = function(e) {
+    if (!avEl.querySelector('video')) {
+      avEl.innerHTML = '';
+      const video = document.createElement('video');
+      video.autoplay = true;
+      video.playsInline = true;
+      video.style.cssText = 'width:100%;height:100%;object-fit:cover;transform:scaleX(-1);border-radius:50%;';
+      video.srcObject = stream;
+      avEl.appendChild(video);
+      avEl.style.border = '2px solid #4CAF50';
+      avEl.style.background = '#000';
+    } else {
+      avEl.querySelector('video').srcObject = stream;
+    }
+    avEl.onclick = function(e) {
       e.stopPropagation();
       var name = seats[seatIdx] ? seats[seatIdx].username : '';
-      showVideoFullscreen(video.srcObject, name);
+      showVideoFullscreen(stream, name);
     };
   } else {
-    vidEl.classList.remove('active');
-    video.srcObject = null;
-    vidEl.onclick = null;
+    delete _barActiveVideos[seatIdx];
+    setTimeout(renderSeats, 10);
   }
 }
 
@@ -799,6 +822,7 @@ function stopMedia() {
   if (myStream) {
     myStream.getTracks().forEach(t => t.stop());
     myStream = null;
+    delete _barActiveVideos[mySeatIdx];
   }
   micOn = false; camOn = false;
   document.getElementById('btnMic').classList.remove('active');
@@ -807,6 +831,11 @@ function stopMedia() {
   // Peer Connections schließen
   Object.values(peerConnections).forEach(pc => pc.close());
   peerConnections = {};
+  
+  Object.keys(_barActiveVideos).forEach(k => {
+    if (parseInt(k) !== mySeatIdx) delete _barActiveVideos[k];
+  });
+  renderSeats();
 }
 
 // ─── WebRTC ───
@@ -829,10 +858,8 @@ function createPeerConnection(peerId, seatIdx, isInitiator) {
   }
 
   pc.ontrack = (e) => {
-    const vid = document.getElementById('rv-' + seatIdx);
-    if (vid) vid.srcObject = e.streams[0];
-    const container = document.getElementById('video-' + seatIdx);
-    if (container) container.classList.add('active');
+    _barActiveVideos[seatIdx] = e.streams[0];
+    if (typeof renderSeats === 'function') setTimeout(renderSeats, 10);
   };
 
   pc.onicecandidate = (e) => {
@@ -1045,6 +1072,7 @@ function initSocket() {
       }
     }
     seats[data.idx] = null;
+    delete _barActiveVideos[data.idx];
     renderSeats();
     document.getElementById('barInfo').textContent = 'Die Bar · ' + seats.filter(s=>s).length + ' Gäste';
   });
