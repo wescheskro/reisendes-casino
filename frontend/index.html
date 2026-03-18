@@ -2461,22 +2461,41 @@
         btn.innerHTML = '&#x1F50A; Vorlesen';
         return;
       }
-      const text = document.getElementById('welcomeText').textContent;
-      const utter = new SpeechSynthesisUtterance(text);
+      // Überschrift + Text zusammen vorlesen
+      const heading = document.querySelector('.welcome-msg h2');
+      const body = document.getElementById('welcomeText');
+      const fullText = (heading ? heading.textContent + '. ' : '') + body.textContent;
+
+      const utter = new SpeechSynthesisUtterance(fullText);
       utter.lang = 'de-DE';
       utter.rate = 0.9;
-      utter.pitch = 1;
-      // Deutsche Stimme bevorzugen
+      utter.pitch = 0.95;
+
+      // Männliche deutsche Stimme bevorzugen
       const voices = window.speechSynthesis.getVoices();
-      const deVoice = voices.find(v => v.lang.startsWith('de'));
-      if (deVoice) utter.voice = deVoice;
+      let bestVoice = null;
+      // Priorität: 1. Deutsche männliche Stimme, 2. Jede deutsche Stimme
+      for (const v of voices) {
+        if (!v.lang.startsWith('de')) continue;
+        if (!bestVoice) bestVoice = v;
+        const nameLower = v.name.toLowerCase();
+        // Männliche Stimmen erkennen (Google, Microsoft, Apple Naming)
+        if (nameLower.includes('male') && !nameLower.includes('female')) { bestVoice = v; break; }
+        if (nameLower.includes('martin') || nameLower.includes('stefan') || nameLower.includes('conrad') || nameLower.includes('markus') || nameLower.includes('florian') || nameLower.includes('hans')) { bestVoice = v; break; }
+        if (nameLower.includes('google deutsch') && !nameLower.includes('female')) { bestVoice = v; }
+      }
+      if (bestVoice) utter.voice = bestVoice;
+
       utter.onend = () => { btn.classList.remove('speaking'); btn.innerHTML = '&#x1F50A; Vorlesen'; };
       btn.classList.add('speaking');
       btn.innerHTML = '&#x23F9; Stopp';
       window.speechSynthesis.speak(utter);
     }
-    // Stimmen vorladen
-    if (window.speechSynthesis) window.speechSynthesis.getVoices();
+    // Stimmen vorladen (manche Browser laden async)
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
     </script>
 
     <!-- LIVE ONLINE ANZEIGE -->
