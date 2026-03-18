@@ -20,7 +20,7 @@ style.textContent = `
   width: 44px; height: 44px; border-radius: 50%;
   background: rgba(26,26,46,0.35);
   border: 2px solid rgba(100,200,255,0.3);
-  display: flex; align-items: center; justify-content: center;
+  display: none; align-items: center; justify-content: center;
   font-size: 22px; cursor: grab;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   backdrop-filter: blur(6px);
@@ -381,13 +381,18 @@ function saveFbPos() {
   setTimeout(() => { badge.style.boxShadow = ''; }, 600);
 }
 
-// Restore saved position
-const savedFbPos = JSON.parse(localStorage.getItem(FB_POS_KEY) || 'null');
-if (savedFbPos) {
-  const maxL = window.innerWidth - 50, maxT = window.innerHeight - 50;
-  badge.style.top = Math.max(0, Math.min(maxT, savedFbPos.top)) + 'px';
-  badge.style.left = Math.max(0, Math.min(maxL, savedFbPos.left)) + 'px';
+// Restore saved position (Admin-Layout hat Vorrang)
+function restoreFbPos() {
+  const adminPos = window._adminLayout && window._adminLayout['friends-badge'];
+  const pos = adminPos || JSON.parse(localStorage.getItem(FB_POS_KEY) || 'null');
+  if (pos) {
+    const maxL = window.innerWidth - 50, maxT = window.innerHeight - 50;
+    badge.style.top = Math.max(0, Math.min(maxT, pos.top)) + 'px';
+    badge.style.left = Math.max(0, Math.min(maxL, pos.left)) + 'px';
+  }
 }
+restoreFbPos();
+setTimeout(restoreFbPos, 1500);
 
 function fbPointerDown(e) {
   if (e.target.closest('.notif-dot') || e.target.closest('.fb-resize')) return;
@@ -413,7 +418,11 @@ function fbPointerUp() {
   fbDragging = false;
   badge.classList.remove('dragging');
   if (fbDragged) {
-    localStorage.setItem(FB_POS_KEY, JSON.stringify({ top: badge.offsetTop, left: badge.offsetLeft }));
+    const posData = { top: badge.offsetTop, left: badge.offsetLeft };
+    localStorage.setItem(FB_POS_KEY, JSON.stringify(posData));
+    if (window._isAdmin && window.adminSaveLayout) {
+      window.adminSaveLayout('friends-badge', posData);
+    }
   }
 }
 

@@ -2414,6 +2414,7 @@
       <div class="sidebar-item" onclick="sidebarNav('profil')"><span class="sidebar-item-icon">👤</span> Profil</div>
       <div class="sidebar-item" onclick="sidebarNav('avatar')"><span class="sidebar-item-icon">🎨</span> Avatar erstellen</div>
       <div class="sidebar-item" onclick="sidebarNav('baxt')"><span class="sidebar-item-icon">💰</span> Baxt Coins</div>
+      <div class="sidebar-item" onclick="sidebarNav('freunde')"><span class="sidebar-item-icon">👥</span> Freunde</div>
     </div>
 
     <div class="sidebar-section" id="sidebarAdminSection" style="display:none">
@@ -4667,6 +4668,10 @@
         case 'avatar': openAvatarEditor(); break;
         case 'baxt':
           if (window._baxt) window._baxt.togglePanel();
+          break;
+        case 'freunde':
+          var fb = document.querySelector('.friends-badge');
+          if (fb) { fb.style.display = 'flex'; fb.click(); }
           break;
         case 'admin': openAdminPanel(); break;
         case 'hilfe':
