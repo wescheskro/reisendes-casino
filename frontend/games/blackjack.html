@@ -1531,7 +1531,10 @@ socket.on('connect', () => {
   if (document.getElementById('botToggle').checked) {
     setTimeout(() => toggleBots(true), 1000);
   }
-  // Mic muss manuell gestartet werden (Browser blockiert getUserMedia ohne User-Geste)
+  // Auto-Mic nach kurzer Verzögerung (iframe hat allow="microphone")
+  if (!isEmbed && !localStream) {
+    setTimeout(function() { joinVC(); }, 1500);
+  }
 });
 
 socket.on('bj:state', renderState);

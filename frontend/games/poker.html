@@ -3841,7 +3841,10 @@ function setupSocketEvents() {
   socket.on('connect', () => {
     socket.emit('poker:join', { tableId, seat: -1 });
     document.getElementById('tableInfo').textContent = 'Verbunden!';
-    // Mic muss manuell gestartet werden (Browser blockiert getUserMedia ohne User-Geste)
+    // Auto-Mic nach kurzer Verzögerung (iframe hat allow="microphone")
+    if (!isEmbedMode && !vcActive) {
+      setTimeout(function() { toggleVoiceChat(); }, 1500);
+    }
   });
 
   socket.on('disconnect', () => {

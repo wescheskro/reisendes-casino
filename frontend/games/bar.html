@@ -655,7 +655,14 @@ function takeSeatAt(idx) {
   socket.emit('bar:sit', { idx, username, avatar: myAvatarUrl });
   renderSeats();
   document.getElementById('btnSeat').classList.add('active');
-  // Mic muss manuell gestartet werden (Browser blockiert getUserMedia ohne User-Geste)
+  // Auto-Seat + Mic (iframe hat allow="microphone")
+  if (!micOn) {
+    micOn = true;
+    ensureMedia().then(function() {
+      var btn = document.getElementById('btnMic');
+      if (btn) btn.classList.add('active');
+    });
+  }
 }
 
 function leaveSeat() {
