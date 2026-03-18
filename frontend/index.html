@@ -3003,6 +3003,8 @@
       overlay.style.display = 'none';
       frame.src = '';
       document.body.style.overflow = '';
+      // Balance neu laden nach Spiel-Wechsel
+      if (window._baxt) window._baxt.loadBalance();
     }
 
     function playGame() {

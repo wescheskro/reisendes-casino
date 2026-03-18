@@ -2405,6 +2405,19 @@ function bjDealerPlay(table) {
     }
   }
 
+  // Registrierte User: Payout auf baxtCoins gutschreiben
+  for (const [pid, p] of table.players) {
+    if (!p.isBot && !p.isGuest && p.payout > 0) {
+      const user = db.users.get(pid);
+      if (user) {
+        user.baxtCoins = (user.baxtCoins || 0) + p.payout;
+        saveDB();
+        const pSocket = [...io.sockets.sockets.values()].find(s => s.user?.id === pid);
+        if (pSocket) pSocket.emit('baxt:update', { baxtCoins: user.baxtCoins });
+      }
+    }
+  }
+
   // Gäste: Baxt-Update nach Payout
   for (const [pid, p] of table.players) {
     if (p.isGuest && p.guestBaxt !== undefined) {
@@ -3154,7 +3167,17 @@ io.on('connection', (socket) => {
     if (!table || table.phase !== 'betting') return;
     const p = table.players.get(socket.user.id);
     if (!p) return;
-    p.bet = Math.max(table.minBet, Math.min(table.maxBet, amount));
+    const bet = Math.max(table.minBet, Math.min(table.maxBet, amount));
+    // Baxt Coins prüfen und abziehen
+    if (!p.isBot && !p.isGuest && socket.user && socket.user.baxtCoins !== undefined) {
+      if (socket.user.baxtCoins < bet) {
+        return socket.emit('bj:error', 'Nicht genug Baxt Coins!');
+      }
+      socket.user.baxtCoins -= bet;
+      saveDB();
+      socket.emit('baxt:update', { baxtCoins: socket.user.baxtCoins });
+    }
+    p.bet = bet;
     p.status = 'ready';
     emitBJState(table);
 
@@ -3257,7 +3280,7 @@ io.on('connection', (socket) => {
     emitPokerState(table);
   });
 
-  socket.on('poker:join', ({ tableId, seat, avatarUrl }) => {
+  socket.on('poker:join', ({ tableId, seat, avatarUrl, buyIn }) => {
     const table = tables.poker.get(tableId);
     if (!table) return socket.emit('error', 'Tisch nicht gefunden');
 
@@ -3279,18 +3302,30 @@ io.on('connection', (socket) => {
     }
 
     if (!table.players.has(socket.user.id)) {
-      // Gäste bekommen ihre Baxt als Chips, registrierte User bekommen serverseitige Balance oder 10000
-      let startChips = 10000;
-      if (socket.user.guest) {
-        startChips = socket.user.guestBaxt || BAXT_REWARDS.guestWelcome;
-      } else if (socket.user.baxtCoins !== undefined) {
-        startChips = Math.max(socket.user.baxtCoins, 100); // Mindestens 100
+      // Buy-In: Betrag von baxtCoins abziehen
+      const requestedBuyIn = buyIn || 1000;
+      if (!socket.user.guest && socket.user.baxtCoins !== undefined) {
+        if (socket.user.baxtCoins < 100) {
+          return socket.emit('error', 'Nicht genug Baxt Coins! Mindestens 100 ₿ nötig.');
+        }
+        const actualBuyIn = Math.min(requestedBuyIn, socket.user.baxtCoins);
+        socket.user.baxtCoins -= actualBuyIn;
+        saveDB();
+        table.players.set(socket.user.id, {
+          id: socket.user.id, username: socket.user.username, socketId: socket.id,
+          cards: [], chips: actualBuyIn, folded: false, roundBet: 0, spectator: false, allIn: false,
+          avatarUrl: avatarUrl || null, isGuest: false
+        });
+        socket.emit('baxt:update', { baxtCoins: socket.user.baxtCoins });
+      } else {
+        // Gast
+        let guestChips = socket.user.guestBaxt || BAXT_REWARDS.guestWelcome;
+        table.players.set(socket.user.id, {
+          id: socket.user.id, username: socket.user.username, socketId: socket.id,
+          cards: [], chips: guestChips, folded: false, roundBet: 0, spectator: false, allIn: false,
+          avatarUrl: avatarUrl || null, isGuest: true
+        });
       }
-      table.players.set(socket.user.id, {
-        id: socket.user.id, username: socket.user.username, socketId: socket.id,
-        cards: [], chips: startChips, folded: false, roundBet: 0, spectator: false, allIn: false,
-        avatarUrl: avatarUrl || null, isGuest: !!socket.user.guest
-      });
     }
     table.seats[seat] = socket.user.id;
     table.players.get(socket.user.id).socketId = socket.id;
@@ -4028,10 +4063,16 @@ io.on('connection', (socket) => {
         io.to('bj-' + table.id).emit('bj:playerLeft', { username: socket.user.username });
       }
     }
-    // Clean up Poker tables
+    // Clean up Poker tables — Chips zurück auf baxtCoins
     for (const [, table] of tables.poker) {
       if (table.players.has(socket.user.id)) {
         const p = table.players.get(socket.user.id);
+        // Chips zurück auf baxtCoins gutschreiben
+        if (p && !p.isBot && !p.isGuest && socket.user && socket.user.baxtCoins !== undefined) {
+          socket.user.baxtCoins += (p.chips || 0);
+          saveDB();
+          console.log(`[POKER] ${socket.user.username} verlässt Tisch mit ${p.chips} Chips → baxtCoins: ${socket.user.baxtCoins}`);
+        }
         if (p) p.folded = true;
         const seatIdx = table.seats.indexOf(socket.user.id);
         if (seatIdx >= 0) table.seats[seatIdx] = null;

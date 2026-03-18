@@ -3641,11 +3641,48 @@ function renderControls(state) {
 
 // ===================== ACTIONS =====================
 function joinSeat(seat) {
-  const myAvatar = myAvatarConfig.url || null;
-  socket.emit('poker:join', { tableId, seat, avatarUrl: myAvatar });
-  // Sofort "Nimm Platz" ausblenden
-  document.getElementById('takeSeatArea').classList.add('hidden');
-  document.getElementById('controls').style.display = '';
+  // Buy-In Dialog
+  const token = localStorage.getItem('casinoToken');
+  const isGuest = !token && localStorage.getItem('casinoGuest');
+
+  if (isGuest) {
+    // Gäste joinen direkt
+    const myAvatar = myAvatarConfig.url || null;
+    socket.emit('poker:join', { tableId, seat, avatarUrl: myAvatar });
+    document.getElementById('takeSeatArea').classList.add('hidden');
+    document.getElementById('controls').style.display = '';
+    return;
+  }
+
+  // Buy-In Overlay
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(145deg,#1a1a2e,#16213e);border:2px solid #D4AF37;border-radius:16px;padding:24px;width:min(320px,90vw);text-align:center;">
+      <h3 style="color:#D4AF37;font-family:'Playfair Display',serif;font-size:20px;margin:0 0 12px">♠ Buy-In</h3>
+      <p style="color:#aaa;font-size:13px;margin:0 0 16px">Wie viel Baxt Coins willst du einsetzen?</p>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:16px">
+        <button class="buyin-btn" data-amount="500" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(212,175,55,.3);background:rgba(212,175,55,.1);color:#D4AF37;font-size:15px;font-weight:700;cursor:pointer">500 ₿</button>
+        <button class="buyin-btn" data-amount="1000" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(212,175,55,.3);background:rgba(212,175,55,.1);color:#D4AF37;font-size:15px;font-weight:700;cursor:pointer">1.000 ₿</button>
+        <button class="buyin-btn" data-amount="5000" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(212,175,55,.3);background:rgba(212,175,55,.1);color:#D4AF37;font-size:15px;font-weight:700;cursor:pointer">5.000 ₿</button>
+        <button class="buyin-btn" data-amount="10000" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(212,175,55,.3);background:rgba(212,175,55,.1);color:#D4AF37;font-size:15px;font-weight:700;cursor:pointer">10.000 ₿</button>
+      </div>
+      <button onclick="this.closest('div[style]').parentElement.remove()" style="padding:10px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:#aaa;font-size:14px;cursor:pointer;width:100%">Abbrechen</button>
+    </div>
+  `;
+  overlay.querySelectorAll('.buyin-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const amount = parseInt(btn.dataset.amount);
+      overlay.remove();
+      socket._pokerBuyIn = amount;
+      const myAvatar = myAvatarConfig.url || null;
+      socket.emit('poker:join', { tableId, seat, avatarUrl: myAvatar, buyIn: amount });
+      document.getElementById('takeSeatArea').classList.add('hidden');
+      document.getElementById('controls').style.display = '';
+    });
+  });
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 }
 function doCall() { PokerSFX.call(); socket.emit('poker:call'); }
 function doRaise() { PokerSFX.raise(); socket.emit('poker:raise', { amount: raiseAmount }); }
@@ -3810,6 +3847,7 @@ function setupSocketEvents() {
   });
 
   socket.on('poker:state', renderState);
+  socket.on('baxt:update', (d) => { if (window._baxt && d.baxtCoins !== undefined) { window._baxt.loadBalance(); } });
   socket.on('poker:playerJoined', d => { if (window.playDoorSound) window.playDoorSound(); PokerSFX.playerJoin(); showPhase(d.username + ' setzt sich!'); });
   socket.on('poker:playerLeft', d => { if (window.playDoorSound) window.playDoorSound(); PokerSFX.playerLeave(); showPhase(d.username + ' geht...'); });
   socket.on('poker:winner', d => {
