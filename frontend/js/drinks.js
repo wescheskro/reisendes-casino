@@ -24,6 +24,14 @@
     }
     .ice-bucket img { width: 65px; height: auto; pointer-events: none; }
     .ice-bucket:active { transform: scale(.9); }
+    .ice-bucket-close {
+      position:absolute; top:-6px; right:-6px; width:20px; height:20px;
+      background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.2);
+      border-radius:50%; color:rgba(255,255,255,.5); font-size:11px;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; backdrop-filter:blur(4px); line-height:1;
+    }
+    .ice-bucket-close:hover { background:rgba(231,76,60,.6); color:#fff; }
     .drink-overlay {
       display: none; position: fixed; inset: 0; z-index: 100000;
       background: rgba(0,0,0,.75); backdrop-filter: blur(4px);
@@ -69,8 +77,20 @@
   // ── Eiskübel erstellen ──
   const bucket = document.createElement('div');
   bucket.className = 'ice-bucket';
-  bucket.innerHTML = '<img src="/img/ice-bucket.png" alt="Getränke">';
+  bucket.innerHTML = '<img src="/img/ice-bucket.png" alt="Getränke"><div class="ice-bucket-close">✕</div>';
   document.body.appendChild(bucket);
+
+  // ✕ Button: Versteckt Kübel für diese Session
+  bucket.querySelector('.ice-bucket-close').addEventListener('click', function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    bucket.style.display = 'none';
+    sessionStorage.setItem('ice-bucket-hidden', '1');
+  });
+  // Wenn in dieser Session versteckt, nicht anzeigen
+  if (sessionStorage.getItem('ice-bucket-hidden') === '1') {
+    bucket.style.display = 'none';
+  }
 
   // ── Eiskübel: Gespeicherte Position laden ──
   (function(){
