@@ -433,7 +433,7 @@ function buildUI() {
   wrap.innerHTML = `
     <div class="jk-img" id="jkImg">
       <img src="/img/jukebox-cutout.png" alt="Jukebox" draggable="false" title="Jukebox öffnen">
-      <div class="jk-hide-btn" onclick="event.stopPropagation();window._jk.hide()" title="Jukebox ausblenden">✕</div>
+      <!-- Jukebox bleibt immer sichtbar -->
       <div class="jk-mute-badge" id="jkMuteBadge" onclick="event.stopPropagation();window._jk.toggleMute()" title="Stumm/Laut">🔊</div>
     </div>
     <div class="jk-panel" id="jkPanel">
