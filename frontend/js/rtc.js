@@ -211,12 +211,15 @@
   // ─── Zu allen Peers verbinden ───
   function connectToAll(players, myId) {
     if (!_stream || !players) return;
+    var count = 0;
     players.forEach(function(p) {
       if (!p) return;
       var pid = p.socketId || p.id;
-      if (!pid || pid === myId || p.isBot) return;
+      if (!pid || pid === myId || p.isBot || p.isYou) return;
       makePC(pid, true);
+      count++;
     });
+    if (count === 0) showStatus('🎤 Mic an — warte auf Mitspieler', '#f39c12');
   }
 
   // ─── Peer aufräumen ───

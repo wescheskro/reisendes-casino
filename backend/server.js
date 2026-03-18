@@ -3221,7 +3221,7 @@ io.on('connection', (socket) => {
     table.seats[seat] = socket.user.id;
     table.players.get(socket.user.id).socketId = socket.id;
 
-    io.to('bj-' + tableId).emit('bj:playerJoined', { username: socket.user.username, seat });
+    io.to('bj-' + tableId).emit('bj:playerJoined', { username: socket.user.username, seat, socketId: socket.id });
     emitBJState(table);
 
     // Start game if enough players and waiting
@@ -4215,7 +4215,7 @@ io.on('connection', (socket) => {
         const seatIdx = table.seats.indexOf(socket.user.id);
         if (seatIdx >= 0) table.seats[seatIdx] = null;
         table.players.delete(socket.user.id);
-        io.to('bj-' + table.id).emit('bj:playerLeft', { username: socket.user.username });
+        io.to('bj-' + table.id).emit('bj:playerLeft', { username: socket.user.username, socketId: socket.id });
       }
     }
     // Clean up Poker tables — Chips zurück auf baxtCoins

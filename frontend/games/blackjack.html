@@ -1509,6 +1509,10 @@ socket.on('bj:playerJoined', d => {
   showPhase(d.username + ' setzt sich!');
   BJSFX.play(660, 'sine', 0.15, 0.08);
   setTimeout(() => BJSFX.play(880, 'sine', 0.15, 0.08), 100);
+  // Voice Chat: Peer Connection zum neuen Spieler
+  if (RTC.stream && d.socketId && !d.isBot) {
+    RTC.connectTo(d.socketId);
+  }
 });
 
 socket.on('bj:playerLeft', d => {
@@ -1516,6 +1520,8 @@ socket.on('bj:playerLeft', d => {
   showPhase(d.username + ' geht...');
   BJSFX.play(440, 'sine', 0.15, 0.08);
   setTimeout(() => BJSFX.play(330, 'sine', 0.2, 0.08), 100);
+  // Voice Chat: Peer Connection aufräumen
+  if (d.socketId) RTC.disconnect(d.socketId);
 });
 
 socket.on('bj:results', d => {
