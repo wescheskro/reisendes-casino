@@ -228,10 +228,10 @@ function toggleMute() {
 
 function updateMuteBtn() {
   const btn = document.getElementById('jkMuteBtn');
-  if (!btn) return;
-  if (isMuted || volume === 0) btn.textContent = '🔇';
-  else if (volume < 40) btn.textContent = '🔉';
-  else btn.textContent = '🔊';
+  const badge = document.getElementById('jkMuteBadge');
+  const icon = (isMuted || volume === 0) ? '🔇' : (volume < 40 ? '🔉' : '🔊');
+  if (btn) btn.textContent = icon;
+  if (badge) badge.textContent = icon;
 }
 
 // ---- Song löschen ----
@@ -413,6 +413,7 @@ function buildUI() {
     <div class="jk-img" id="jkImg">
       <img src="/img/jukebox-cutout.png" alt="Jukebox" draggable="false" title="Jukebox öffnen">
       <div class="jk-hide-btn" onclick="event.stopPropagation();window._jk.hide()" title="Jukebox ausblenden">✕</div>
+      <div class="jk-mute-badge" id="jkMuteBadge" onclick="event.stopPropagation();window._jk.toggleMute()" title="Stumm/Laut">🔊</div>
     </div>
     <div class="jk-panel" id="jkPanel">
       <div class="jk-header" id="jkHeader">
@@ -505,6 +506,8 @@ function buildUI() {
     #jukebox.jk-mini .jk-img{display:block}
     .jk-hide-btn{position:absolute;top:-4px;right:-4px;width:20px;height:20px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);border-radius:50%;color:#aaa;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
     .jk-hide-btn:active{background:rgba(231,76,60,.8);color:#fff}
+    .jk-mute-badge{position:absolute;bottom:-4px;right:-4px;width:24px;height:24px;background:rgba(0,0,0,.7);border:1px solid rgba(212,175,55,.4);border-radius:50%;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
+    .jk-mute-badge:active{background:rgba(212,175,55,.3)}
     #jk-yt-player{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
     .jk-header{
       display:flex;align-items:center;gap:6px;padding:10px 12px;
