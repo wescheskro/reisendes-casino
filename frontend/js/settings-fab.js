@@ -67,6 +67,10 @@
   fab.style.touchAction = 'none';
 
   function onStart(e) {
+    if (e.type === 'mousedown') {
+      // Verhindert, dass der Browser versucht Text zu selektieren oder native element drags auszuführen!
+      e.preventDefault();
+    }
     dragging = false; wasDragged = false;
     const t = e.touches ? e.touches[0] : e;
     startX = t.clientX; startY = t.clientY;
