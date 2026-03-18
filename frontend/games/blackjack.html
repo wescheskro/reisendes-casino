@@ -1466,19 +1466,26 @@ async function joinVC() {
   }
   try {
     localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-    btn.classList.add('active');
-    micEnabled = true; camEnabled = true;
-    document.getElementById('vcMic').classList.remove('muted');
-    document.getElementById('vcMic').classList.add('active');
+  } catch(e) {
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch(e2) {
+      console.log('Kamera/Mikrofon Fehler:', e2);
+      return;
+    }
+  }
+  btn.classList.add('active');
+  micEnabled = true;
+  document.getElementById('vcMic').classList.remove('muted');
+  document.getElementById('vcMic').classList.add('active');
+  if (localStream.getVideoTracks().length > 0) {
+    camEnabled = true;
     document.getElementById('vcCam').classList.add('active');
-
     const vid = document.createElement('video');
     vid.className = 'my-video';
     vid.srcObject = localStream;
     vid.autoplay = true; vid.muted = true; vid.playsInline = true;
     document.body.appendChild(vid);
-  } catch(e) {
-    console.log('Camera/Mic denied:', e);
   }
 }
 
