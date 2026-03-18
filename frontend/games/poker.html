@@ -3839,6 +3839,10 @@ function setupSocketEvents() {
   socket.on('connect', () => {
     socket.emit('poker:join', { tableId, seat: -1 });
     document.getElementById('tableInfo').textContent = 'Verbunden!';
+    // Auto-Mic: Sprachchat automatisch beitreten
+    if (!isEmbed && !vcActive) {
+      setTimeout(function() { toggleVoiceChat(); }, 2000);
+    }
   });
 
   socket.on('disconnect', () => {

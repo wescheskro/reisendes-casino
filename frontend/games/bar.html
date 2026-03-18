@@ -606,6 +606,13 @@ function takeSeatAt(idx) {
   socket.emit('bar:sit', { idx, username, avatar: myAvatarUrl });
   renderSeats();
   document.getElementById('btnSeat').classList.add('active');
+  // Auto-Mic an wenn man sich hinsetzt
+  if (!micOn) {
+    micOn = true;
+    ensureMedia().then(function() {
+      document.getElementById('btnMic').classList.add('active');
+    });
+  }
 }
 
 function leaveSeat() {
@@ -1043,6 +1050,10 @@ function initSocket() {
 
   socket.on('connect', () => {
     socket.emit('bar:join', { room: barRoom });
+    // Auto-Seat + Mic: Automatisch hinsetzen und Mic aktivieren
+    if (!isEmbed) {
+      setTimeout(function() { if (mySeatIdx < 0) takeSeat(); }, 2000);
+    }
   });
 }
 

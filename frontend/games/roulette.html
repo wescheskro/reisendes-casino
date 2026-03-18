@@ -2673,6 +2673,10 @@ function initSocket() {
   socket.on('connect', () => {
     socket.emit('rl:join', { tableId, username });
     document.getElementById('tableInfo').textContent = 'Verbunden!';
+    // Auto-Mic: Mikrofon automatisch starten
+    if (!isEmbed && !micOn) {
+      setTimeout(function() { toggleMic(); }, 2000);
+    }
   });
   socket.on('rl:state', data => {
     players = data.players || [];
