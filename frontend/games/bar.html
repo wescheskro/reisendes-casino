@@ -1398,6 +1398,69 @@ function openMessageModal(name) { createActionModal('💬 Nachricht an ' + name,
 function startCallUI(name, video) { createActionModal(video ? '📹 Videoanruf' : '📞 Sprachanruf', `<div style="text-align:center;padding:20px"><div style="font-size:36px;margin-bottom:10px">${name.charAt(0).toUpperCase()}</div><div style="font-size:16px;font-weight:700;color:#F4D03F;margin-bottom:4px">${name}</div><div style="color:rgba(240,230,211,.4);font-size:12px">Rufe an...</div><button onclick="closeActionModal()" style="margin-top:16px;padding:10px 24px;background:#e74c3c;border:none;border-radius:20px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Auflegen</button></div>`); }
 function openVoiceRecorder(name) { createActionModal('🎙 Sprachnachricht an ' + name, `<div style="text-align:center;padding:16px"><div style="font-size:48px;margin-bottom:10px">🎙</div><div style="color:rgba(240,230,211,.4);font-size:12px;margin-bottom:14px">Tippe zum Aufnehmen</div><button onclick="closeActionModal()" style="padding:10px 24px;background:linear-gradient(135deg,#D4AF37,#8B6914);border:none;border-radius:20px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Senden</button></div>`); }
 function openSendMoney(name) { createActionModal('💰 Geld senden an ' + name, `<div style="text-align:center"><input type="number" placeholder="Betrag in ₿" style="width:100%;padding:10px;background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.2);border-radius:8px;color:#F0E6D3;font-family:inherit;font-size:16px;text-align:center;margin-bottom:10px"><button onclick="closeActionModal()" style="width:100%;padding:10px;background:linear-gradient(135deg,#D4AF37,#8B6914);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Überweisen</button></div>`); }
+
+// ─── EIGENES VIDEO DRAG & DROP ───
+document.addEventListener('DOMContentLoaded', function() {
+  var mv = document.getElementById('myVideo');
+  if (!mv) return;
+  
+  var header = document.createElement('div');
+  header.style.cssText = 'position:absolute;top:0;left:0;right:0;height:24px;background:rgba(0,0,0,0.6);cursor:move;z-index:10;display:flex;justify-content:flex-end;align-items:center;padding:0 4px;';
+  var closeBtn = document.createElement('div');
+  closeBtn.textContent = '✖';
+  closeBtn.style.cssText = 'color:#fff;font-size:12px;cursor:pointer;padding:2px 6px;';
+  closeBtn.onclick = function(e) {
+    e.stopPropagation();
+    mv.style.display = 'none';
+    if (typeof camOn !== 'undefined' && camOn) toggleCam();
+  };
+  header.appendChild(closeBtn);
+  mv.appendChild(header);
+
+  var isDragging = false;
+  var startX, startY, initX, initY;
+
+  header.addEventListener('mousedown', dragStart);
+  header.addEventListener('touchstart', dragStart, {passive: false});
+
+  function dragStart(e) {
+    if (e.target === closeBtn) return;
+    isDragging = true;
+    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    var rect = mv.getBoundingClientRect();
+    startX = clientX;
+    startY = clientY;
+    initX = rect.left;
+    initY = rect.top;
+    
+    mv.style.right = 'auto';
+    mv.style.bottom = 'auto';
+    mv.style.left = initX + 'px';
+    mv.style.top = initY + 'px';
+    e.preventDefault();
+  }
+
+  window.addEventListener('mousemove', dragMove);
+  window.addEventListener('touchmove', dragMove, {passive: false});
+  window.addEventListener('mouseup', dragEnd);
+  window.addEventListener('touchend', dragEnd);
+
+  function dragMove(e) {
+    if (!isDragging) return;
+    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    var dx = clientX - startX;
+    var dy = clientY - startY;
+    mv.style.left = (initX + dx) + 'px';
+    mv.style.top = (initY + dy) + 'px';
+    e.preventDefault();
+  }
+
+  function dragEnd() {
+    isDragging = false;
+  }
+});
 </script>
 <script src="/js/door-sound.js"></script>
 <script src="/js/drinks.js"></script>

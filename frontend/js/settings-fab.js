@@ -4,26 +4,8 @@
   if (!fab) return;
   const menu = document.querySelector('.settings-menu') || document.querySelector('.vc-controls');
 
-  // Hide by default — show only for admins
-  fab.style.display = 'none';
-  if (menu) menu.style.display = 'none';
-
-  // Check admin status
-  function checkAdmin() {
-    const token = localStorage.getItem('casinoToken');
-    if (!token) return;
-    const API = window.API || (location.origin.includes('localhost') ? 'http://localhost:3000' : '');
-    fetch((API || '') + '/api/admin/check', { headers: { 'Authorization': 'Bearer ' + token } })
-      .then(r => r.json())
-      .then(d => {
-        if (d.isAdmin) {
-          fab.style.display = '';
-          window._isAdmin = true;
-        }
-      })
-      .catch(() => {});
-  }
-  checkAdmin();
+  // Die Settings-Fab und ggf. das Menü sollen standardmäßig für alle sichtbar sein.
+  // Nur die Position und das Drag-and-Drop bleibt erhalten.
 
   const KEY = 'settings-fab-pos';
   let dragging = false, wasDragged = false, startX, startY, origX, origY;
