@@ -83,7 +83,7 @@
   }
 
   const KEY = 'toolbar-pos-v2';
-  let dragging = false, wasDragged = false, startX, startY, origX, origY;
+  let isDown = false, dragging = false, wasDragged = false, startX, startY, origX, origY;
   const THRESHOLD = 8;
 
   function applySavedPosition() {
@@ -121,6 +121,7 @@
       e.preventDefault(); // Nativer Browser-Drag Fehler
     }
     
+    isDown = true;
     dragging = false; wasDragged = false;
     const t = e.touches ? e.touches[0] : e;
     startX = t.clientX; startY = t.clientY;
@@ -136,6 +137,7 @@
   }
 
   function onMove(e) {
+    if (!isDown) return;
     if (wasDragged === false && !dragging) {
       const t = e.touches ? e.touches[0] : e;
       if (Math.abs(t.clientX - startX) < THRESHOLD && Math.abs(t.clientY - startY) < THRESHOLD) return;
@@ -159,6 +161,7 @@
   }
 
   function onEnd() {
+    isDown = false;
     if (dragging) {
       dragging = false;
       const rect = menu.getBoundingClientRect();
