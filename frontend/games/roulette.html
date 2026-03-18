@@ -2955,7 +2955,7 @@ function startBotAutoPlay() {
     addChat('🎰', `${chatter.name}: "${msgs[Math.floor(Math.random() * msgs.length)]}"`);
     // Nach 3s drehen (wenn Spieler nicht selbst dreht)
     setTimeout(() => {
-      if (spinning || myBets.length > 0) return; // Spieler hat selbst gewettet
+      if (spinning) return;
       const number = WHEEL_NUMS[Math.floor(Math.random() * WHEEL_NUMS.length)];
       spinning = true;
       const btn = document.getElementById('btnSpin');
@@ -2969,7 +2969,7 @@ function startBotAutoPlay() {
         btn.textContent = '🎲 DREHEN';
       });
     }, 3000);
-  }, 15000 + Math.random() * 10000); // alle 15-25s
+  }, 8000 + Math.random() * 7000); // alle 8-15s
 }
 
 // ═══════════════════════════════════════

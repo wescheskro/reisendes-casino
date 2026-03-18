@@ -2839,6 +2839,8 @@ function pokerShowdown(table) {
   if (winnerId) {
     const winner = table.players.get(winnerId);
     winner.chips += table.pot;
+    // Bots: Chips auf max 1000 begrenzen
+    if (winner.isBot && winner.chips > 1000) winner.chips = 1000;
     io.to('pk-' + table.id).emit('poker:winner', {
       username: winner.username, pot: table.pot,
       hand: winner.handResult?.name || 'Gewinner'
@@ -2896,9 +2898,11 @@ function pokerStartRound(table) {
   if (table.timer) clearTimeout(table.timer);
   // Remove players with no chips (Bots bekommen Nachschub)
   for (const [pid, p] of table.players) {
+    // Bots: Chips auf 1000 begrenzen
+    if (p.isBot && p.chips > 1000) p.chips = 1000;
     if (p.chips <= 0 && !p.spectator) {
       if (p.isBot) {
-        p.chips = 10000; // Bot-Reset
+        p.chips = 1000; // Bot-Reset
       } else {
         p.spectator = true;
         // Gast: Broke-Signal senden
