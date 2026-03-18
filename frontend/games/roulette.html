@@ -948,9 +948,14 @@ let myBets = [];
 let _betDeducted = false;
 
 function _refreshBaxt() {
-  // Baxt-Widget refreshen (funktioniert im iframe und direkt)
   if (window._baxt) window._baxt.refresh();
   try { if (window.parent && window.parent._baxt) window.parent._baxt.refresh(); } catch(e) {}
+}
+
+function _getToken() {
+  // Token kann unter casinoToken oder casinoUser.token gespeichert sein
+  return localStorage.getItem('casinoToken') || localStorage.getItem('token') ||
+    (function(){ try { return JSON.parse(localStorage.getItem('casinoUser') || '{}').token; } catch(e){ return ''; } })() || '';
 }
 let spinning = false;
 const spinSound = new Audio('/games/sounds/spinopel-spinning-roulette-wheel-429832.mp3');
@@ -2090,8 +2095,7 @@ function showResult(number) {
   if (myBets.length > 0 && !_betDeducted) {
     // Bot-Auto-Spin: Einsatz + Gewinn über REST abrechnen
     var totalBet = myBets.reduce(function(s,b){ return s + b.amount; }, 0);
-    var token = '';
-    try { token = JSON.parse(localStorage.getItem('casinoUser') || '{}').token; } catch(e){}
+    var token = _getToken();
     if (token) {
       fetch('/api/baxt/roulette-result', {
         method: 'POST',
