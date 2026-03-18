@@ -1747,6 +1747,20 @@
     }
 
     /* ============ GLOBAL JACKPOT TICKER ============ */
+    /* Scroll-Hinweis Pfeil */
+    .scroll-hint {
+      text-align: center; margin: -5px 0 10px; cursor: pointer;
+    }
+    .scroll-hint img {
+      width: 40px; height: auto; opacity: 0.6;
+      animation: scrollBounce 2s ease-in-out infinite;
+      filter: drop-shadow(0 2px 8px rgba(212,175,55,.4));
+    }
+    @keyframes scrollBounce {
+      0%, 100% { transform: translateY(0); opacity: 0.5; }
+      50% { transform: translateY(10px); opacity: 0.8; }
+    }
+
     .jackpot-banner {
       width: 90%;
       max-width: 520px;
@@ -2447,6 +2461,9 @@
       <div class="game-subtitle">Wir pr&auml;sentieren</div>
       <h1 class="game-logo">Reisendes Casino</h1>
       <p class="game-tagline">Put Baxt! &mdash; Latscho Diwes!</p>
+      <div class="scroll-hint" onclick="document.getElementById('jackpotBanner').scrollIntoView({behavior:'smooth'})">
+        <img src="/img/scroll-arrow.png" alt="Runterscrollen">
+      </div>
     </section>
 
     <!-- JACKPOT TICKER -->
