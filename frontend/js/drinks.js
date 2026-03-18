@@ -72,6 +72,65 @@
   bucket.innerHTML = '<img src="/img/ice-bucket.png" alt="Getränke">';
   document.body.appendChild(bucket);
 
+  // ── Eiskübel: Gespeicherte Position laden ──
+  (function(){
+    try {
+      var saved = JSON.parse(localStorage.getItem('ice-bucket-pos'));
+      if (saved) {
+        bucket.style.bottom = 'auto';
+        bucket.style.right = 'auto';
+        bucket.style.top = saved.top + 'px';
+        bucket.style.left = saved.left + 'px';
+      }
+    } catch(e) {}
+  })();
+
+  // ── Eiskübel: Drag zum Verschieben ──
+  (function(){
+    var dragging = false, wasDragged = false;
+    var startX, startY, origX, origY;
+
+    function onStart(e) {
+      var ev = e.touches ? e.touches[0] : e;
+      startX = ev.clientX; startY = ev.clientY;
+      var rect = bucket.getBoundingClientRect();
+      origX = rect.left; origY = rect.top;
+      dragging = true; wasDragged = false;
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var ev = e.touches ? e.touches[0] : e;
+      var dx = ev.clientX - startX, dy = ev.clientY - startY;
+      if (!wasDragged && Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      wasDragged = true;
+      e.preventDefault();
+      bucket.style.bottom = 'auto';
+      bucket.style.right = 'auto';
+      bucket.style.top = (origY + dy) + 'px';
+      bucket.style.left = (origX + dx) + 'px';
+    }
+    function onEnd() {
+      if (dragging && wasDragged) {
+        var rect = bucket.getBoundingClientRect();
+        localStorage.setItem('ice-bucket-pos', JSON.stringify({ top: rect.top, left: rect.left }));
+      }
+      dragging = false;
+      setTimeout(function(){ wasDragged = false; }, 50);
+    }
+
+    bucket.addEventListener('mousedown', onStart);
+    bucket.addEventListener('touchstart', onStart, {passive:true});
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, {passive:false});
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchend', onEnd);
+
+    // Klick nur wenn NICHT gedraggt
+    bucket.addEventListener('click', function(e) {
+      if (wasDragged) { e.stopPropagation(); e.preventDefault(); return; }
+    }, true);
+  })();
+
   // ── Menü-Overlay erstellen ──
   const overlay = document.createElement('div');
   overlay.className = 'drink-overlay';
@@ -87,10 +146,8 @@
   overlay.innerHTML = cardHTML;
   document.body.appendChild(overlay);
 
-  // ── Eiskübel: Einfacher Click/Tap (KEIN Drag) ──
+  // ── Eiskübel: Click öffnet Menü (nur wenn nicht gedraggt) ──
   bucket.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
     openMenu();
   });
 
