@@ -1352,7 +1352,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 <div class="video-grid" id="videoGrid"></div>
 <div class="vc-status" id="vcStatus"></div>
 <div class="vc-controls" id="vcControls">
-  <button class="vc-btn" id="vcJoinBtn" onclick="if(window._vc && socket) window._vc.autoStart(socket, 'pk-'+tableId, socket.id)" title="Sprachchat beitreten">📞</button>
+  <button class="vc-btn" id="vcJoinBtn" onclick="if(socket) RTC.startMedia().then(function(){if(RTC.stream) RTC.connectToAll([], socket.id)})" title="Sprachchat beitreten">📞</button>
   <button class="vc-btn" id="vcMicBtn" onclick="toggleMic()" title="Mikrofon">🎤</button>
   <button class="vc-btn" id="vcCamBtn" onclick="toggleCam()" title="Kamera">📷</button>
   <button class="vc-btn" id="btnMute" onclick="toggleMuteAll()" title="Ton an/aus">🔊</button>
@@ -1787,7 +1787,7 @@ document.addEventListener('touchstart', function(e) {
 });
 </script>
 <script src="/socket.io/socket.io.js"></script>
-<script src="/js/voice-chat.js"></script>
+<script src="/js/rtc.js"></script>
 <script>
 const token = localStorage.getItem('casinoToken');
 const user = (() => { try { return JSON.parse(localStorage.getItem('casinoUser')); } catch(e) { return null; } })();
@@ -3386,7 +3386,7 @@ function renderState(state) {
   updateMyHand(state);
 
   // Video-Tiles an Seats re-attachen (weil seat innerHTML aktualisiert wurde)
-  if (window._vc && window._vc.stream) {
+  if (RTC.stream) {
     try { if (typeof reattachSeatVideos === 'function') reattachSeatVideos(); } catch(e) { console.warn('Video reattach error:', e); }
   }
 }
@@ -3843,11 +3843,14 @@ function setupSocketEvents() {
     socket.emit('poker:join', { tableId, seat: -1 });
     document.getElementById('tableInfo').textContent = 'Verbunden!';
     // Voice Chat initialisieren
-    window._vc.attachSignaling(socket);
+    RTC.init(socket, 'pk');
     if (!isEmbedMode) {
-      document.addEventListener('click', function pkVcAutoClick() {
-        if (window._vc.stream) { document.removeEventListener('click', pkVcAutoClick); return; }
-        window._vc.autoStart(socket, 'pk-' + tableId, socket.id);
+      document.addEventListener('click', async function pkAutoMic() {
+        if (RTC.stream) { document.removeEventListener('click', pkAutoMic); return; }
+        await RTC.startMedia();
+        if (RTC.stream) {
+          document.removeEventListener('click', pkAutoMic);
+        }
       });
     }
   });
@@ -4043,13 +4046,13 @@ if (isEmbedMode) {
   }
 })();
 
-// ===================== VIDEO/SPRACH-CHAT (via voice-chat.js) =====================
+// ===================== VIDEO/SPRACH-CHAT (via rtc.js) =====================
 function toggleMic() {
-  if (window._vc) window._vc.toggleMic();
+  RTC.toggleMic();
 }
 
 function toggleCam() {
-  if (window._vc) window._vc.toggleCam();
+  RTC.toggleCam();
 }
 </script>
 <!-- PLAYER MENU -->

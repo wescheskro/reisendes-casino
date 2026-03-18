@@ -3898,6 +3898,17 @@ io.on('connection', (socket) => {
     io.to(data.to).emit('bj:ice', { from: socket.id, candidate: data.candidate });
   });
 
+  // Poker WebRTC Signaling
+  socket.on('pk:offer', (data) => {
+    io.to(data.to).emit('pk:offer', { from: socket.id, offer: data.offer });
+  });
+  socket.on('pk:answer', (data) => {
+    io.to(data.to).emit('pk:answer', { from: socket.id, answer: data.answer });
+  });
+  socket.on('pk:ice', (data) => {
+    io.to(data.to).emit('pk:ice', { from: socket.id, candidate: data.candidate });
+  });
+
   // Roulette cleanup on disconnect (added to existing disconnect handler below)
   socket.on('disconnect', () => {
     const tid = socket.rlTable;
