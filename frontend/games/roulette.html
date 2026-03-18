@@ -945,17 +945,43 @@ const isEmbed = location.search.includes('embed=1');
 let socket = null;
 let selectedChip = 500;
 let myBets = [];
-let _betDeducted = false;
+
+// ── BAXT COINS HELPER ──
+// Wer hat den Einsatz abgezogen? 'socket' = Server hat schon, 'none' = noch niemand
+let _betHandler = 'none';
+
+function _getToken() {
+  return localStorage.getItem('casinoToken') || localStorage.getItem('token') || '';
+}
 
 function _refreshBaxt() {
   if (window._baxt) window._baxt.refresh();
   try { if (window.parent && window.parent._baxt) window.parent._baxt.refresh(); } catch(e) {}
 }
 
-function _getToken() {
-  // Token kann unter casinoToken oder casinoUser.token gespeichert sein
-  return localStorage.getItem('casinoToken') || localStorage.getItem('token') ||
-    (function(){ try { return JSON.parse(localStorage.getItem('casinoUser') || '{}').token; } catch(e){ return ''; } })() || '';
+// Nach Spin: Gewinn/Verlust korrekt abrechnen
+function _settleRound(winnings) {
+  if (myBets.length === 0) { _refreshBaxt(); return; }
+  var totalBet = myBets.reduce(function(s,b){ return s+b.amount; }, 0);
+  var token = _getToken();
+
+  if (_betHandler === 'socket') {
+    // Server hat Einsatz schon abgezogen UND Gewinn schon gutgeschrieben (calcRoulettePayout)
+    // → Nur Widget refreshen
+    _refreshBaxt();
+  } else {
+    // Solo/Bot-Spin: REST-Endpoint rechnet alles ab
+    if (token) {
+      fetch('/api/baxt/roulette-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ bet: totalBet, winnings: winnings })
+      }).then(function(r){ return r.json(); }).then(function(){
+        _refreshBaxt();
+      }).catch(function(){ _refreshBaxt(); });
+    }
+  }
+  _betHandler = 'none';
 }
 let spinning = false;
 const spinSound = new Audio('/games/sounds/spinopel-spinning-roulette-wheel-429832.mp3');
@@ -2002,20 +2028,28 @@ function updateBets(isNew) {
 }
 
 // ═══════════════════════════════════════
-// SPIN
+// SPIN — Saubere Logik
 // ═══════════════════════════════════════
+// Zwei Wege zum Spin:
+// A) User klickt DREHEN → requestSpin() → Socket rl:placeBets → Server Countdown → Server rl:spin → doSpin()
+//    → Server zieht Einsatz ab + rechnet Gewinn aus → _betHandler='socket'
+// B) Solo/Offline → requestSpin() → doSpin() direkt → REST-Endpoint rechnet ab → _betHandler='none'
+// C) Bot-Auto-Spin (nur wenn Socket NICHT verbunden) → doSpin() → REST-Endpoint
+
 let countdownActive = false;
 let countdownSeconds = 0;
 
 function requestSpin() {
   if (spinning || myBets.length === 0) return;
   if (socket && socket.connected) {
-    // Wetten an Server senden → Countdown startet für alle
+    // Weg A: Server steuert alles
     socket.emit('rl:placeBets', { tableId, bets: myBets });
-    _betDeducted = true; // Socket zieht Einsatz ab
+    _betHandler = 'socket';
     document.getElementById('btnSpin').disabled = true;
     document.getElementById('btnSpin').textContent = '⏳ Warten...';
   } else {
+    // Weg B: Solo/Offline
+    _betHandler = 'none';
     doSpin(WHEEL_NUMS[Math.floor(Math.random() * WHEEL_NUMS.length)]);
   }
 }
@@ -2023,14 +2057,14 @@ function requestSpin() {
 function doSpin(number) {
   spinning = true;
   countdownActive = false;
-  const btn = document.getElementById('btnSpin');
+  var btn = document.getElementById('btnSpin');
   btn.disabled = true;
   btn.textContent = '🎲 Dreht...';
-  if (botsEnabled) botsPlaceBets();
 
-  spinBall(number, (landed) => {
+  spinBall(number, function(landed) {
     showResult(landed);
     if (botsEnabled) showBotResults(landed);
+    clearBotChips();
     spinning = false;
     btn.disabled = false;
     btn.textContent = '🎲 DREHEN';
@@ -2040,76 +2074,57 @@ function doSpin(number) {
 function updateCountdown(seconds) {
   countdownActive = seconds > 0;
   countdownSeconds = seconds;
-  const btn = document.getElementById('btnSpin');
+  var btn = document.getElementById('btnSpin');
   if (seconds > 0) {
-    btn.textContent = `⏳ ${seconds}s — Setzt eure Wetten!`;
-    // Wenn man noch nicht gesetzt hat, Button aktiv lassen
-    if (myBets.length === 0) {
-      btn.disabled = false;
-    }
+    btn.textContent = '⏳ ' + seconds + 's — Setzt eure Wetten!';
+    if (myBets.length === 0) btn.disabled = false;
   }
 }
 
 function showResult(number) {
-  const c = numColor(number);
-  const winnings = calcWin(number);
+  var c = numColor(number);
+  var winnings = calcWin(number);
 
-  // Wheel center result
-  const wr = document.getElementById('wheelResult');
+  // Ergebnis-Anzeige
+  var wr = document.getElementById('wheelResult');
   wr.textContent = number;
   wr.classList.add('show');
-  setTimeout(() => wr.classList.remove('show'), 3000);
+  setTimeout(function(){ wr.classList.remove('show'); }, 3000);
 
   // Popup
-  const popup = document.getElementById('resultPopup');
-  const rpNum = document.getElementById('rpNum');
-  const rpText = document.getElementById('rpText');
+  var popup = document.getElementById('resultPopup');
+  var rpNum = document.getElementById('rpNum');
+  var rpText = document.getElementById('rpText');
   rpNum.className = 'rp-num ' + c;
   rpNum.textContent = number;
   if (winnings > 0) {
     rpText.className = 'rp-text rp-win';
     rpText.textContent = '+' + winnings.toLocaleString('de-DE') + ' ₿';
-  } else {
+  } else if (myBets.length > 0) {
     rpText.className = 'rp-text rp-lose';
     rpText.textContent = 'Verloren!';
+  } else {
+    rpText.className = 'rp-text';
+    rpText.textContent = '';
   }
   popup.classList.add('show');
-  setTimeout(() => popup.classList.remove('show'), 3500);
+  setTimeout(function(){ popup.classList.remove('show'); }, 3500);
 
-  // Highlight winning pocket on 3D wheel
   highlightPocket(number);
 
-  // Highlight winning cell on betting table
-  document.querySelectorAll('.bc.win-highlight').forEach(el => el.classList.remove('win-highlight'));
-  const winCell = document.querySelector(`.bc[data-t="number"][data-v="${number}"]`);
+  document.querySelectorAll('.bc.win-highlight').forEach(function(el){ el.classList.remove('win-highlight'); });
+  var winCell = document.querySelector('.bc[data-t="number"][data-v="' + number + '"]');
   if (winCell) {
     winCell.classList.add('win-highlight');
-    setTimeout(() => winCell.classList.remove('win-highlight'), 4500);
+    setTimeout(function(){ winCell.classList.remove('win-highlight'); }, 4500);
   }
 
   resultHistory.unshift(number);
   if (resultHistory.length > 20) resultHistory.pop();
   renderHistory();
 
-  // Baxt Coins abrechnen — nur wenn NICHT über Socket gespielt (Socket hat eigenen Payout)
-  if (myBets.length > 0 && !_betDeducted) {
-    // Bot-Auto-Spin: Einsatz + Gewinn über REST abrechnen
-    var totalBet = myBets.reduce(function(s,b){ return s + b.amount; }, 0);
-    var token = _getToken();
-    if (token) {
-      fetch('/api/baxt/roulette-result', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ bet: totalBet, winnings: winnings })
-      }).then(function(r){ return r.json(); }).then(function(d){
-        _refreshBaxt();
-      }).catch(function(){});
-    }
-  } else {
-    // Socket-Spin: Server hat Payout schon gemacht, nur Widget refreshen
-    _refreshBaxt();
-  }
-  _betDeducted = false;
+  // Baxt Coins abrechnen
+  _settleRound(winnings);
 
   myBets = [];
   updateBets();
@@ -3000,30 +3015,28 @@ function startBotAutoPlay() {
   if (botAutoInterval) clearInterval(botAutoInterval);
   botAutoInterval = setInterval(() => {
     if (!botsEnabled || bots.length === 0 || spinning) return;
-    // Bot-Wetten platzieren
+    // Wenn Socket verbunden: Bots nur visuell Wetten zeigen + chatten
+    // Der Server steuert den Spin (User muss DREHEN klicken → rl:placeBets → Server-Countdown → rl:spin)
+    if (socket && socket.connected) {
+      botsPlaceBets();
+      showBotChips();
+      const chatter = bots[Math.floor(Math.random() * bots.length)];
+      const msgs = ['Ich setze auf Rot!','Schwarz muss kommen!','Die 17 ist meine Glückszahl!','Alles auf Gerade!','Heute ist mein Tag!','Rien ne va plus!'];
+      addChat('🎰', `${chatter.name}: "${msgs[Math.floor(Math.random() * msgs.length)]}"`);
+      return; // KEIN lokaler Spin — Server steuert
+    }
+    // Offline/Solo: Bots drehen lokal
     botsPlaceBets();
     showBotChips();
-    // Chat: Bot setzt
     const chatter = bots[Math.floor(Math.random() * bots.length)];
     const msgs = ['Ich setze auf Rot!','Schwarz muss kommen!','Die 17 ist meine Glückszahl!','Alles auf Gerade!','Heute ist mein Tag!','Rien ne va plus!'];
     addChat('🎰', `${chatter.name}: "${msgs[Math.floor(Math.random() * msgs.length)]}"`);
-    // Nach 3s drehen
     setTimeout(() => {
       if (spinning) return;
       const number = WHEEL_NUMS[Math.floor(Math.random() * WHEEL_NUMS.length)];
-      spinning = true;
-      const btn = document.getElementById('btnSpin');
-      btn.disabled = true;
-      btn.textContent = '🎲 Dreht...';
-      spinBall(number, (landed) => {
-        showResult(landed);
-        showBotResults(landed);
-        spinning = false;
-        btn.disabled = false;
-        btn.textContent = '🎲 DREHEN';
-      });
+      doSpin(number);
     }, 3000);
-  }, 10000 + Math.random() * 8000); // alle 10-18s
+  }, 10000 + Math.random() * 8000);
 }
 
 // ═══════════════════════════════════════
