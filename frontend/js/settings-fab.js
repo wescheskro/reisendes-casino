@@ -1,145 +1,193 @@
-// Settings Fab - Draggable with responsive percentage position persistence
+// Gemeinsame Toolbar für Video-/Audio-Chat - Draggable mit prozentualer Speicherung
 (function(){
-  // Make the gear more visible across all games by injecting a global style
+  // Wir blendet das Zahnrad aus und machen stattdessen das Menü dauerhaft als eine schicke Toolbar sichtbar!
   const style = document.createElement('style');
   style.innerHTML = `
     .settings-fab, .vc-fab {
-      background: linear-gradient(135deg, #E67E22, #D35400) !important;
-      border: 2px solid #FFF !important;
-      box-shadow: 0 4px 16px rgba(230, 126, 34, 0.6) !important;
-      color: #FFF !important;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.8) !important;
-      opacity: 0.95 !important;
-      z-index: 9999 !important;
+      display: none !important; /* RIP Zahnrad */
     }
-    .settings-fab:hover, .vc-fab:hover {
+    .settings-menu, .vc-controls {
+      position: fixed !important;
       opacity: 1 !important;
-      transform: scale(1.1) !important;
-      box-shadow: 0 6px 20px rgba(230, 126, 34, 0.9) !important;
+      pointer-events: auto !important;
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 12px !important;
+      align-items: center !important;
+      background: linear-gradient(145deg, rgba(20,20,30,0.95), rgba(10,10,15,0.98)) !important;
+      padding: 10px 18px !important;
+      border-radius: 40px !important;
+      border: 1px solid rgba(212,175,55,0.4) !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.8), 0 0 16px rgba(212,175,55,0.15) !important;
+      backdrop-filter: blur(12px) !important;
+      z-index: 99999 !important;
+      cursor: grab !important;
+      transition: none !important; /* Animationen für Sichtbarkeit deaktivieren */
+    }
+    .settings-menu:active, .vc-controls:active {
+      cursor: grabbing !important;
+    }
+    .settings-menu-btn, .vc-btn {
+      width: 44px !important;
+      height: 44px !important;
+      border-radius: 50% !important;
+      background: rgba(255,255,255,0.08) !important;
+      border: 1px solid rgba(255,255,255,0.15) !important;
+      color: #F0E6D3 !important;
+      font-size: 20px !important;
+      cursor: pointer !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+    }
+    .settings-menu-btn:hover, .vc-btn:hover {
+      background: rgba(212,175,55,0.2) !important;
+      border-color: rgba(212,175,55,0.6) !important;
+      transform: scale(1.08) !important;
+      color: #FFF !important;
+    }
+    .settings-menu-btn.active, .vc-btn.active {
+      background: rgba(76,175,80,0.25) !important;
+      border-color: #4CAF50 !important;
+      color: #fff !important;
+      box-shadow: 0 0 12px rgba(76,175,80,0.4) !important;
+    }
+    /* Greet Handle for usability */
+    .drag-handle {
+      color: rgba(212,175,55,0.4);
+      font-size: 18px;
+      margin-right: 4px;
+      user-select: none;
+      pointer-events: none;
+      font-family: monospace;
     }
   `;
   document.head.appendChild(style);
 
-  const fab = document.querySelector('.settings-fab') || document.querySelector('.vc-fab');
-  if (!fab) return;
+  // Finde das Menu-Container (Bar, Poker, Blackjack etc.)
   const menu = document.querySelector('.settings-menu') || document.querySelector('.vc-controls');
+  if (!menu) return;
 
-  const KEY = 'settings-fab-pos';
+  // Füge einen Drag-Handle hinzu zur besseren Orientierung
+  const handle = document.createElement('div');
+  handle.className = 'drag-handle';
+  handle.innerHTML = '⋮⋮';
+  menu.insertBefore(handle, menu.firstChild);
+
+  // Lautstärke-Regler in der Bar horizontalisieren
+  const slider = document.getElementById('volumeSlider');
+  if (slider) {
+    slider.style.cssText = 'width:80px;height:12px;writing-mode:horizontal-tb;direction:ltr;accent-color:#D4AF37;cursor:pointer;margin:0 4px;';
+  }
+
+  const KEY = 'toolbar-pos-v2';
   let dragging = false, wasDragged = false, startX, startY, origX, origY;
   const THRESHOLD = 8;
 
   function applySavedPosition() {
     try {
       const saved = JSON.parse(localStorage.getItem(KEY));
-      if (!saved) return;
-      
-      let topPct, leftPct;
-      if (typeof saved.topPct !== 'undefined') {
-        topPct = saved.topPct;
-        leftPct = saved.leftPct;
-      } else if (typeof saved.top !== 'undefined') {
-        // Fallback from old px-based save
-        topPct = (saved.top / window.innerHeight) * 100;
-        leftPct = (saved.left / window.innerWidth) * 100;
-      } else return;
-      
-      // Ensure it's inside viewport (min 2%, max 90%)
-      topPct = Math.max(2, Math.min(90, topPct));
-      leftPct = Math.max(2, Math.min(90, leftPct));
-
-      fab.style.top = topPct + '%';
-      fab.style.right = 'auto';
-      fab.style.left = leftPct + '%';
-      
-      if (menu) {
-        menu.style.top = 'calc(' + topPct + '% + 50px)';
+      if (!saved) {
+        // Fallback: Initially am oberen Bildschirmrand platzieren (Mitte)
+        menu.style.top = '20px';
         menu.style.right = 'auto';
-        menu.style.left = leftPct + '%';
+        menu.style.left = '50%';
+        menu.style.transform = 'translateX(-50%)';
+        return;
       }
+      
+      let topPct = saved.topPct;
+      let leftPct = saved.leftPct;
+      
+      topPct = Math.max(2, Math.min(92, topPct));
+      leftPct = Math.max(2, Math.min(92, leftPct));
+
+      menu.style.transform = 'none'; // Transform aufheben
+      menu.style.top = topPct + '%';
+      menu.style.right = 'auto';
+      menu.style.left = leftPct + '%';
     } catch(e) {}
   }
   
-  // Initial position setup
   applySavedPosition();
 
-  // Make draggable
-  fab.style.cursor = 'grab';
-  fab.style.touchAction = 'none';
-
   function onStart(e) {
+    // Falls auf ein interaktives Element (Button/Slider) geklickt wurde, kein Drag!
+    if (e.target.closest('button') || e.target.tagName.toLowerCase() === 'input') return;
+
     if (e.type === 'mousedown') {
-      // Verhindert, dass der Browser versucht Text zu selektieren oder native element drags auszuführen!
-      e.preventDefault();
+      e.preventDefault(); // Nativer Browser-Drag Fehler
     }
+    
     dragging = false; wasDragged = false;
     const t = e.touches ? e.touches[0] : e;
     startX = t.clientX; startY = t.clientY;
-    const r = fab.getBoundingClientRect();
+    
+    // Wir müssen die aktuelle px-Position auslesen
+    const r = menu.getBoundingClientRect();
     origX = r.left; origY = r.top;
+    
+    // Wenn transform genutzt wurde (initial state), löschen wir es für reine L/T-Werte
+    menu.style.transform = 'none';
+    menu.style.top = origY + 'px';
+    menu.style.left = origX + 'px';
   }
+
   function onMove(e) {
     if (wasDragged === false && !dragging) {
       const t = e.touches ? e.touches[0] : e;
       if (Math.abs(t.clientX - startX) < THRESHOLD && Math.abs(t.clientY - startY) < THRESHOLD) return;
       dragging = true; wasDragged = true;
-      fab.style.cursor = 'grabbing';
     }
     if (!dragging) return;
     if (e.cancelable) e.preventDefault();
+    
     const t = e.touches ? e.touches[0] : e;
     
-    // Keep inside boundaries during drag
-    const nx = Math.max(0, Math.min(window.innerWidth - 50, origX + (t.clientX - startX)));
-    const ny = Math.max(0, Math.min(window.innerHeight - 50, origY + (t.clientY - startY)));
+    // Constraints für den Bildschirm
+    const maxX = window.innerWidth - menu.offsetWidth;
+    const maxY = window.innerHeight - menu.offsetHeight;
     
-    fab.style.right = 'auto';
-    fab.style.left = nx + 'px';
-    fab.style.top = ny + 'px';
+    const nx = Math.max(0, Math.min(maxX, origX + (t.clientX - startX)));
+    const ny = Math.max(0, Math.min(maxY, origY + (t.clientY - startY)));
     
-    if (menu) {
-      menu.style.right = 'auto';
-      menu.style.left = nx + 'px';
-      menu.style.top = (ny + 50) + 'px';
-    }
+    menu.style.right = 'auto';
+    menu.style.left = nx + 'px';
+    menu.style.top = ny + 'px';
   }
+
   function onEnd() {
     if (dragging) {
       dragging = false;
-      fab.style.cursor = 'grab';
-      
-      // Calculate new percentage of viewport
-      const rect = fab.getBoundingClientRect();
+      const rect = menu.getBoundingClientRect();
       const topPct = (rect.top / window.innerHeight) * 100;
       const leftPct = (rect.left / window.innerWidth) * 100;
       
-      // Save it
       localStorage.setItem(KEY, JSON.stringify({
         topPct: topPct,
         leftPct: leftPct
       }));
       
-      // Lock position permanently to percentages so resize logic works right away
-      fab.style.top = topPct + '%';
-      fab.style.left = leftPct + '%';
-      if (menu) {
-        menu.style.top = 'calc(' + topPct + '% + 50px)';
-        menu.style.left = leftPct + '%';
-      }
+      menu.style.top = topPct + '%';
+      menu.style.left = leftPct + '%';
     }
   }
 
-  fab.addEventListener('mousedown', onStart);
-  fab.addEventListener('touchstart', onStart, {passive: true});
+  menu.addEventListener('mousedown', onStart);
+  menu.addEventListener('touchstart', onStart, {passive: true});
   window.addEventListener('mousemove', onMove);
   window.addEventListener('touchmove', onMove, {passive: false});
   window.addEventListener('mouseup', onEnd);
   window.addEventListener('touchend', onEnd);
 
-  // Relocate after window resize
+  // Resize-Listener
   window.addEventListener('resize', () => { setTimeout(applySavedPosition, 200); });
 
-  // Block click when dragged
-  fab.addEventListener('click', function(e) {
+  // Falls doch noch Clicks auf den Container abgefangen werden sollen
+  menu.addEventListener('click', function(e) {
     if (wasDragged) { e.stopImmediatePropagation(); e.preventDefault(); wasDragged = false; }
   }, true);
+
 })();
