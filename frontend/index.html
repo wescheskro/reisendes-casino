@@ -1770,6 +1770,7 @@
       width: 70px; height: auto;
       animation: scrollBounce 1.8s ease-in-out infinite;
       filter: drop-shadow(0 4px 16px rgba(212,175,55,.5));
+      transition: transform .4s ease;
     }
     @keyframes scrollBounce {
       0%, 100% { transform: translateY(0); opacity: 0.6; }
@@ -4822,25 +4823,46 @@
 <script src="/js/friends.js"></script>
 <script src="/js/jukebox.js"></script>
 
-<!-- Scroll-Hinweis Pfeil (fixed unten, verschwindet am Seitenende) -->
-<div class="scroll-hint" id="scrollHint" onclick="window.scrollBy({top:window.innerHeight,behavior:'smooth'})">
-  <img src="/img/scroll-arrow.png" alt="Runterscrollen">
+<!-- Scroll-Pfeil (runter/hoch je nach Position) -->
+<div class="scroll-hint" id="scrollHint" onclick="scrollArrowClick()">
+  <img id="scrollArrowImg" src="/img/scroll-arrow.png" alt="Scrollen">
 </div>
 <script>
 (function(){
   var hint = document.getElementById('scrollHint');
-  if (!hint) return;
+  var img = document.getElementById('scrollArrowImg');
+  if (!hint || !img) return;
+  var isUp = false;
+
   function checkScroll() {
+    var gameOpen = document.getElementById('gameOverlay');
+    if (gameOpen && gameOpen.style.display === 'block') {
+      hint.classList.add('hidden');
+      return;
+    }
+    hint.classList.remove('hidden');
+
     var scrollBottom = window.scrollY + window.innerHeight;
     var docHeight = document.documentElement.scrollHeight;
-    // Verstecken wenn fast unten (200px vor Ende) oder im gameOverlay
-    var gameOpen = document.getElementById('gameOverlay');
-    if (scrollBottom >= docHeight - 200 || (gameOpen && gameOpen.style.display === 'block')) {
-      hint.classList.add('hidden');
-    } else {
-      hint.classList.remove('hidden');
+    var pastHalf = window.scrollY > docHeight * 0.4;
+
+    if (pastHalf && !isUp) {
+      isUp = true;
+      img.style.transform = 'rotate(180deg)';
+    } else if (!pastHalf && isUp) {
+      isUp = false;
+      img.style.transform = 'rotate(0deg)';
     }
   }
+
+  window.scrollArrowClick = function() {
+    if (isUp) {
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    } else {
+      window.scrollBy({top: window.innerHeight, behavior: 'smooth'});
+    }
+  };
+
   window.addEventListener('scroll', checkScroll, {passive: true});
   checkScroll();
 })();
