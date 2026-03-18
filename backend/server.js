@@ -4093,4 +4093,16 @@ server.listen(PORT, () => {
   console.log(`\n🎰 Reisendes Casino Backend running on port ${PORT}`);
   console.log(`🃏 Multiplayer: Blackjack & Poker (Socket.IO)`);
   console.log(`🌍 Open: http://localhost:${PORT}\n`);
+
+  // Keep-Alive: Render Free Plan schläft nach 15 Min Inaktivität ein.
+  // Selbst-Ping alle 14 Minuten hält den Server wach.
+  if (process.env.RENDER_EXTERNAL_URL || process.env.RENDER) {
+    const url = process.env.RENDER_EXTERNAL_URL || 'https://reisendescasino.de';
+    setInterval(() => {
+      require('https').get(url + '/api/online', (res) => {
+        res.resume();
+      }).on('error', () => {});
+    }, 14 * 60 * 1000); // 14 Minuten
+    console.log(`🏓 Keep-alive ping aktiv für ${url}`);
+  }
 });
