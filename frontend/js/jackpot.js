@@ -41,6 +41,16 @@
       0%, 100% { background-position: -200% 0; }
       50% { background-position: 200% 0; }
     }
+    .jp-coin { perspective:200px; display:inline-block; }
+    .jp-coin .jpc { position:relative; transform-style:preserve-3d; animation:baxt-spin 4s linear infinite; }
+    .jp-coin .jpf { position:absolute;inset:0;backface-visibility:hidden;border-radius:50%;overflow:hidden;transform:translateZ(3px); }
+    .jp-coin .jpf img { width:100%;height:100%;object-fit:cover; }
+    .jp-coin .jpf.jpb { transform:rotateY(180deg) translateZ(3px); }
+    .jp-coin .jpe { position:absolute;inset:0;border-radius:50%;background:linear-gradient(180deg,#F4D03F,#D4AF37 25%,#8a6d0b 50%,#D4AF37 75%,#F4D03F); }
+    @keyframes baxt-spin {
+      0% { transform: rotateY(0deg); }
+      100% { transform: rotateY(360deg); }
+    }
     .jackpot-label {
       font-size: 10px; color: rgba(212,175,55,.8);
       letter-spacing: 3px; text-transform: uppercase;
@@ -77,7 +87,11 @@
     banner.id = 'jackpotBanner';
     banner.innerHTML = `
       <div class="jackpot-label">\uD83C\uDFB0 Globaler Jackpot \uD83C\uDFB0</div>
-      <div class="jackpot-value" id="jackpotValue">0,00 \u20BF</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+        <div class="jp-coin" style="width:32px;height:32px"><div class="jpc" style="width:100%;height:100%"><div class="jpf"><img src="/img/baxt-coin.png" alt="₿"></div><div class="jpf jpb"><img src="/img/baxt-coin.png" alt="₿"></div><div class="jpe" style="transform:translateZ(-2px)"></div><div class="jpe" style="transform:translateZ(-1px)"></div><div class="jpe" style="transform:translateZ(0)"></div><div class="jpe" style="transform:translateZ(1px)"></div></div></div>
+        <div class="jackpot-value" id="jackpotValue">0,00 \u20BF</div>
+        <div class="jp-coin" style="width:32px;height:32px"><div class="jpc" style="width:100%;height:100%;animation-delay:2s"><div class="jpf"><img src="/img/baxt-coin.png" alt="₿"></div><div class="jpf jpb"><img src="/img/baxt-coin.png" alt="₿"></div><div class="jpe" style="transform:translateZ(-2px)"></div><div class="jpe" style="transform:translateZ(-1px)"></div><div class="jpe" style="transform:translateZ(0)"></div><div class="jpe" style="transform:translateZ(1px)"></div></div></div>
+      </div>
       <div class="jackpot-sub">Steigt mit jedem Spin</div>
     `;
 

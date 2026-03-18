@@ -16,6 +16,9 @@
     /* ============================================================
        REISENDES CASINO – Landing Page (3 Games Only)
        ============================================================ */
+    html, body { overflow-x: hidden; max-width: 100vw; width: 100%; }
+    .main-content, .koberei-banner, .live-embed-wrap, .games-row-wrap { max-width: 100vw; overflow-x: hidden; box-sizing: border-box; }
+    .baxt-promo { max-width: 100vw; box-sizing: border-box; }
 
     /* Full-page background */
     .landing-bg {
@@ -45,7 +48,7 @@
     /* Hero game section */
     .game-hero {
       text-align: center;
-      padding: 40px 20px 20px;
+      padding: 110px 20px 5px;
       max-width: 600px;
       width: 100%;
     }
@@ -266,6 +269,9 @@
       position: relative;
       text-align: center;
       margin-bottom: 16px;
+      padding: 0;
+      width: 100%;
+      align-self: stretch;
     }
 
     /* ============ DRAGGABLE + RESIZABLE EMBED WINDOWS ============ */
@@ -402,10 +408,10 @@
     /* Slot – Hochformat (Automat ist vertikal) */
     .slot-embed-frame {
       position: relative;
-      width: 90%;
-      max-width: 320px;
+      width: 100%;
+      max-width: 500px;
       margin: 0 auto;
-      height: 500px;
+      height: 550px;
       border-radius: 14px;
       overflow: hidden;
       border: 2px solid rgba(212,175,55,0.35);
@@ -463,8 +469,8 @@
     }
     .live-embed-frame {
       position: relative;
-      width: 95%;
-      max-width: 600px;
+      width: 100%;
+      max-width: 800px;
       margin: 0 auto;
       height: 680px;
       border-radius: 14px;
@@ -473,14 +479,21 @@
       box-shadow: 0 8px 35px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,175,55,0.15);
       background: #0a0a12;
     }
+    /* Individuelle Embed-Höhen */
+    #barEmbedWrap { height: 318px; }
+    #pokerEmbedWrap { height: 549px; }
+    #bjEmbedWrap { height: 796px; }
+    #rlEmbedWrap { height: 610px; }
+    .slot-embed-frame { height: 550px; }
+    @media (max-width: 480px) { .slot-embed-frame { height: 326px; max-width: none; } }
     .live-iframe {
       position: absolute;
       top: 0; left: 0;
-      width: calc(100% / 0.7);
-      height: calc(100% / 0.7);
+      width: calc(100% / 0.85);
+      height: calc(100% / 0.85);
       border: none;
       pointer-events: none;
-      transform: scale(0.7);
+      transform: scale(0.85);
       transform-origin: top left;
     }
     .live-embed-overlay {
@@ -513,17 +526,11 @@
 
     @media (max-width: 480px) {
       .live-embed-frame {
-        max-width: 95%;
-        height: 520px;
-        border-radius: 10px;
+        width: 100%;
+        max-width: none;
+        border-radius: 6px;
       }
       .live-overlay-text { font-size: 11px; }
-      .embed-adjustable { touch-action: pan-y !important; }
-      .embed-click-overlay { touch-action: pan-y !important; }
-      .slot-fullscreen-bar { touch-action: pan-y !important; }
-      .embed-drag-handle { touch-action: pan-y !important; pointer-events: none; }
-      .embed-resize-handle { display: none; }
-      .embed-controls { display: none; }
     }
 
     .poker-table-hero {
@@ -1179,13 +1186,39 @@
 
     .baxt-coin-hero { margin-bottom: 6px; }
     .baxt-coin-spin {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 64px; height: 64px; border-radius: 50%;
-      background: linear-gradient(145deg, #D4AF37, #F4D03F);
-      border: 3px solid #b8960f;
-      font-size: 1.8rem; font-weight: 900; color: #1a1a2e;
-      box-shadow: inset 0 -3px 6px rgba(0,0,0,.3), 0 4px 20px rgba(212,175,55,.4);
-      animation: baxtFloat 3s ease-in-out infinite;
+      display: inline-block;
+      width: 160px; height: 160px;
+      perspective: 800px;
+    }
+    .coin-3d {
+      width: 100%; height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: coin3dSpin 4s linear infinite;
+    }
+    .coin-face {
+      position: absolute; inset: 0;
+      backface-visibility: hidden;
+      border-radius: 50%;
+      overflow: hidden;
+      transform: translateZ(11px);
+    }
+    .coin-face img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .coin-face.back {
+      transform: rotateY(180deg) translateZ(11px);
+    }
+    .coin-edge {
+      position: absolute;
+      inset: 2px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #F4D03F 0%, #D4AF37 25%, #8a6d0b 50%, #D4AF37 75%, #F4D03F 100%);
+      border: 1px solid rgba(138,109,11,.6);
+    }
+    @keyframes coin3dSpin {
+      0% { transform: rotateY(0deg); }
+      100% { transform: rotateY(360deg); }
     }
     @keyframes baxtFloat {
       0%, 100% { transform: translateY(0); box-shadow: inset 0 -3px 6px rgba(0,0,0,.3), 0 4px 20px rgba(212,175,55,.4); }
@@ -1293,40 +1326,45 @@
       margin-right: auto;
       line-height: 1.4;
     }
-    @media (max-width: 420px) {
-      .baxt-features { grid-template-columns: repeat(2, 1fr); }
-      .baxt-promo { padding: 24px 14px 20px; }
-      .baxt-promo-title { font-size: 1.3rem; }
+    @media (max-width: 480px) {
+      .baxt-features { grid-template-columns: repeat(2, 1fr); gap: 8px; max-width: 100%; }
+      .baxt-promo { padding: 12px 10px 16px; max-width: calc(100vw - 16px); }
+      .baxt-coin-spin { width: 100px !important; height: 100px !important; }
+      .baxt-promo-glow { display: none; }
+      .baxt-promo-title { font-size: 1.2rem; letter-spacing: 2px; }
+      .baxt-promo-desc { font-size: 13px; padding: 0 4px; }
+      .baxt-promo-subtitle { font-size: 11px; }
+      .baxt-feature-card h3 { font-size: 10px; }
+      .baxt-feature-card p { font-size: 9px; }
     }
 
     /* ============ APP INSTALL ============ */
     .install-btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: linear-gradient(180deg, rgba(50,35,15,.9), rgba(25,18,8,.95));
-      border: 1px solid rgba(212,175,55,.4);
-      border-top: 1px solid rgba(244,208,63,.5);
-      color: #D4AF37;
+      gap: 10px;
+      background: linear-gradient(135deg, #27ae60, #2ecc71, #27ae60);
+      color: #fff;
       font-family: 'Playfair Display', serif;
-      font-size: 16px;
-      font-weight: 700;
-      padding: 12px 28px;
-      border-radius: 10px;
+      font-size: 18px;
+      font-weight: 900;
+      padding: 14px 40px;
+      border: none;
+      border-radius: 50px;
       cursor: pointer;
-      transition: .2s;
-      box-shadow: 0 4px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(244,208,63,.1);
-      margin: 20px 0 12px;
-      letter-spacing: 1px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      box-shadow: 0 6px 30px rgba(39,174,96,.4);
+      transition: transform .2s, box-shadow .2s;
+      margin: 10px 0;
       min-height: 48px;
       -webkit-tap-highlight-color: transparent;
     }
     .install-btn:hover {
-      background: linear-gradient(180deg, rgba(80,55,20,.9), rgba(45,30,12,.95));
-      border-color: rgba(244,208,63,.7);
-      color: #F4D03F;
-      box-shadow: 0 4px 16px rgba(0,0,0,.5), 0 0 12px rgba(212,175,55,.2);
+      transform: scale(1.05);
+      box-shadow: 0 8px 40px rgba(39,174,96,.6);
     }
+    .install-btn:active { transform: scale(.97); }
     .install-btn:active { transform: scale(.96); }
     .install-icon { font-size: 20px; }
 
@@ -1404,11 +1442,17 @@
       gap: 8px;
     }
     .user-avatar {
-      width: 32px; height: 32px;
+      width: 36px; height: 36px;
+      min-width: 36px; min-height: 36px;
       border-radius: 50%;
       background: linear-gradient(135deg, #D4AF37, #8B6914);
       display: flex; align-items: center; justify-content: center;
-      font-size: 14px; font-weight: 700; color: #000;
+      font-size: 16px; font-weight: 700; color: #000;
+      overflow: hidden;
+      aspect-ratio: 1;
+    }
+    .user-avatar img {
+      width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
     }
     .user-name {
       font-family: 'Playfair Display', serif;
@@ -1641,7 +1685,7 @@
     .jackpot-banner {
       width: 90%;
       max-width: 520px;
-      margin: 12px auto 18px;
+      margin: -10px auto 18px;
       padding: 14px 20px;
       background: linear-gradient(135deg, rgba(20,12,8,.92), rgba(40,20,5,.92));
       border: 2px solid rgba(212,175,55,.5);
@@ -1855,6 +1899,7 @@
       background:rgba(212,175,55,.08); border:1px solid rgba(212,175,55,.2);
       border-radius:12px; padding:12px; margin:16px 0;
       font-family:'Playfair Display',serif;
+      word-wrap:break-word; overflow-wrap:break-word;
     }
     .welcome-step { display:none; }
     .welcome-step.active { display:block; }
@@ -1986,32 +2031,7 @@
       .shop-pkg-coins { font-size: 18px; }
     }
 
-    /* ====== FLOATING BALANCE WIDGET ====== */
-    .balance-float {
-      position:fixed; top:70px; right:14px; z-index:100000;
-      background:rgba(15,8,3,.88); border:2px solid rgba(212,175,55,.5);
-      border-radius:14px; padding:8px 16px;
-      font-family:'Playfair Display',serif;
-      color:#D4AF37; cursor:grab;
-      backdrop-filter:blur(10px);
-      box-shadow:0 4px 20px rgba(0,0,0,.5);
-      touch-action:none; user-select:none;
-      display:none;
-      transition:box-shadow .2s;
-    }
-    .balance-float:hover {
-      box-shadow:0 4px 24px rgba(212,175,55,.25);
-    }
-    .balance-float.dragging { cursor:grabbing; opacity:.85; }
-    .balance-float-label {
-      font-size:9px; color:rgba(240,230,211,.45);
-      text-transform:uppercase; letter-spacing:1px;
-      text-align:center;
-    }
-    .balance-float-val {
-      font-size:18px; font-weight:700; text-align:center;
-      text-shadow:0 0 8px rgba(212,175,55,.3);
-    }
+    /* FLOATING BALANCE WIDGET removed – baxt-coins.js widget handles balance display */
 
     @media (max-height: 500px) and (orientation: landscape) {
       .hero { padding: 12px 0; }
@@ -2021,6 +2041,160 @@
       .game-card { flex: 0 0 140px; }
       .bottom-nav { padding: 4px 0; }
       .bottom-nav .nav-item span { display: none; }
+    }
+
+    /* ====== MOBILE LAYOUT FIXES ====== */
+
+    /* Welcome overlay – prevent text cutoff on narrow screens */
+    @media (max-width: 480px) {
+      .welcome-modal {
+        width: min(420px, 92vw);
+        padding: 24px 16px;
+      }
+      .welcome-modal .welcome-bonus {
+        font-size: 22px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        padding: 10px 8px;
+      }
+      .welcome-modal h2 {
+        font-size: 22px;
+      }
+    }
+
+    /* Baxt feature cards – prevent right-side cutoff */
+    .baxt-features {
+      overflow-x: hidden;
+      box-sizing: border-box;
+    }
+    @media (max-width: 480px) {
+      .baxt-features {
+        grid-template-columns: 1fr 1fr;
+        max-width: 100%;
+        padding: 0 4px;
+        gap: 8px;
+      }
+      .baxt-feature-card {
+        min-width: 0;
+        padding: 10px 6px 8px;
+      }
+      .baxt-feature-card h3 {
+        font-size: 10px;
+      }
+      .baxt-feature-card p {
+        font-size: 9px;
+      }
+    }
+
+    /* Register Banner */
+    .register-banner {
+      position: fixed;
+      top: var(--nav-height, 56px);
+      left: 0; right: 0;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, rgba(20,12,6,.95), rgba(40,20,5,.95));
+      border-bottom: 1px solid rgba(212,175,55,.3);
+      backdrop-filter: blur(10px);
+    }
+    .register-banner-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 20px;
+      border-radius: 25px;
+      background: linear-gradient(135deg, #D4AF37, #F4D03F);
+      border: none;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .register-banner-btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 20px rgba(212,175,55,.5);
+    }
+    .register-banner-coin {
+      width: 32px; height: 32px;
+      animation: baxtCoinSpin3D 4s ease-in-out infinite;
+    }
+    .register-banner-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: #0a0a12;
+      text-align: left;
+    }
+    .register-banner-sub {
+      font-size: 9px;
+      color: rgba(10,10,18,.6);
+      text-align: left;
+    }
+    .register-banner-login {
+      background: none;
+      border: 1px solid rgba(212,175,55,.4);
+      color: #D4AF37;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s;
+    }
+    .register-banner-login:hover {
+      border-color: #F4D03F;
+      color: #F4D03F;
+    }
+    .register-banner.hidden { display: none; }
+
+    /* Register CTA button (legacy) */
+    .register-cta {
+      display: flex !important;
+      flex-direction: column;
+      align-items: center;
+      gap: 0 !important;
+      padding: 8px 20px !important;
+      border-radius: 25px !important;
+      background: linear-gradient(135deg, #D4AF37, #F4D03F) !important;
+      color: #0a0a12 !important;
+      border: none !important;
+      font-size: 14px !important;
+      font-weight: 800 !important;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 16px rgba(212,175,55,0.4);
+      text-transform: none;
+      min-height: auto !important;
+    }
+    .register-cta:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 24px rgba(212,175,55,0.6);
+    }
+    .register-cta-sub {
+      font-size: 9px;
+      font-weight: 600;
+      opacity: 0.7;
+      letter-spacing: 0;
+    }
+
+    /* Header – compact on mobile */
+    @media (max-width: 600px) {
+      .top-nav {
+        padding: 4px 10px !important;
+      }
+      .top-nav .logo { flex: 0; min-width: 0; }
+      .top-nav .logo-icon { font-size: 20px !important; }
+      .top-nav .logo-text { font-size: 11px !important; letter-spacing: 0.5px !important; line-height: 1.1; }
+      .auth-bar { flex: 1; justify-content: center !important; }
+      .user-info { justify-content: center !important; }
+      .register-cta {
+        font-size: 13px !important;
+        padding: 6px 18px !important;
+      }
+      .user-info .user-name { font-size: 11px !important; }
+      .user-info .user-rank { font-size: 9px !important; }
+      .user-info .user-avatar { width: 32px !important; height: 32px !important; min-width: 32px !important; min-height: 32px !important; font-size: 14px !important; }
     }
 
   </style>
@@ -2035,13 +2209,11 @@
     <div class="logo">
       <span class="logo-icon">🦔</span>
       <div>
-        <div class="logo-text">Reisendes Casino</div>
-        <div class="logo-sub">Put Baxt!</div>
+        <div class="logo-text">Reisendes</div>
+        <div class="logo-text" style="margin-top:-4px">Casino</div>
       </div>
     </div>
     <div class="auth-bar" id="authBar">
-      <button class="auth-btn" onclick="showAuth('login')" id="loginBtn">Anmelden</button>
-      <button class="auth-btn primary" onclick="showAuth('register')" id="registerBtn">Mitglied werden</button>
       <div class="user-info" id="userInfo" style="display:none">
         <div class="user-avatar" id="userAvatar" onclick="openProfile()" style="cursor:pointer" title="Profil öffnen">?</div>
         <div onclick="openProfile()" style="cursor:pointer">
@@ -2052,6 +2224,18 @@
       </div>
     </div>
   </nav>
+
+  <!-- REGISTER BANNER (nur für nicht-angemeldete) -->
+  <div class="register-banner" id="registerBanner">
+    <button class="register-banner-btn" onclick="showAuth('register')">
+      <img src="/img/baxt-coin.png" alt="₿" class="register-banner-coin">
+      <div>
+        <div class="register-banner-text">Kostenlos spielen</div>
+        <div class="register-banner-sub">Jetzt anmelden &amp; 5.000 ₿ Startguthaben sichern!</div>
+      </div>
+    </button>
+    <button class="register-banner-login" onclick="showAuth('login')">Login</button>
+  </div>
 
   <!-- MAIN CONTENT -->
   <main class="main-content">
@@ -2075,6 +2259,14 @@
       <h2>Willkommen in der Community!</h2>
       <p id="welcomeText">Das Reisendes Casino ist ein Platz zum Zusammenkommen und gemeinsam Spa&szlig; haben. Unsere Spiele sind alle Multiplayer und mit Sprach- sowie Video-Chat ausgestattet. Triff auch du einen alten Bekannten beim Pokern oder Roulette spielen &mdash; hier trifft sich die Familie!</p>
       <button class="welcome-tts-btn" id="ttsBtn" onclick="toggleVorlesen()">&#x1F50A; Vorlesen</button>
+    </div>
+
+    <!-- APP INSTALLIEREN -->
+    <div class="install-banner" id="installBanner">
+      <button class="install-btn" id="installBtn" onclick="installApp()">
+        &#128242; App installieren
+      </button>
+      <div class="install-hint" id="installHint" style="display:none"></div>
     </div>
     <script>
     function toggleVorlesen() {
@@ -2295,7 +2487,7 @@
     </div>
     <div class="live-embed-wrap">
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcBJ">0</b> am Blackjack</div>
-      <div class="live-embed-frame embed-adjustable" id="bjEmbedWrap" data-embed="blackjack" style="height:320px;">
+      <div class="live-embed-frame embed-adjustable" id="bjEmbedWrap" data-embed="blackjack">
         <div class="embed-drag-handle" data-drag="bjEmbedWrap"></div>
         <div class="embed-controls">
           <button class="embed-ctrl-btn" onclick="event.stopPropagation();toggleLockEmbed('bjEmbedWrap', this)" title="Sperren">&#x1F513;</button>
@@ -2342,7 +2534,7 @@
     </div>
     <div class="live-embed-wrap">
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcRoulette">0</b> am Roulette</div>
-      <div class="live-embed-frame embed-adjustable" id="rlEmbedWrap" data-embed="roulette" style="height:520px;">
+      <div class="live-embed-frame embed-adjustable" id="rlEmbedWrap" data-embed="roulette">
         <div class="embed-drag-handle" data-drag="rlEmbedWrap"></div>
         <div class="embed-controls">
           <button class="embed-ctrl-btn" onclick="event.stopPropagation();toggleLockEmbed('rlEmbedWrap', this)" title="Sperren">&#x1F513;</button>
@@ -2409,7 +2601,26 @@
       <div class="baxt-promo-glow"></div>
       <div class="baxt-promo-header">
         <div class="baxt-coin-hero">
-          <div class="baxt-coin-spin">₿</div>
+          <div class="baxt-coin-spin" id="coinSpin3d"></div>
+          <script>
+          (function(){
+            const c = document.getElementById('coinSpin3d');
+            const d = document.createElement('div');
+            d.className = 'coin-3d';
+            // Front face
+            d.innerHTML = '<div class="coin-face"><img src="/img/baxt-coin.png" alt="Baxt Coin"></div>';
+            // Back face
+            d.innerHTML += '<div class="coin-face back"><img src="/img/baxt-coin.png" alt="Baxt Coin"></div>';
+            // Edge: 20 thin slices from -10px to +10px
+            for (let i = -10; i <= 10; i++) {
+              const s = document.createElement('div');
+              s.className = 'coin-edge';
+              s.style.transform = 'translateZ(' + i + 'px)';
+              d.appendChild(s);
+            }
+            c.appendChild(d);
+          })();
+          </script>
         </div>
         <h2 class="baxt-promo-title">BAXT COINS</h2>
         <p class="baxt-promo-subtitle">Die exklusive Casino-Währung der Reisenden</p>
@@ -2466,12 +2677,6 @@
       </div>
     </section>
 
-    <!-- APP INSTALLIEREN -->
-    <div class="game-divider"></div>
-    <button class="install-btn" id="installBtn" onclick="installApp()">
-      <span class="install-icon">&#128242;</span> App Installieren
-    </button>
-    <div class="install-hint" id="installHint" style="display:none"></div>
 
     <!-- FOOTER -->
     <footer class="landing-footer">
@@ -2544,7 +2749,7 @@
         <input class="auth-input" type="email" id="regEmail" placeholder="E-Mail (für Passwort-Reset)" required>
         <input class="auth-input" type="tel" id="regPhone" placeholder="Handy-Nummer" required>
         <input class="auth-input" type="password" id="regPin" placeholder="4-stelliger PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
-        <button class="auth-submit" type="submit">&#129430; Jetzt Mitglied werden</button>
+        <button class="auth-submit" type="submit">🦔 Registrieren &amp; 5.000 ₿ kassieren!</button>
       </form>
 
       <!-- LOGIN FORM -->
@@ -2647,24 +2852,28 @@
       </div>
       <div class="shop-packages" id="shopPackages">
         <div class="shop-pkg" onclick="buyBaxt('starter')">
+          <img src="/img/baxt-coin.png" alt="₿" style="width:36px;height:36px;animation:baxtCoinSpin 3s linear infinite;margin-bottom:4px">
           <div class="shop-pkg-coins">5.000</div>
           <div class="shop-pkg-label">Baxt Coins</div>
           <div class="shop-pkg-price">0,99&euro;</div>
         </div>
         <div class="shop-pkg popular" onclick="buyBaxt('medium')">
           <div class="shop-pkg-badge">Beliebt</div>
+          <img src="/img/baxt-coin.png" alt="₿" style="width:36px;height:36px;animation:baxtCoinSpin 3s linear infinite;margin-bottom:4px">
           <div class="shop-pkg-coins">25.000</div>
           <div class="shop-pkg-label">Baxt Coins</div>
           <div class="shop-pkg-bonus">+5.000 Bonus</div>
           <div class="shop-pkg-price">3,99&euro;</div>
         </div>
         <div class="shop-pkg" onclick="buyBaxt('large')">
+          <img src="/img/baxt-coin.png" alt="₿" style="width:36px;height:36px;animation:baxtCoinSpin 3s linear infinite;margin-bottom:4px">
           <div class="shop-pkg-coins">75.000</div>
           <div class="shop-pkg-label">Baxt Coins</div>
           <div class="shop-pkg-bonus">+15.000 Bonus</div>
           <div class="shop-pkg-price">9,99&euro;</div>
         </div>
         <div class="shop-pkg" onclick="buyBaxt('vip')">
+          <img src="/img/baxt-coin.png" alt="₿" style="width:36px;height:36px;animation:baxtCoinSpin 3s linear infinite;margin-bottom:4px">
           <div class="shop-pkg-coins">200.000</div>
           <div class="shop-pkg-label">Baxt Coins</div>
           <div class="shop-pkg-bonus">+50.000 Bonus</div>
@@ -2756,11 +2965,7 @@
     </div>
   </div>
 
-  <!-- FLOATING BALANCE -->
-  <div class="balance-float" id="balanceFloat">
-    <div class="balance-float-label">Kontostand</div>
-    <div class="balance-float-val" id="balanceFloatVal">0 ₿</div>
-  </div>
+  <!-- FLOATING BALANCE removed – baxt-coins.js widget handles balance display -->
 
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
@@ -2878,6 +3083,12 @@
     // =========================================================================
     let deferredPrompt = null;
 
+    // Verstecke Install-Banner wenn App schon installiert ist
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      const ib = document.getElementById('installBanner');
+      if (ib) ib.style.display = 'none';
+    }
+
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
@@ -2890,7 +3101,7 @@
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choice) => {
           if (choice.outcome === 'accepted') {
-            document.getElementById('installBtn').style.display = 'none';
+            document.getElementById('installBanner').style.display = 'none';
           }
           deferredPrompt = null;
         });
@@ -2973,7 +3184,7 @@
       document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
       document.getElementById('forgotForm').style.display = isForgot ? 'block' : 'none';
       document.getElementById('resetForm').style.display = isReset ? 'block' : 'none';
-      document.getElementById('authTitle').textContent = isReg ? 'Mitglied werden' : isForgot ? 'PIN vergessen' : isReset ? 'PIN zurücksetzen' : 'Anmelden';
+      document.getElementById('authTitle').textContent = isReg ? 'Kostenlos anmelden' : isForgot ? 'PIN vergessen' : isReset ? 'PIN zurücksetzen' : 'Anmelden';
       document.getElementById('authError').style.display = 'none';
       document.getElementById('authSuccess').style.display = 'none';
       // Tabs nur bei register/login zeigen
@@ -3455,7 +3666,6 @@
         if (data.success) {
           closeBroke();
           showToast('+' + data.amount + ' ₿ Nachschub! 🎉');
-          document.getElementById('balanceFloatVal').textContent = data.baxtCoins.toLocaleString('de-DE') + ' ₿';
           // Baxt-Widget aktualisieren
           if (window.baxtUpdateBalance) window.baxtUpdateBalance(data.baxtCoins);
         } else {
@@ -3482,7 +3692,6 @@
           if (data.success) {
             closeBroke();
             showToast('+' + data.amount + ' ₿ für Werbung! 🎬');
-            document.getElementById('balanceFloatVal').textContent = data.baxtCoins.toLocaleString('de-DE') + ' ₿';
             if (window.baxtUpdateBalance) window.baxtUpdateBalance(data.baxtCoins);
           } else {
             showToast(data.error || 'Fehler');
@@ -3581,10 +3790,10 @@
       const guest = JSON.parse(localStorage.getItem('casinoGuest') || 'null');
       const isGuest = !loggedIn && !!guest;
 
-      document.getElementById('loginBtn').style.display = (loggedIn || isGuest) ? 'none' : '';
-      document.getElementById('registerBtn').style.display = loggedIn ? 'none' : '';
       document.getElementById('userInfo').style.display = (loggedIn || isGuest) ? 'flex' : 'none';
-      document.getElementById('balanceFloat').style.display = (loggedIn || isGuest) ? 'block' : 'none';
+      const banner = document.getElementById('registerBanner');
+      if (banner) banner.classList.toggle('hidden', loggedIn);
+      // balanceFloat removed – baxt-coins.js handles balance display
 
       if (loggedIn) {
         document.getElementById('userName').textContent = user.username;
@@ -3608,7 +3817,7 @@
           currentAvatarConfig = guest.avatarConfig;
         }
         document.getElementById('userRank').textContent = 'Gast';
-        document.getElementById('balanceFloatVal').textContent = getGuestBaxt().toLocaleString('de-DE') + ' ₿';
+        if (window.baxtUpdateBalance) window.baxtUpdateBalance(getGuestBaxt());
       }
     }
 
@@ -3623,7 +3832,7 @@
           const data = await res.json();
           const rankEl = document.getElementById('userRank');
           rankEl.textContent = data.rang + ' \u00B7 Level ' + data.level;
-          document.getElementById('balanceFloatVal').textContent = (data.baxtCoins || 0).toLocaleString('de-DE') + ' ₿';
+          if (window.baxtUpdateBalance) window.baxtUpdateBalance(data.baxtCoins || 0);
         }
         // Fetch avatar config from server and sync locally
         const avRes = await fetch(API + '/api/user/avatar', {
@@ -3926,58 +4135,7 @@
       }
     })();
 
-    // =========================================================================
-    // FLOATING BALANCE WIDGET (draggable)
-    // =========================================================================
-    (function() {
-      const bal = document.getElementById('balanceFloat');
-      let dragging = false, wasDragged = false, startX, startY, origX, origY, pointerDown = false;
-      const THRESHOLD = 6;
-
-      // Restore position
-      const saved = JSON.parse(localStorage.getItem('balance-widget-pos') || 'null');
-      if (saved) { bal.style.top = saved.top + 'px'; bal.style.right = 'auto'; bal.style.left = saved.left + 'px'; }
-
-      function onStart(e) {
-        pointerDown = true; dragging = false; wasDragged = false;
-        const t = e.touches ? e.touches[0] : e;
-        startX = t.clientX; startY = t.clientY;
-        const rect = bal.getBoundingClientRect();
-        origX = rect.left; origY = rect.top;
-        e.preventDefault();
-      }
-      function onMove(e) {
-        if (!pointerDown) return;
-        const t = e.touches ? e.touches[0] : e;
-        const dx = t.clientX - startX, dy = t.clientY - startY;
-        if (!dragging) {
-          if (Math.abs(dx) < THRESHOLD && Math.abs(dy) < THRESHOLD) return;
-          dragging = true; wasDragged = true; bal.classList.add('dragging');
-        }
-        if (e.cancelable) e.preventDefault();
-        bal.style.right = 'auto';
-        bal.style.left = Math.max(0, Math.min(window.innerWidth - bal.offsetWidth, origX + dx)) + 'px';
-        bal.style.top = Math.max(0, Math.min(window.innerHeight - bal.offsetHeight, origY + dy)) + 'px';
-      }
-      function onEnd(e) {
-        if (!pointerDown) return; pointerDown = false;
-        if (dragging) {
-          dragging = false; bal.classList.remove('dragging');
-          localStorage.setItem('balance-widget-pos', JSON.stringify({
-            top: parseInt(bal.style.top), left: parseInt(bal.style.left)
-          }));
-        }
-        if (!wasDragged) {
-          openProfile();
-        }
-      }
-      bal.addEventListener('mousedown', onStart);
-      bal.addEventListener('touchstart', onStart, { passive: false });
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('touchmove', onMove, { passive: false });
-      window.addEventListener('mouseup', onEnd);
-      window.addEventListener('touchend', onEnd);
-    })();
+    // FLOATING BALANCE WIDGET removed – baxt-coins.js widget handles balance display
 
     // =========================================================================
     // PROFILE & AVATAR EDITOR

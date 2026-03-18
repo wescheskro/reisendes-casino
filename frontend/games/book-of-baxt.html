@@ -855,6 +855,37 @@ body.embed-mode .bal-display{padding:1px 6px}
 body.embed-mode .bal-display .bv{font-size:14px}
 body.embed-mode .bal-display .bl{font-size:6px}
 
+/* ========== RESPONSIVE - Portrait Mobile ========== */
+@media(max-width:500px) and (orientation:portrait){
+  .game-wrap{
+    aspect-ratio:auto;
+    width:100vw;
+    height:auto;
+    max-height:none;
+    overflow:visible;
+  }
+  .ctrl-panel{
+    flex-wrap:wrap !important;
+    height:auto !important;
+    padding:4px 0 !important;
+    gap:2px;
+    justify-content:center !important;
+  }
+  .cg{
+    min-width:0 !important;
+    padding:2px 6px !important;
+    flex:0 0 auto !important;
+  }
+  .cg-label{font-size:7px !important}
+  .cg-val{font-size:11px !important}
+  .side-btn{font-size:9px !important;padding:4px 8px !important;min-height:28px}
+  .spin-btn{width:44px !important;height:44px !important}
+  .spin-wrap{order:10 !important}
+  .win-cg{order:11 !important}
+  .hand-switch{display:none}
+  .gamble-side{order:9 !important}
+}
+
 /* ========== RESPONSIVE - Landscape Mobile ========== */
 @media(max-height:500px){
   html,body{height:var(--real-vh,100vh);overflow:auto}
@@ -4298,6 +4329,6 @@ function submitToLeaderboard(winAmount) {
 <script src="/js/baxt-coins.js"></script>
 <script src="/js/friends.js"></script>
 <script src="/js/jukebox.js"></script>
-<script src="/js/jackpot.js"></script>
+
 </body>
 </html>

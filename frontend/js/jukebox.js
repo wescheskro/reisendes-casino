@@ -410,11 +410,6 @@ function buildUI() {
   wrap.innerHTML = `
     <div class="jk-img" id="jkImg">
       <img src="/img/jukebox-cutout.png" alt="Jukebox" draggable="false" title="Jukebox öffnen">
-      <div class="jk-resize">
-        <button class="jk-rz" onclick="event.stopPropagation();window._jk.smaller()" title="Kleiner">−</button>
-        <button class="jk-rz" onclick="event.stopPropagation();window._jk.bigger()" title="Größer">+</button>
-        <button class="jk-rz jk-save" onclick="event.stopPropagation();window._jk.savePos()" title="Position speichern">💾</button>
-      </div>
     </div>
     <div class="jk-panel" id="jkPanel">
       <div class="jk-header" id="jkHeader">
@@ -457,7 +452,7 @@ function buildUI() {
   const style = document.createElement('style');
   style.textContent = `
     #jukebox{
-      position:fixed;bottom:12px;left:12px;z-index:100001;
+      position:fixed;bottom:60px;left:12px;z-index:100001;
       font-family:'Playfair Display',serif;color:#F0E6D3;
       touch-action:none;user-select:none;
     }

@@ -1,0 +1,108 @@
+{
+  "users": {
+    "f07a94fc-065c-4958-9479-043516987684": {
+      "id": "f07a94fc-065c-4958-9479-043516987684",
+      "phone": "01234567890",
+      "username": "TestSpieler",
+      "pin": "$2a$10$Qa2N5ltDpVqbdJhKbrUNiucVU.MHbIsp50GoyhozI2lNLhELIYxyO",
+      "balance": 0,
+      "currency": "EUR",
+      "createdAt": "2026-03-17T04:43:05.288Z",
+      "verified": false,
+      "xp": 0,
+      "level": 1,
+      "rang": "reisender",
+      "inventory": [],
+      "equipped": {
+        "avatar": "default",
+        "cardBack": "default",
+        "frame": "default",
+        "title": "Reisender",
+        "tableDesign": "default",
+        "emote": null
+      },
+      "chestsReady": [],
+      "chestsOpened": 0,
+      "roundsPlayed": 0,
+      "handsWon": 0,
+      "highscoreAllTime": 0,
+      "baxtCoins": 0,
+      "baxtHistory": [
+        {
+          "id": "f95aa103-0421-48b0-9618-b07cb9eaa4a7",
+          "userId": "f07a94fc-065c-4958-9479-043516987684",
+          "type": "slot_bet",
+          "amount": 200,
+          "reason": "slot_bet",
+          "baxtAfter": 0,
+          "timestamp": "2026-03-17T05:53:56.541Z"
+        },
+        {
+          "id": "62d7c513-5fa7-4fb2-b9d4-85e46a85463d",
+          "userId": "f07a94fc-065c-4958-9479-043516987684",
+          "type": "earn",
+          "amount": 200,
+          "reason": "refill",
+          "baxtAfter": 200,
+          "timestamp": "2026-03-17T05:53:38.569Z"
+        },
+        {
+          "id": "9e49a3a1-f9b9-405e-9a23-942611a82bd4",
+          "userId": "f07a94fc-065c-4958-9479-043516987684",
+          "type": "slot_bet",
+          "amount": 500,
+          "reason": "slot_bet",
+          "baxtAfter": 0,
+          "timestamp": "2026-03-17T05:53:25.445Z"
+        }
+      ],
+      "lastDailyBaxt": null,
+      "friends": [],
+      "friendRequests": [],
+      "friendRequestsSent": [],
+      "avatarConfig": {
+        "color": "#F39C12",
+        "emoji": "🐻"
+      },
+      "refillCount": 1,
+      "refillDate": "2026-03-17",
+      "lastRefill": 1773726818569
+    },
+    "375890d0-e870-4f73-ba86-0345eadd3a48": {
+      "id": "375890d0-e870-4f73-ba86-0345eadd3a48",
+      "phone": "01706763112",
+      "username": "Jerome",
+      "pin": "$2a$10$EhNm87WL4L7o7WjM6XFRouHPHAphL0i.ZEMonyGqXSjYTSLcEH6w6",
+      "balance": 0,
+      "currency": "EUR",
+      "createdAt": "2026-03-17T05:02:58.585Z",
+      "verified": false,
+      "xp": 0,
+      "level": 1,
+      "rang": "reisender",
+      "inventory": [],
+      "equipped": {
+        "avatar": "default",
+        "cardBack": "default",
+        "frame": "default",
+        "title": "Reisender",
+        "tableDesign": "default",
+        "emote": null
+      },
+      "chestsReady": [],
+      "chestsOpened": 0,
+      "roundsPlayed": 0,
+      "handsWon": 0,
+      "highscoreAllTime": 0,
+      "baxtCoins": 500,
+      "baxtHistory": [],
+      "lastDailyBaxt": null,
+      "friends": [],
+      "friendRequests": [],
+      "friendRequestsSent": []
+    }
+  },
+  "transactions": {},
+  "leaderboard": {},
+  "weeklyWinners": []
+}

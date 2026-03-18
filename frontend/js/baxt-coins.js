@@ -12,8 +12,8 @@
     /* ===== BAXT COINS WIDGET ===== */
     .baxt-widget {
       position: fixed;
-      top: 12px;
-      right: 12px;
+      top: 5px;
+      right: 8px;
       z-index: 9990;
       font-family: 'Segoe UI', sans-serif;
       cursor: grab;
@@ -45,20 +45,34 @@
     }
 
     .baxt-coin-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, #D4AF37, #F4D03F);
-      border: 2px solid #b8960f;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      font-size: 14px;
-      color: #1a1a2e;
-      text-shadow: 0 1px 0 rgba(255,255,255,0.3);
-      box-shadow: inset 0 -2px 4px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.5);
+      width: 32px;
+      height: 32px;
       flex-shrink: 0;
+      perspective: 300px;
+    }
+    .baxt-coin-icon .mini-coin-3d {
+      width: 100%; height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: baxt-spin-3d 4s linear infinite;
+    }
+    .baxt-coin-icon .mini-face {
+      position: absolute; inset: 0;
+      backface-visibility: hidden;
+      border-radius: 50%;
+      overflow: hidden;
+      transform: translateZ(4px);
+    }
+    .baxt-coin-icon .mini-face img { width:100%;height:100%;object-fit:cover; }
+    .baxt-coin-icon .mini-face.back { transform: rotateY(180deg) translateZ(4px); }
+    .baxt-coin-icon .mini-edge {
+      position: absolute; inset: 1px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #F4D03F, #D4AF37 25%, #8a6d0b 50%, #D4AF37 75%, #F4D03F);
+    }
+    @keyframes baxt-spin-3d {
+      0% { transform: rotateY(0deg); }
+      100% { transform: rotateY(360deg); }
     }
 
     .baxt-amount {
@@ -67,6 +81,17 @@
       font-size: 15px;
       text-shadow: 0 0 8px rgba(244,208,63,0.4);
       letter-spacing: 0.5px;
+    }
+    .baxt-widget.empty .baxt-badge {
+      animation: baxt-blink 1s ease-in-out infinite;
+      border-color: #e74c3c;
+    }
+    .baxt-widget.empty .baxt-amount {
+      color: #e74c3c;
+    }
+    @keyframes baxt-blink {
+      0%, 100% { box-shadow: 0 2px 12px rgba(231,76,60,0.3); }
+      50% { box-shadow: 0 2px 20px rgba(231,76,60,0.7); border-color: #ff6b6b; }
     }
 
     .baxt-topup {
@@ -392,10 +417,9 @@
     widget.id = 'baxt-widget';
     widget.innerHTML = `
       <div class="baxt-badge" onclick="window._baxt.togglePanel()">
-        <div class="baxt-coin-icon">₿</div>
+        <div class="baxt-coin-icon"><div class="mini-coin-3d"><div class="mini-face"><img src="/img/baxt-coin.png" alt="₿"></div><div class="mini-face back"><img src="/img/baxt-coin.png" alt="₿"></div><div class="mini-edge" style="transform:translateZ(-3px)"></div><div class="mini-edge" style="transform:translateZ(-2px)"></div><div class="mini-edge" style="transform:translateZ(-1px)"></div><div class="mini-edge" style="transform:translateZ(0)"></div><div class="mini-edge" style="transform:translateZ(1px)"></div><div class="mini-edge" style="transform:translateZ(2px)"></div></div></div>
         <span class="baxt-amount" id="baxt-display">0</span>
       </div>
-      <div class="baxt-topup" onclick="event.stopPropagation();window._baxt.topUp()" title="Aufladen">+</div>
       <div class="baxt-panel" id="baxt-panel"></div>
     `;
 
@@ -476,7 +500,16 @@
 
   function updateBadge() {
     const el = document.getElementById('baxt-display');
-    if (el) el.textContent = baxtCoins.toLocaleString('de-DE');
+    const widget = document.getElementById('baxt-widget');
+    if (el) {
+      if (baxtCoins <= 0) {
+        el.innerHTML = '<img src="/img/baxt-coin.png" style="width:20px;height:20px;animation:baxt-spin-3d 2s linear infinite" alt="+">';
+        if (widget) widget.classList.add('empty');
+      } else {
+        el.textContent = baxtCoins.toLocaleString('de-DE');
+        if (widget) widget.classList.remove('empty');
+      }
+    }
   }
 
   // ── Panel Rendern ──
@@ -500,7 +533,7 @@
 
     panel.innerHTML = `
       <div class="baxt-panel-header">
-        <div class="baxt-coin-icon" style="font-size:20px;width:40px;height:40px;">₿</div>
+        <div class="baxt-coin-icon" style="width:40px;height:40px;"><div class="mini-coin-3d"><div class="mini-face"><img src="/img/baxt-coin.png" alt="₿"></div><div class="mini-face back"><img src="/img/baxt-coin.png" alt="₿"></div><div class="mini-edge" style="transform:translateZ(-3px)"></div><div class="mini-edge" style="transform:translateZ(-2px)"></div><div class="mini-edge" style="transform:translateZ(-1px)"></div><div class="mini-edge" style="transform:translateZ(0)"></div><div class="mini-edge" style="transform:translateZ(1px)"></div><div class="mini-edge" style="transform:translateZ(2px)"></div></div></div>
         <div>
           <div class="baxt-panel-title">${baxtCoins.toLocaleString('de-DE')} Baxt</div>
           <div class="baxt-panel-balance">${guestMode ? 'Gast-Guthaben' : 'Deine Baxt Coins'}</div>

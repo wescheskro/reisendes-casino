@@ -16,8 +16,8 @@ const style = document.createElement('style');
 style.textContent = `
 /* ============ FRIENDS BADGE ============ */
 .friends-badge {
-  position: fixed; top: 14px; left: 14px; z-index: 100001;
-  width: 48px; height: 48px; border-radius: 50%;
+  position: fixed; bottom: 80px; right: 12px; z-index: 100001;
+  width: 44px; height: 44px; border-radius: 50%;
   background: linear-gradient(135deg, #1a1a2e, #16213e);
   border: 2px solid rgba(100,200,255,0.4);
   display: flex; align-items: center; justify-content: center;
@@ -348,12 +348,7 @@ let isCamOff = false;
 // ─── HTML STRUCTURE ───
 const badge = document.createElement('div');
 badge.className = 'friends-badge';
-badge.innerHTML = `👥<div class="notif-dot"></div>
-  <div class="fb-resize">
-    <button class="fb-rz" onclick="event.stopPropagation();window._friends.smaller()" title="Kleiner">−</button>
-    <button class="fb-rz" onclick="event.stopPropagation();window._friends.bigger()" title="Größer">+</button>
-    <button class="fb-rz" onclick="event.stopPropagation();window._friends.savePos()" title="Position speichern">💾</button>
-  </div>`;
+badge.innerHTML = `👥<div class="notif-dot"></div>`;
 
 // ─── DRAG & POSITION SAVE ───
 const FB_POS_KEY = 'friends_badge_pos';
@@ -385,8 +380,9 @@ function saveFbPos() {
 // Restore saved position
 const savedFbPos = JSON.parse(localStorage.getItem(FB_POS_KEY) || 'null');
 if (savedFbPos) {
-  badge.style.top = savedFbPos.top + 'px';
-  badge.style.left = savedFbPos.left + 'px';
+  const maxL = window.innerWidth - 50, maxT = window.innerHeight - 50;
+  badge.style.top = Math.max(0, Math.min(maxT, savedFbPos.top)) + 'px';
+  badge.style.left = Math.max(0, Math.min(maxL, savedFbPos.left)) + 'px';
 }
 
 function fbPointerDown(e) {

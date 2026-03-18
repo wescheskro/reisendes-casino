@@ -3722,7 +3722,7 @@ io.on('connection', (socket) => {
   socket.on('bar:chat', (data) => {
     if (!data.msg || data.msg.length > 200) return;
     const room = socket.barRoom || '1';
-    socket.to('bar:' + room).emit('bar:chat', { username: data.username, msg: data.msg });
+    io.to('bar:' + room).emit('bar:chat', { username: data.username, msg: data.msg });
   });
 
   // WebRTC Signaling für Bar
