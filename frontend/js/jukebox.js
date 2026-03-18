@@ -1164,7 +1164,7 @@ window._jk = {
     if (player && player.pauseVideo) player.pauseVideo();
   },
   resume: function() {
-    if (player && player.playVideo && isPlaying) player.playVideo();
+    if (player && player.playVideo) player.playVideo();
   }
 };
 
