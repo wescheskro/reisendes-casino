@@ -1608,6 +1608,47 @@ app.put('/api/admin/layout', adminMiddleware, (req, res) => {
   res.json({ success: true, key, value });
 });
 
+// ── Jukebox Playlist: Alle können Songs hinzufügen, nur Admin kann löschen ──
+app.put('/api/jukebox/playlist', (req, res) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'Login erforderlich' });
+  let userId = null;
+  try {
+    for (const [id, user] of db.users) {
+      if (user.token === token) { userId = id; break; }
+    }
+  } catch(e) {}
+  if (!userId) return res.status(401).json({ error: 'Ungültiger Token' });
+
+  const { playlist } = req.body;
+  if (!playlist || !Array.isArray(playlist)) return res.status(400).json({ error: 'Playlist Array erforderlich' });
+
+  const user = db.users.get(userId);
+  const isAdmin = user && user.isAdmin;
+  const current = db.adminLayout['jukebox-playlist'] || [];
+
+  // Prüfe ob Songs gelöscht wurden (weniger Songs als vorher)
+  if (!isAdmin && current.length > 0) {
+    // Nicht-Admin: Alle bestehenden Songs müssen erhalten bleiben
+    const currentIds = new Set(current.map(s => s.id));
+    const newIds = new Set(playlist.map(s => s.id));
+    for (const id of currentIds) {
+      if (!newIds.has(id)) {
+        return res.status(403).json({ error: 'Nur Admin kann Songs löschen' });
+      }
+    }
+  }
+
+  db.adminLayout['jukebox-playlist'] = playlist;
+  dbDirty = true;
+  saveDB();
+  res.json({ success: true });
+});
+
+app.get('/api/jukebox/playlist', (req, res) => {
+  res.json({ playlist: db.adminLayout['jukebox-playlist'] || [] });
+});
+
 // ── Admin: Layout lesen ──
 app.get('/api/admin/layout', (req, res) => {
   res.json(db.adminLayout || {});

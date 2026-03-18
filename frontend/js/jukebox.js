@@ -66,10 +66,10 @@ try {
   playlist = [...DEFAULT_PLAYLIST];
 }
 
-// Admin-Playlist vom Server laden (gilt für alle User)
-fetch('/api/admin/layout/jukebox-playlist').then(r => r.json()).then(data => {
-  if (data && data.value && Array.isArray(data.value) && data.value.length > 0) {
-    playlist = data.value;
+// Playlist vom Server laden (gilt für alle User)
+fetch('/api/jukebox/playlist').then(r => r.json()).then(data => {
+  if (data && data.playlist && Array.isArray(data.playlist) && data.playlist.length > 0) {
+    playlist = data.playlist;
     localStorage.setItem(PLAYLIST_KEY, JSON.stringify(playlist));
     if (currentIdx >= playlist.length) currentIdx = 0;
     if (typeof buildPlaylist === 'function') buildPlaylist();
@@ -92,16 +92,15 @@ function savePlaylist() {
   try {
     localStorage.setItem(PLAYLIST_KEY, JSON.stringify(playlist));
   } catch(e) {}
-  // Admin: Reihenfolge server-seitig speichern
-  if (window._isAdmin) {
-    const token = JSON.parse(localStorage.getItem('casinoUser') || '{}').token;
-    if (token) {
-      fetch('/api/admin/layout', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ key: 'jukebox-playlist', value: playlist })
-      }).catch(function(){});
-    }
+  // Playlist server-seitig speichern (für alle eingeloggten User)
+  var token = '';
+  try { token = JSON.parse(localStorage.getItem('casinoUser') || '{}').token; } catch(e) {}
+  if (token) {
+    fetch('/api/jukebox/playlist', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ playlist: playlist })
+    }).catch(function(){});
   }
 }
 
@@ -257,6 +256,7 @@ function updateMuteBtn() {
 
 // ---- Song löschen ----
 function removeSong(idx) {
+  if (!window._isAdmin) { alert('Nur Admin kann Songs löschen'); return; }
   if (playlist.length <= 1) return; // Mindestens 1 Song
   const wasPlaying = idx === currentIdx;
   playlist.splice(idx, 1);
@@ -899,7 +899,7 @@ function buildPlaylist() {
       <span class="jk-song-actions">
         <button class="jk-sa" onclick="event.stopPropagation();window._jk.moveUp(${i})" title="Nach oben">▲</button>
         <button class="jk-sa" onclick="event.stopPropagation();window._jk.moveDown(${i})" title="Nach unten">▼</button>
-        <button class="jk-sa jk-sa-del" onclick="event.stopPropagation();window._jk.remove(${i})" title="Löschen">✕</button>
+        ${window._isAdmin ? `<button class="jk-sa jk-sa-del" onclick="event.stopPropagation();window._jk.remove(${i})" title="Löschen">✕</button>` : ''}
       </span>
     </div>
   `).join('');
