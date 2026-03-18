@@ -286,6 +286,7 @@
 
     function dragStart(e) {
       if (e.target === closeBtn) return;
+      if (e.type === 'mousedown') e.preventDefault();
       isDragging = true;
       var clientX = e.touches ? e.touches[0].clientX : e.clientX;
       var clientY = e.touches ? e.touches[0].clientY : e.clientY;
