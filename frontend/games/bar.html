@@ -1462,6 +1462,7 @@ function openSendMoney(name) { createActionModal('💰 Geld senden an ' + name, 
 
   function dragStart(e) {
     if (e.target === closeBtn) return;
+    if (e.type === 'mousedown') e.preventDefault(); // Verhindert Native Drag Error
     isDragging = true;
     var clientX = e.touches ? e.touches[0].clientX : e.clientX;
     var clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -1475,7 +1476,6 @@ function openSendMoney(name) { createActionModal('💰 Geld senden an ' + name, 
     mv.style.bottom = 'auto';
     mv.style.left = initX + 'px';
     mv.style.top = initY + 'px';
-    e.preventDefault();
   }
 
   window.addEventListener('mousemove', dragMove);
@@ -1501,7 +1501,7 @@ function openSendMoney(name) { createActionModal('💰 Geld senden an ' + name, 
 </script>
 <script src="/js/door-sound.js"></script>
 <script src="/js/drinks.js"></script>
-<script src="/js/settings-fab.js"></script>
+<script src="/js/settings-fab.js?v=3"></script>
 
 </body>
 </html>

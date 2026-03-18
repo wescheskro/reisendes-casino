@@ -137,6 +137,12 @@
   }
 
   function onMove(e) {
+    // Ultramassiver Sicherheit-Check gegen festklebende Maus:
+    if (e.type === 'mousemove' && e.buttons === 0) {
+      isDown = false;
+      dragging = false;
+      return;
+    }
     if (!isDown) return;
     if (wasDragged === false && !dragging) {
       const t = e.touches ? e.touches[0] : e;
