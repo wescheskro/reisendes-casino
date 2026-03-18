@@ -185,9 +185,13 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   justify-content:center;
   align-items:flex-end;
   padding:0 4px;box-sizing:border-box;
+  overflow-x:auto;overflow-y:visible;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
 }
+.seats::-webkit-scrollbar{display:none}
 .seat{
-  flex:1 1 0;min-width:0;max-width:130px;
+  flex:0 0 auto;min-width:70px;max-width:115px;width:calc((100% - 12px) / 7);
   text-align:center;cursor:pointer;transition:.3s;
 }
 .seat-inner{
@@ -242,13 +246,14 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .seat-cards .card::before{inset:1px;border-radius:3px}
 
 .seat-name{
-  font-size:28px;color:#D4AF37;margin-top:4px;font-weight:700;
-  white-space:nowrap;overflow:visible;
+  font-size:12px;color:#D4AF37;margin-top:4px;font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   text-shadow:0 2px 6px rgba(0,0,0,.9);
+  max-width:100%;
 }
 .seat.you .seat-name{color:#F4D03F;font-weight:700}
 .seat-rang{
-  font-size:14px;color:rgba(212,175,55,.6);margin-top:1px;
+  font-size:9px;color:rgba(212,175,55,.6);margin-top:1px;
   font-style:italic;
 }
 .seat-value{font-size:13px;font-weight:700;color:#fff;margin-top:1px}
@@ -287,7 +292,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   position:fixed;bottom:0;left:0;right:0;z-index:99;
   display:flex;justify-content:center;align-items:flex-end;
   gap:8px;pointer-events:none;
-  padding:0 20px 0;
+  padding:0 20px 10px;
   opacity:0;transform:translateY(60px);
   transition:opacity .4s, transform .4s;
 }
@@ -547,13 +552,14 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .bot-toggle input:checked + .bot-switch::after{left:16px;background:#4caf50}
 .bot-controls{
   position:fixed;top:56px;left:12px;z-index:100;
-  display:flex;flex-direction:column;gap:5px;
+  display:flex;flex-direction:row;align-items:center;gap:8px;
 }
 
 /* ═══════ RESPONSIVE ═══════ */
 @media(max-width:600px){
+  .seat{min-width:48px;width:calc((100% - 12px) / 7)}
   .seat-avatar{width:40px;height:40px}
-  .seat-name{font-size:10px!important;overflow:hidden;text-overflow:ellipsis}
+  .seat-name{font-size:9px!important;overflow:hidden;text-overflow:ellipsis;max-width:100%}
   .seat-cards .card{width:24px!important;height:34px!important}
   .seat-cards .card .corner-tl .c-rank{font-size:7px}
   .seat-cards .card .center-suit{font-size:10px}
@@ -795,6 +801,7 @@ let myState = null;
 let mySeat = -1;
 let currentPhase = 'waiting';
 let selectedBet = 50;
+const isEmbed = location.search.includes('embed=1') || window.self !== window.top;
 let timerInterval = null;
 
 // ═══════ SOUND EFFECTS (Web Audio) ═══════
@@ -991,7 +998,7 @@ function renderState(state) {
           avEl.style.display = 'flex';
           avEl.style.alignItems = 'center';
           avEl.style.justifyContent = 'center';
-          avEl.style.fontSize = '36px';
+          avEl.style.fontSize = '28px';
           avEl.textContent = s.avatarConfig.emoji;
         } else {
           const imgSrc = s.avatarUrl || diceBearUrl(s.username);
@@ -1305,7 +1312,7 @@ function renderControls(state) {
       ctrl.innerHTML = `
         <div class="bet-row">
           ${[50,100,500,1000,5000,10000].map(b =>
-            `<button class="btn btn-bet${selectedBet===b?' selected':''}" onclick="selectedBet=${b};renderControls(myState)">${b>=1000?(b/1000)+'k':b}</button>`
+            `<button class="btn btn-bet${selectedBet===b?' selected':''}" onclick="selectedBet=${b};renderControls(myState)">${b>=1000?(b/1000)+'K':b}</button>`
           ).join('')}
         </div>
         <button class="btn bet-confirm" onclick="placeBet()">Setzen: ${selectedBet.toLocaleString('de-DE')} ₿</button>

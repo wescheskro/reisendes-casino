@@ -105,7 +105,8 @@ const db = {
   sessions: new Map(),
   leaderboard: new Map(),
   weeklyWinners: [],
-  adminLayout: {}  // Server-seitige Layout-Positionen (vom Admin gesetzt, für alle gültig)
+  adminLayout: {},  // Server-seitige Layout-Positionen (vom Admin gesetzt, für alle gültig)
+  gameSettings: {}  // Admin-Spiel-Einstellungen
 };
 
 // ── DB laden ──
@@ -1614,8 +1615,9 @@ app.put('/api/jukebox/playlist', (req, res) => {
   if (!token) return res.status(401).json({ error: 'Login erforderlich' });
   let userId = null;
   try {
-    for (const [id, user] of db.users) {
-      if (user.token === token) { userId = id; break; }
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.userId && db.users.has(decoded.userId)) {
+      userId = decoded.userId;
     }
   } catch(e) {}
   if (!userId) return res.status(401).json({ error: 'Ungültiger Token' });
@@ -3072,7 +3074,7 @@ function ensureShowcaseBots() {
       const style = BOT_STYLES[Math.floor(Math.random() * BOT_STYLES.length)];
       showcaseTable.players.set(botId, {
         id: botId, username: name, socketId: null,
-        cards: [], chips: 10000, folded: false, roundBet: 0,
+        cards: [], chips: 1000, folded: false, roundBet: 0,
         spectator: false, allIn: false, hasActed: false,
         isBot: true, botStyle: style
       });
@@ -3700,7 +3702,6 @@ io.on('connection', (socket) => {
             return socket.emit('rl:error', { message: 'Nicht genug Baxt Coins!' });
           }
           user.baxtCoins = (user.baxtCoins || 0) - totalBet;
-          awardBaxtCoins(user, 0, ''); // Just to trigger save
           saveDB();
           socket.emit('rl:balanceUpdate', { baxtCoins: user.baxtCoins });
         }

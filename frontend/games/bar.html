@@ -868,80 +868,21 @@ function sendChat() {
 
 function openDrinkMenu() {
   // Redirect to shared drinks.js menu
-  if (window._drinks) { window._drinks.toggle(); return; }
-  let html = '<h3 style="color:#D4AF37;font-family:\'Playfair Display\',serif;font-size:20px;margin:0 0 16px">Getränke bestellen</h3>';
-  for (const [id, d] of Object.entries(DRINKS)) {
-    html += '<div style="display:flex;align-items:center;gap:12px;padding:10px;border:1px solid rgba(212,175,55,.3);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:.2s" onclick="selectAndBuyDrink(\'' + id + '\')" onmouseover="this.style.borderColor=\'#D4AF37\'" onmouseout="this.style.borderColor=\'rgba(212,175,55,.3)\'">';
-    html += '<img src="' + d.img + '" style="width:40px;height:60px;object-fit:contain">';
-    html += '<div style="flex:1;text-align:left"><div style="color:#F0E6D3;font-weight:700">' + d.emoji + ' ' + d.name + '</div><div style="color:rgba(240,230,211,.5);font-size:11px">' + d.msg + '</div></div>';
-    html += '<div style="color:#F4D03F;font-weight:900">' + d.price.toLocaleString('de-DE') + ' ₿</div>';
-    html += '</div>';
-  }
-  html += '<button class="champagne-cancel" onclick="closeDrinkModal()" style="margin-top:12px">Abbrechen</button>';
-  document.querySelector('.champagne-card').innerHTML = html;
-  document.getElementById('drinkModal').classList.add('active');
+  if (window._drinks) { window._drinks.open(); return; }
 }
 function selectAndBuyDrink(drinkId) {
-  selectedDrink = DRINKS[drinkId];
-  if (!selectedDrink) return;
-  buyDrink();
+  // Legacy stub — drinks.js handles this now
+  if (window._drinks) { window._drinks.open(); }
 }
 function openDrinkModal(drinkId) {
-  selectedDrink = DRINKS[drinkId];
-  if (!selectedDrink) return;
-  document.getElementById('drinkModalImg').src = selectedDrink.img;
-  document.getElementById('drinkModalTitle').textContent = selectedDrink.name + ' bestellen';
-  document.getElementById('drinkModalPrice').textContent = selectedDrink.price.toLocaleString('de-DE') + ' ₿';
-  document.getElementById('drinkModal').classList.add('active');
+  // Legacy stub — drinks.js handles this now
+  if (window._drinks) { window._drinks.open(); }
 }
 function closeDrinkModal() {
-  document.getElementById('drinkModal').classList.remove('active');
-  selectedDrink = null;
+  // Legacy stub — drinks.js handles this now
 }
-async function buyDrink() {
-  if (!selectedDrink) return;
-  const drink = selectedDrink;
-  const token = localStorage.getItem('casinoToken');
-  const isGuest = !token && localStorage.getItem('casinoGuest');
-
-  if (!token && !isGuest) { closeDrinkModal(); alert('Bitte zuerst anmelden!'); return; }
-
-  if (isGuest) {
-    let guestBaxt = parseInt(localStorage.getItem('guestBaxt') || '0');
-    if (guestBaxt < drink.price) { closeDrinkModal(); alert('Nicht genug Baxt Coins!'); return; }
-    guestBaxt -= drink.price;
-    localStorage.setItem('guestBaxt', String(guestBaxt));
-  } else {
-    try {
-      const res = await fetch('/api/baxt/slot-bet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ amount: drink.price })
-      });
-      const data = await res.json();
-      if (data.error) { closeDrinkModal(); alert(data.error); return; }
-    } catch(e) { closeDrinkModal(); alert('Fehler beim Kauf'); return; }
-  }
-
-  closeDrinkModal();
-  socket.emit('bar:chat', { msg: drink.emoji + ' Spendiert ' + drink.msg + ' für alle! Prost! 🥂', username });
-  addChatMsg(drink.emoji, username + ' hat ' + drink.msg + ' bestellt! Prost! 🥂');
-  if (window._baxt) window._baxt.loadBalance();
-
-  // Video abspielen wenn vorhanden
-  if (drink.video) {
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;';
-    const vid = document.createElement('video');
-    vid.src = drink.video;
-    vid.autoplay = true;
-    vid.playsInline = true;
-    vid.style.cssText = 'max-width:90%;max-height:80%;border-radius:16px;';
-    vid.onended = () => overlay.remove();
-    overlay.onclick = () => overlay.remove();
-    overlay.appendChild(vid);
-    document.body.appendChild(overlay);
-  }
+function buyDrink() {
+  // Legacy stub — drinks.js handles this now
 }
 
 // ── FLASCHEN DRAGGABLE ──

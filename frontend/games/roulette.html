@@ -34,11 +34,11 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 
 /* ═══ LAYOUT ═══ */
 .game-layout{
-  position:fixed;top:44px;left:0;right:0;bottom:120px;
+  position:fixed;top:44px;left:0;right:0;bottom:0;
   display:flex;flex-direction:column;align-items:center;
   justify-content:flex-end;
   overflow-y:auto;overflow-x:hidden;
-  padding:10px 0 12px;
+  padding:60px 0 110px;
 }
 
 /* ═══ ROULETTE WHEEL — 3D ═══ */
@@ -95,8 +95,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 /* ═══ BETTING TABLE ═══ */
 .bet-area{
   width:min(98vw,680px);
-  margin:6px auto;flex-shrink:0;
-  padding-bottom:20px;
+  margin:6px auto 10px;flex-shrink:0;
   background:
     repeating-linear-gradient(45deg,
       rgba(212,175,55,.07) 0px, rgba(212,175,55,.07) 1px,
@@ -143,6 +142,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
   text-align:center;padding:6px 2px;cursor:pointer;
   transition:.12s;position:relative;
   display:flex;align-items:center;justify-content:center;
+  min-height:32px;
 }
 .bc.win-highlight{
   animation:winPulse 1.5s ease-in-out 3;
@@ -307,7 +307,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
   position:fixed;bottom:0;left:0;right:0;z-index:90;
   display:flex;flex-direction:column;gap:4px;align-items:center;
   background:linear-gradient(0deg,rgba(10,10,18,.95) 70%,rgba(10,10,18,.6) 95%,transparent);
-  padding:6px 0 4px;
+  padding:6px 0 calc(env(safe-area-inset-bottom, 0px) + 4px);
   border:none;
 }
 .chip-row{display:flex;gap:5px;justify-content:center;flex-wrap:nowrap}
@@ -698,27 +698,28 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 .settings-menu-btn.active{background:rgba(76,175,80,.3);border-color:#4CAF50}
 
 @media(max-width:500px){
+  .game-layout{padding-top:56px;padding-bottom:120px}
   .wheel-wrapper{width:min(60vw,220px);height:min(60vw,220px)}
   .bet-area{width:100vw!important;margin:0!important;padding-left:0;padding-right:0}
   .bet-grid{grid-template-columns:22px repeat(12,1fr)}
-  .bc{font-size:9px;padding:4px 0;min-height:22px}
-  .bc.outside{font-size:8px;padding:3px 0;min-height:18px;letter-spacing:0}
+  .bc{font-size:9px;padding:4px 0;min-height:26px}
+  .bc.outside{font-size:8px;padding:3px 0;min-height:24px;letter-spacing:0}
   .chip{width:36px;height:36px;font-size:9px}
   .chat-box{display:none}
   .vc-slot{width:65px;height:48px}
-  .ctrl-bar{padding:6px 0 4px;margin-top:0}
+  .ctrl-bar{padding:6px 0 calc(env(safe-area-inset-bottom, 0px) + 4px);margin-top:0}
   .btn-spin{padding:14px 50px;font-size:18px}
 }
 
 /* Landscape mode - Roulette */
 @media (max-height: 500px) and (orientation: landscape) {
-  .rl-wheel-container { max-width: 35vh; max-height: 35vh; margin: 0 auto; }
-  .rl-wheel-wrapper { transform: scale(0.6); transform-origin: center center; }
-  .rl-container { flex-direction: row; gap: 8px; padding: 4px; }
+  .wheel-wrapper { max-width: 35vh; max-height: 35vh; margin: 0 auto; }
+  .game-layout { padding-top: 50px; }
   .bet-area { max-height: 90vh; overflow-y: auto; }
-  .rl-header { padding: 4px 8px; font-size: 12px; }
-  .total-bet { font-size: 18px; }
-  body { overflow: auto; }
+  .total-bet { font-size: 14px; }
+  .ctrl-bar { padding: 4px 0; }
+  .chip { width: 30px; height: 30px; font-size: 8px; }
+  .btn-spin { padding: 8px 24px; font-size: 12px; }
 }
 </style>
 </head>
@@ -736,7 +737,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
 <div class="game-layout" id="gameLayout">
 
   <!-- PLAYERS -->
-  <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;max-width:min(96vw,640px);margin:4px auto;position:fixed;top:44px;left:0;right:0;z-index:50;padding:4px 8px;background:linear-gradient(180deg,rgba(10,10,18,.95),transparent)">
+  <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;max-width:min(96vw,640px);margin:4px auto;position:fixed;top:44px;left:0;right:0;z-index:50;padding:4px 8px;background:linear-gradient(180deg,rgba(10,10,18,.95) 80%,transparent);pointer-events:auto">
     <div class="players-strip" id="playersBar" style="margin:0"></div>
     <label class="bot-toggle" id="botToggleWrap">
       <input type="checkbox" id="botToggle" checked onchange="toggleBots(this.checked)">
@@ -758,15 +759,17 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none}
     <div class="bet-grid" id="betGrid"></div>
   </div>
 
-  <div class="total-bet" id="totalBet" style="text-align:center;width:100%;padding:6px 0">Einsatz: 0 ₿</div>
-  <!-- CONTROLS -->
-  <div class="ctrl-bar">
-    <div class="chip-row" id="chipRow"></div>
-    <div class="btn-row" style="width:100%;justify-content:center">
-      <button class="btn btn-undo" onclick="undoBet()" style="padding:10px 14px">↩</button>
-      <button class="btn btn-spin" id="btnSpin" onclick="requestSpin()" style="flex:1;max-width:240px">🎲 DREHEN</button>
-      <button class="btn btn-clear" onclick="clearBets()" style="padding:10px 14px">✕</button>
-    </div>
+
+</div>
+
+<!-- CONTROLS (outside game-layout for reliable fixed positioning on iOS) -->
+<div class="ctrl-bar">
+  <div class="total-bet" id="totalBet" style="text-align:center;width:100%;padding:2px 0">Einsatz: 0 ₿</div>
+  <div class="chip-row" id="chipRow"></div>
+  <div class="btn-row" style="width:100%;justify-content:center">
+    <button class="btn btn-undo" onclick="undoBet()" style="padding:10px 14px">↩</button>
+    <button class="btn btn-spin" id="btnSpin" onclick="requestSpin()" style="flex:1;max-width:240px">🎲 DREHEN</button>
+    <button class="btn btn-clear" onclick="clearBets()" style="padding:10px 14px">✕</button>
   </div>
 </div>
 
@@ -1740,8 +1743,7 @@ function spinBall(origTargetNumber, onDone) {
       bRadius = pR;
       bHeight = pocketFloorY + BALL_RADIUS + 0.08;
 
-      // Wheel still at constant speed
-      wheelAngle += wVel;
+      // Wheel rotation already applied at top of tick()
 
       if (settleFrames > 140) {
         cancelAnimationFrame(ballAnim);
@@ -1797,8 +1799,7 @@ function buildTable() {
   }
 
   // 2:1 columns
-  const spacer1 = document.createElement('div');
-  spacer1.style.display='none';
+  g.appendChild(mc('','',null,null)); // spacer for zero column
   g.appendChild(mc('2:1','outside w4','column',2));
   g.appendChild(mc('2:1','outside w4','column',1));
   g.appendChild(mc('2:1','outside w4','column',0));
@@ -2122,10 +2123,12 @@ function calcWin(n) {
         if(d===1 && n>=13 && n<=24) total+=b.amount*3;
         if(d===2 && n>=25 && n<=36) total+=b.amount*3;
         break;
-      case 'column':
+      case 'column': {
         const col=parseInt(b.value);
-        for(let i=0;i<12;i++) if(i*3+(3-col)===n) total+=b.amount*3;
+        const colMod = col===2 ? 0 : col===1 ? 2 : 1;
+        if(n>0 && n%3===colMod) total+=b.amount*3;
         break;
+      }
     }
   });
   return total;
@@ -2217,13 +2220,13 @@ function renderPlayers() {
     const avHtml = p.avatarConfig && p.avatarConfig.emoji
       ? `<span class="avatar" style="display:inline-flex;align-items:center;justify-content:center;background:${p.avatarConfig.color||'#D4AF37'};font-size:18px">${p.avatarConfig.emoji}</span>`
       : p.avatarUrl
-        ? `<img class="avatar" src="${p.avatarUrl}" alt="${p.username}" onerror="this.src='https://api.dicebear.com/9.x/toon-head/svg?seed=${encodeURIComponent(p.username)}';">`
-        : `<img class="avatar" src="https://api.dicebear.com/9.x/toon-head/svg?seed=${encodeURIComponent(p.username)}" alt="${p.username}">`;
+        ? `<img class="avatar" src="${p.avatarUrl}" alt="${p.username}" onerror="this.onerror=null;this.src='https://api.dicebear.com/9.x/toon-head/svg?seed=${encodeURIComponent(p.username)}';">`
+        : `<img class="avatar" src="https://api.dicebear.com/9.x/toon-head/svg?seed=${encodeURIComponent(p.username)}" alt="${p.username}" onerror="this.onerror=null;this.style.background='#D4AF37';this.style.fontSize='18px';this.alt='${p.username.charAt(0)}';">`;
     return `<div class="p-chip${p.isYou?' you':''}" data-name="${p.username}">${avHtml}${p.username}${p.isYou?' (Du)':''}</div>`;
   }).join('');
   if (botsEnabled) {
     bots.forEach((b, i) => {
-      html += `<div class="p-chip" data-name="${b.name}"><img class="avatar" style="animation-delay:${(i*0.7)%3}s" src="${botAvatar(b.name)}" alt="${b.name}">${b.name}</div>`;
+      html += `<div class="p-chip" data-name="${b.name}"><img class="avatar" style="animation-delay:${(i*0.7)%3}s" src="${botAvatar(b.name)}" alt="${b.name}" onerror="this.onerror=null;this.style.background='#D4AF37';this.style.fontSize='18px';this.alt='${b.name.charAt(0)}';">${b.name}</div>`;
     });
   }
   document.getElementById('playersBar').innerHTML = html;
@@ -2632,7 +2635,7 @@ function openSendMoney(name) {
       <div style="font-size:22px;font-weight:900;color:#F4D03F">${bal.toLocaleString('de-DE')} ₿</div>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px">
-      ${amounts.map(a => `<button class="money-amt-btn" onclick="selectMoneyAmt(${a})" style="padding:8px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1.5px solid rgba(212,175,55,.2);color:#F4D03F;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s">${a.toLocaleString('de-DE')} ₿</button>`).join('')}
+      ${amounts.map(a => `<button class="money-amt-btn" onclick="selectMoneyAmt(${a},event)" style="padding:8px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1.5px solid rgba(212,175,55,.2);color:#F4D03F;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s">${a.toLocaleString('de-DE')} ₿</button>`).join('')}
     </div>
     <div style="display:flex;gap:6px;margin-bottom:10px">
       <input id="moneyInput" type="number" min="10" placeholder="Anderer Betrag..." style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(212,175,55,.25);border-radius:8px;padding:10px 12px;color:#F0E6D3;font-size:14px;font-family:inherit;outline:none">
@@ -2641,14 +2644,17 @@ function openSendMoney(name) {
     <button onclick="doSendMoney('${name}')" style="width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#D4AF37,#F4D03F);border:none;color:#000;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(212,175,55,.3)">💸 Senden</button>
   `);
 }
-function selectMoneyAmt(amt) {
+function selectMoneyAmt(amt, e) {
   document.getElementById('moneyInput').value = amt;
   document.querySelectorAll('.money-amt-btn').forEach(b => {
     b.style.borderColor = 'rgba(212,175,55,.2)';
     b.style.background = 'rgba(255,255,255,.06)';
   });
-  event.target.style.borderColor = '#F4D03F';
-  event.target.style.background = 'rgba(212,175,55,.15)';
+  var target = (e && e.target) || (typeof event !== 'undefined' && event.target);
+  if (target) {
+    target.style.borderColor = '#F4D03F';
+    target.style.background = 'rgba(212,175,55,.15)';
+  }
 }
 async function doSendMoney(name) {
   const amount = parseInt(document.getElementById('moneyInput')?.value);
@@ -2864,10 +2870,10 @@ function toggleBots(on) {
 
 function renderBotPlayers() {
   const bar = document.getElementById('playersBar');
-  let html = `<div class="p-chip you" data-name="${username}"><img class="avatar" src="${diceBearUrl(username)}" alt="${username}">${username} (Du)</div>`;
+  let html = `<div class="p-chip you" data-name="${username}"><img class="avatar" src="${diceBearUrl(username)}" alt="${username}" onerror="this.onerror=null;this.style.background='#D4AF37';">${username} (Du)</div>`;
   if (botsEnabled) {
     bots.forEach((b, i) => {
-      html += `<div class="p-chip" data-name="${b.name}"><img class="avatar" style="animation-delay:${(i*0.7)%3}s" src="${botAvatar(b.name)}" alt="${b.name}">${b.name}</div>`;
+      html += `<div class="p-chip" data-name="${b.name}"><img class="avatar" style="animation-delay:${(i*0.7)%3}s" src="${botAvatar(b.name)}" alt="${b.name}" onerror="this.onerror=null;this.style.background='#D4AF37';">${b.name}</div>`;
     });
   }
   bar.innerHTML = html;

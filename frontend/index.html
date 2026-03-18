@@ -1379,7 +1379,6 @@
       transform: scale(1.05);
       box-shadow: 0 8px 40px rgba(39,174,96,.6);
     }
-    .install-btn:active { transform: scale(.97); }
     .install-btn:active { transform: scale(.96); }
     .install-icon { font-size: 20px; }
 
@@ -3151,6 +3150,7 @@
   <!-- BROKE MODAL -->
   <div class="broke-overlay" id="brokeOverlay" onclick="if(event.target===this)closeBroke()">
     <div class="broke-modal">
+      <div id="brokeEmoji" style="font-size:48px;text-align:center;margin-bottom:8px">💰</div>
       <img src="/img/kasse.png" alt="Kasse" style="width:100%;max-width:280px;border-radius:12px;margin:-12px auto 12px;display:block;border:2px solid rgba(212,175,55,.3);box-shadow:0 4px 20px rgba(0,0,0,.5)">
       <h3 style="color:#D4AF37;margin:0 0 8px" id="brokeTitle">Alles verspielt!</h3>
       <p style="color:#aaa;font-size:13px" id="brokeText"></p>
@@ -3440,7 +3440,7 @@
     // SUPPORT MODAL
     // =========================================================================
     function showSupport(e) {
-      e.preventDefault();
+      if (e && e.preventDefault) e.preventDefault();
       document.getElementById('support-modal').classList.add('active');
     }
 

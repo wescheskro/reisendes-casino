@@ -214,5 +214,6 @@
     }
   }
 
-  window._drinks = { buy: buyDrink, open: openMenu, close: closeMenu };
+  function toggleMenu() { overlay.classList.contains('open') ? closeMenu() : openMenu(); }
+  window._drinks = { buy: buyDrink, open: openMenu, close: closeMenu, toggle: toggleMenu };
 })();

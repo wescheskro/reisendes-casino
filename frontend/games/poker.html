@@ -239,8 +239,9 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .seat-cards .card::before{inset:1px;border-radius:3px}
 
 .seat-name{
-  font-size:28px;color:#D4AF37;margin-top:4px;font-weight:700;
-  white-space:nowrap;overflow:visible;
+  font-size:13px;color:#D4AF37;margin-top:4px;font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:100%;
   line-height:1.1;
   text-shadow:0 2px 6px rgba(0,0,0,.9);
 }
@@ -938,7 +939,6 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 .acc-scroll::-webkit-scrollbar{width:4px}
 .acc-scroll::-webkit-scrollbar-thumb{background:rgba(212,175,55,.3);border-radius:4px}
 /* (old avaturn styles removed) */
-}
 .ave-tab.tab-3d.active{
   background:linear-gradient(135deg,rgba(212,175,55,.25),rgba(155,89,182,.3));
   border-color:rgba(155,89,182,.6);
@@ -1115,7 +1115,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   .top-bar .back{padding:6px 12px;font-size:11px;min-height:36px}
 
   /* Seat Details */
-  .seat-name{font-size:22px}
+  .seat-name{font-size:11px}
   .seat-chips{font-size:12px}
   .seat-bet-bubble{font-size:9px;padding:2px 6px}
   .dealer-chip{width:20px;height:20px;font-size:9px;top:-6px;right:-6px}
@@ -1151,7 +1151,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   .btn{padding:10px 12px;font-size:12px}
   .pot-display{font-size:13px;padding:5px 16px}
   .pot-display .amount{font-size:22px}
-  .seat-name{font-size:18px}
+  .seat-name{font-size:10px}
   .seat-chips{font-size:7px}
   .seat-inner{padding:4px 3px 5px;border-radius:10px}
   .community-area{top:50%}
@@ -3099,7 +3099,7 @@ function renderAvatar(username, isYou, serverAvatarUrl, avatarConfig) {
     return `<div class="seat-avatar" style="position:relative;background:${avatarConfig.color||'#D4AF37'};display:flex;align-items:center;justify-content:center;font-size:32px">${avatarConfig.emoji}${editBtn}</div>`;
   }
   const url = getAvatarUrl(username, isYou ? null : serverAvatarUrl);
-  return `<div class="seat-avatar" style="position:relative"><img src="${url}" alt="${username}" loading="lazy">${editBtn}</div>`;
+  return `<div class="seat-avatar" style="position:relative"><img src="${url}" alt="${escapeHtml(username)}" loading="lazy">${editBtn}</div>`;
 }
 
 // ---- Avatar Editor UI ----
@@ -3268,8 +3268,9 @@ function renderState(state) {
   const isNowMyTurn = state.currentSeat >= 0 && state.seats[state.currentSeat] && state.seats[state.currentSeat].isYou;
   if (!wasMyTurn && isNowMyTurn && state.phase !== 'waiting') PokerSFX.yourTurn();
 
-  // Pot
-  document.getElementById('potAmount').textContent = state.pot.toLocaleString('de-DE') + ' ₿';
+  // Pot (guard against NaN/Infinity)
+  const potVal = (typeof state.pot === 'number' && isFinite(state.pot)) ? state.pot : 0;
+  document.getElementById('potAmount').textContent = potVal.toLocaleString('de-DE') + ' ₿';
 
   // Community cards with animation
   const cc = document.getElementById('communityCards');
@@ -3335,7 +3336,7 @@ function renderState(state) {
       div.innerHTML = `<div class="seat-inner" style="position:relative">
         ${dealerChip}
         ${avatarHTML}
-        <div class="seat-cards">${s.cards.map(renderCard).join('')}</div>
+        <div class="seat-cards">${(s.cards || []).map(renderCard).join('')}</div>
         <div class="seat-name">${s.username.replace(' 🤖','')}${s.isYou ? ' (Du)' : ''}</div>
         <div class="seat-chips">💰 ${(s.chips || 0).toLocaleString('de-DE')} ₿</div>
         ${handName}${foldedLabel}
@@ -3596,8 +3597,8 @@ function renderControls(state) {
 
   if (!isMyTurn) {
     const current = state.currentSeat >= 0 && state.seats[state.currentSeat];
-    const name = current ? current.username : '...';
-    ctrl.innerHTML = `<div style="color:rgba(240,230,211,.5);font-size:14px">⏳ ${name} ist am Zug...</div>`;
+    const name = current ? (current.username||'').replace(' \ud83e\udd16','') : '...';
+    ctrl.innerHTML = `<div style="color:rgba(240,230,211,.5);font-size:14px">\u23f3 ${name} ist am Zug...</div>`;
     return;
   }
 
@@ -3827,9 +3828,10 @@ function showPhase(text) {
 
 function showWinner(data) {
   const banner = document.getElementById('winnerBanner');
-  document.getElementById('winnerText').textContent = `🏆 ${data.username} gewinnt!`;
+  document.getElementById('winnerText').textContent = `\ud83c\udfc6 ${(data.username||'').replace(' \ud83e\udd16','')} gewinnt!`;
   document.getElementById('winnerHand').textContent = data.hand || '';
-  document.getElementById('winnerPot').textContent = `+${data.pot.toLocaleString('de-DE')} Chips`;
+  const winPot = (typeof data.pot === 'number' && isFinite(data.pot)) ? data.pot : 0;
+  document.getElementById('winnerPot').textContent = `+${winPot.toLocaleString('de-DE')} Chips`;
   banner.classList.add('show');
   setTimeout(() => banner.classList.remove('show'), 4500);
 }
@@ -3840,7 +3842,7 @@ function setupSocketEvents() {
     socket.emit('poker:join', { tableId, seat: -1 });
     document.getElementById('tableInfo').textContent = 'Verbunden!';
     // Auto-Mic: Sprachchat automatisch beitreten
-    if (!isEmbed && !vcActive) {
+    if (!isEmbedMode && !vcActive) {
       setTimeout(function() { toggleVoiceChat(); }, 2000);
     }
   });
@@ -3855,8 +3857,8 @@ function setupSocketEvents() {
     if (window._baxt) window._baxt.refresh();
     try { if (window.top && window.top._baxt) window.top._baxt.refresh(); } catch(e) {}
   });
-  socket.on('poker:playerJoined', d => { if (window.playDoorSound) window.playDoorSound(); PokerSFX.playerJoin(); showPhase(d.username + ' setzt sich!'); });
-  socket.on('poker:playerLeft', d => { if (window.playDoorSound) window.playDoorSound(); PokerSFX.playerLeave(); showPhase(d.username + ' geht...'); });
+  socket.on('poker:playerJoined', d => { if (window.playDoorSound) window.playDoorSound(); PokerSFX.playerJoin(); showPhase((d.username||'').replace(' \ud83e\udd16','') + ' setzt sich!'); });
+  socket.on('poker:playerLeft', d => { if (window.playDoorSound) window.playDoorSound(); PokerSFX.playerLeave(); showPhase((d.username||'').replace(' \ud83e\udd16','') + ' geht...'); });
   socket.on('poker:winner', d => {
     const me = myState && myState.seats.find(s => s && s.isYou);
     if (me && d.username === me.username) PokerSFX.win();
@@ -3947,7 +3949,7 @@ if (isEmbedMode) {
     body.embed-mode .top-bar { height: 28px !important; padding: 0 6px !important; }
     body.embed-mode .top-bar h1 { font-size: 11px !important; }
     body.embed-mode .top-bar .table-sub { display: none !important; }
-    body.embed-mode .back-btn { display: none !important; }
+    body.embed-mode .back { display: none !important; }
     body.embed-mode .bot-controls { display: flex !important; }
     body.embed-mode .chat-btn { display: none !important; }
     body.embed-mode #chatBox { display: none !important; }
@@ -4396,7 +4398,7 @@ let pmTarget = null;
 function openPlayerMenu(seatEl) {
   const nameEl = seatEl.querySelector('.seat-name');
   if (!nameEl) return;
-  pmTarget = nameEl.textContent.replace(' (Du)', '').replace(/KI$/, '').trim();
+  pmTarget = nameEl.textContent.replace(' (Du)', '').trim();
   const menu = document.getElementById('playerMenu');
   const overlay = document.getElementById('pmOverlay');
   document.getElementById('pmName').textContent = pmTarget;
