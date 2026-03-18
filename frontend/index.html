@@ -482,31 +482,28 @@
     .live-embed-overlay:hover {
       background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.8) 100%);
     }
-    /* Fingerabdruck-Symbol auf allen klickbaren Embeds */
+    /* Fingerabdruck auf allen klickbaren Embeds */
     .tap-hint {
       position: absolute;
-      top: 16px; right: 16px; left: auto;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
       z-index: 5;
-      width: 52px; height: 52px;
-      background: rgba(0,0,0,.5);
-      border: 2px solid rgba(212,175,55,.4);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 28px;
+      width: 80px; height: 80px;
       pointer-events: none;
-      backdrop-filter: blur(4px);
       animation: tapPulse 2.5s ease-in-out infinite;
     }
+    .tap-hint img {
+      width: 100%; height: 100%; object-fit: contain;
+    }
     @keyframes tapPulse {
-      0%, 100% { opacity: 0.5; transform: scale(1); }
-      50% { opacity: 0.8; transform: scale(1.1); }
+      0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+      50% { opacity: 0.65; transform: translate(-50%, -50%) scale(1.12); }
     }
     .game-card .tap-hint {
-      width: 36px; height: 36px; font-size: 20px;
-      top: 8px; right: 8px;
+      width: 50px; height: 50px;
     }
     @media (max-width: 600px) {
-      .tap-hint { width: 44px; height: 44px; font-size: 24px; }
+      .tap-hint { width: 65px; height: 65px; }
     }
     .live-overlay-text {
       color: #D4AF37;
@@ -2544,7 +2541,7 @@
         <div class="game-card" onclick="openPoker()">
           <iframe src="/games/poker.html?embed=1&table=embed-preview" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
           <div class="game-card-overlay">
-            <div class="tap-hint">👆</div>
+            <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
             <div class="game-card-title">Poker</div>
             <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcPokerRow">0</b></div>
           </div>
@@ -2552,7 +2549,7 @@
         <div class="game-card" onclick="openBlackjack()">
           <iframe src="/games/blackjack.html?embed=1" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
           <div class="game-card-overlay">
-            <div class="tap-hint">👆</div>
+            <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
             <div class="game-card-title">Blackjack</div>
             <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcBJRow">0</b></div>
           </div>
@@ -2560,7 +2557,7 @@
         <div class="game-card" onclick="openRoulette()">
           <iframe src="/games/roulette.html?embed=1" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
           <div class="game-card-overlay">
-            <div class="tap-hint">👆</div>
+            <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
             <div class="game-card-title">Roulette</div>
             <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcRouletteRow">0</b></div>
           </div>
@@ -2568,7 +2565,7 @@
         <div class="game-card" onclick="playGame()">
           <iframe src="/games/book-of-baxt.html?embed=1&silent=1" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
           <div class="game-card-overlay">
-            <div class="tap-hint">👆</div>
+            <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
             <div class="game-card-title">Slots</div>
             <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcSlotsRow">0</b></div>
           </div>
@@ -2577,7 +2574,7 @@
         <div class="game-card" onclick="openPoker()">
           <iframe src="/games/poker.html?embed=1&table=embed-preview" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
           <div class="game-card-overlay">
-            <div class="tap-hint">👆</div>
+            <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
             <div class="game-card-title">Poker</div>
             <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcPokerRow">0</b></div>
           </div>
@@ -2585,7 +2582,7 @@
         <div class="game-card" onclick="openBlackjack()">
           <iframe src="/games/blackjack.html?embed=1" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
           <div class="game-card-overlay">
-            <div class="tap-hint">👆</div>
+            <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
             <div class="game-card-title">Blackjack</div>
             <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcBJRow">0</b></div>
           </div>
@@ -2593,7 +2590,7 @@
         <div class="game-card" onclick="openRoulette()">
           <iframe src="/games/roulette.html?embed=1" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
           <div class="game-card-overlay">
-            <div class="tap-hint">👆</div>
+            <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
             <div class="game-card-title">Roulette</div>
             <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcRouletteRow">0</b></div>
           </div>
@@ -2601,7 +2598,7 @@
         <div class="game-card" onclick="playGame()">
           <iframe src="/games/book-of-baxt.html?embed=1&silent=1" sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'" loading="lazy"></iframe>
           <div class="game-card-overlay">
-            <div class="tap-hint">👆</div>
+            <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
             <div class="game-card-title">Slots</div>
             <div class="game-card-live"><span class="gc-dot"></span> LIVE · <b class="gcSlotsRow">0</b></div>
           </div>
@@ -2630,7 +2627,7 @@
     <div class="live-embed-wrap">
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcBar">0</b> in der Bar</div>
       <div class="live-embed-frame" id="barEmbedWrap" data-embed="bar">
-        <div class="tap-hint">👆</div>
+        <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
         <iframe src="/games/bar.html?embed=1" class="live-iframe" allow="camera;microphone;autoplay" loading="lazy" style="pointer-events:none;"></iframe>
         <div class="embed-click-overlay" onclick="openBar()"></div>
         <div class="slot-fullscreen-bar" onclick="openBar()">
@@ -2670,7 +2667,7 @@
     <div class="live-embed-wrap">
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcPoker">0</b> am Poker</div>
       <div class="live-embed-frame" id="pokerEmbedWrap" data-embed="poker">
-        <div class="tap-hint">👆</div>
+        <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
         <iframe id="pokerEmbed" src="/games/poker.html?embed=1&table=embed-preview" class="live-iframe" allow="camera;microphone;autoplay" loading="lazy" style="pointer-events:none;"></iframe>
         <div class="embed-click-overlay" onclick="openPoker()"></div>
         <div class="slot-fullscreen-bar" onclick="openPoker()">
@@ -2713,7 +2710,7 @@
     <div class="live-embed-wrap">
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcBJ">0</b> am Blackjack</div>
       <div class="live-embed-frame" id="bjEmbedWrap" data-embed="blackjack">
-        <div class="tap-hint">👆</div>
+        <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
         <iframe src="/games/blackjack.html?embed=1" class="live-iframe" allow="autoplay" loading="lazy" style="pointer-events:none;"></iframe>
         <div class="embed-click-overlay" onclick="openBlackjack()"></div>
         <div class="slot-fullscreen-bar" onclick="openBlackjack()">
@@ -2754,7 +2751,7 @@
     <div class="live-embed-wrap">
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcRoulette">0</b> am Roulette</div>
       <div class="live-embed-frame" id="rlEmbedWrap" data-embed="roulette">
-        <div class="tap-hint">👆</div>
+        <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
         <iframe src="/games/roulette.html?embed=1" class="live-iframe" allow="autoplay" loading="lazy" style="pointer-events:none;width:calc(100%/0.65);height:calc(100%/0.65);transform:scale(0.65);transform-origin:top left;"></iframe>
         <div class="embed-click-overlay" onclick="openRoulette()"></div>
         <div class="slot-fullscreen-bar" onclick="openRoulette()">
@@ -2780,7 +2777,7 @@
     <div class="live-embed-wrap">
       <div class="game-online-count"><span class="game-online-dot"></span> LIVE · <b id="gcSlots">0</b> an den Slots</div>
       <div class="slot-embed-frame" id="slotEmbedWrap" data-embed="slot">
-        <div class="tap-hint">👆</div>
+        <div class="tap-hint"><img src="/img/tap-fingerprint.png" alt="Tippen"></div>
         <iframe src="/games/book-of-baxt.html?embed=1" class="slot-embed-iframe" allow="autoplay" style="pointer-events:none;"></iframe>
         <div class="embed-click-overlay" onclick="playGame()"></div>
         <div class="slot-fullscreen-bar" onclick="playGame()">
