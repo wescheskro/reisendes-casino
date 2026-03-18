@@ -999,6 +999,21 @@ function renderState(state) {
       setTimeout(() => {
         const avEl = document.getElementById('av-' + i);
         if (!avEl) return;
+        
+        // --- VIDEO CHAT INTEGRATION ---
+        if (typeof _activeVideos !== 'undefined' && _activeVideos[s.id]) {
+          avEl.innerHTML = '';
+          avEl.style.background = '#000';
+          const v = document.createElement('video');
+          v.autoplay = true;
+          v.playsInline = true;
+          v.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;transform:scaleX(-1);';
+          v.srcObject = _activeVideos[s.id];
+          avEl.style.border = '2px solid #4CAF50';
+          avEl.appendChild(v);
+          return;
+        }
+
         if (s.avatarConfig && s.avatarConfig.emoji) {
           avEl.innerHTML = '';
           avEl.style.background = s.avatarConfig.color || '#D4AF37';
@@ -1665,6 +1680,21 @@ if (location.search.includes('embed=1')) {
     else if (e.data && e.data.type === 'embedAudioOff') BJSFX._embedMuted = true;
   });
 }
+
+// --- VIDEO CHAT UI INTEGRATION ---
+const _activeVideos = {};
+
+window.addEventListener('rtc:video', function(e) {
+  const { peerId, stream } = e.detail;
+  _activeVideos[peerId] = stream;
+  if (typeof renderState === 'function' && typeof myState !== 'undefined' && myState) renderState(myState);
+});
+
+window.addEventListener('rtc:video:remove', function(e) {
+  const { peerId } = e.detail;
+  delete _activeVideos[peerId];
+  if (typeof renderState === 'function' && typeof myState !== 'undefined' && myState) renderState(myState);
+});
 </script>
 <!-- PLAYERS BAR (disabled) -->
 <div class="players-bar" id="playersBar" style="display:none"></div>

@@ -75,25 +75,21 @@
 
     pc.ontrack = function(e) {
       var kind = e.track.kind;
-      var elId = 'rtc-' + kind + '-' + peerId;
-      var el = document.getElementById(elId);
-      if (!el) {
-        el = document.createElement(kind === 'video' ? 'video' : 'audio');
-        el.id = elId;
-        el.autoplay = true;
-        el.playsInline = true;
-        if (kind === 'audio') el.style.display = 'none';
-        if (kind === 'video') {
-          el.style.cssText = 'position:fixed;bottom:80px;right:10px;width:120px;height:90px;border-radius:10px;border:2px solid #d4af37;z-index:95;object-fit:cover;background:#000;cursor:pointer;';
-          el.onclick = function() {
-            el.style.width = el.style.width === '120px'
-              ? '80vw' : '120px';
-            el.style.height = el.style.width === '80vw' ? '60vh' : '90px';
-          };
+      if (kind === 'audio') {
+        var elId = 'rtc-audio-' + peerId;
+        var el = document.getElementById(elId);
+        if (!el) {
+          el = document.createElement('audio');
+          el.id = elId;
+          el.autoplay = true;
+          el.playsInline = true;
+          el.style.display = 'none';
+          document.body.appendChild(el);
         }
-        document.body.appendChild(el);
+        el.srcObject = e.streams[0];
+      } else if (kind === 'video') {
+        window.dispatchEvent(new CustomEvent('rtc:video', { detail: { peerId: peerId, stream: e.streams[0] } }));
       }
-      el.srcObject = e.streams[0];
     };
 
     pc.onicecandidate = function(e) {
@@ -131,10 +127,9 @@
   function cleanup(peerId) {
     var pc = _pcs[peerId];
     if (pc) { pc.close(); delete _pcs[peerId]; }
-    ['audio', 'video'].forEach(function(k) {
-      var el = document.getElementById('rtc-' + k + '-' + peerId);
-      if (el) el.remove();
-    });
+    var el = document.getElementById('rtc-audio-' + peerId);
+    if (el) el.remove();
+    window.dispatchEvent(new CustomEvent('rtc:video:remove', { detail: { peerId: peerId } }));
   }
 
   // ─── Init: Signaling Events registrieren ───
@@ -261,4 +256,71 @@
     get micOn() { return _micOn; },
     get camOn() { return _camOn; }
   };
+
+  // ─── EIGENES VIDEO DRAG & DROP ───
+  document.addEventListener('DOMContentLoaded', function() {
+    var mv = document.getElementById('myVideo');
+    if (!mv) return;
+    
+    // Füge Minimize-Button und Header-Leiste hinzu
+    var header = document.createElement('div');
+    header.style.cssText = 'position:absolute;top:0;left:0;right:0;height:24px;background:rgba(0,0,0,0.6);cursor:move;z-index:10;display:flex;justify-content:flex-end;align-items:center;padding:0 4px;';
+    var closeBtn = document.createElement('div');
+    closeBtn.textContent = '✖';
+    closeBtn.style.cssText = 'color:#fff;font-size:12px;cursor:pointer;padding:2px 6px;';
+    closeBtn.onclick = function(e) {
+      e.stopPropagation();
+      mv.style.display = 'none';
+      if (window.RTC.camOn) window.RTC.toggleCam();
+    };
+    header.appendChild(closeBtn);
+    mv.appendChild(header);
+
+    // Klick-Logik zum Wieder-Einblenden falls versteckt: erfolgt typischerweise über den Kamera-Knopf im Spiel.
+    // Die Drag-Logik:
+    var isDragging = false;
+    var startX, startY, initX, initY;
+
+    header.addEventListener('mousedown', dragStart);
+    header.addEventListener('touchstart', dragStart, {passive: false});
+
+    function dragStart(e) {
+      if (e.target === closeBtn) return;
+      isDragging = true;
+      var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      var rect = mv.getBoundingClientRect();
+      startX = clientX;
+      startY = clientY;
+      initX = rect.left;
+      initY = rect.top;
+      // Constraints lösen
+      mv.style.right = 'auto';
+      mv.style.bottom = 'auto';
+      mv.style.left = initX + 'px';
+      mv.style.top = initY + 'px';
+      e.preventDefault();
+    }
+
+    window.addEventListener('mousemove', dragMove);
+    window.addEventListener('touchmove', dragMove, {passive: false});
+    window.addEventListener('mouseup', dragEnd);
+    window.addEventListener('touchend', dragEnd);
+
+    function dragMove(e) {
+      if (!isDragging) return;
+      var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      var dx = clientX - startX;
+      var dy = clientY - startY;
+      mv.style.left = (initX + dx) + 'px';
+      mv.style.top = (initY + dy) + 'px';
+      e.preventDefault();
+    }
+
+    function dragEnd() {
+      isDragging = false;
+    }
+  });
+
 })();

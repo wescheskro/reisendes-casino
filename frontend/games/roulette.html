@@ -2229,13 +2229,19 @@ document.addEventListener('click', function(e) {
 
 function renderPlayers() {
   let html = players.map(p => {
-    const avHtml = p.avatarConfig && p.avatarConfig.emoji
-      ? `<span class="avatar" style="display:inline-flex;align-items:center;justify-content:center;background:${p.avatarConfig.color||'#D4AF37'};font-size:18px">${p.avatarConfig.emoji}</span>`
-      : p.avatarUrl
-        ? `<img class="avatar" src="${p.avatarUrl}" alt="${p.username}" onerror="this.onerror=null;this.src='https://api.dicebear.com/9.x/toon-head/svg?seed=${encodeURIComponent(p.username)}';">`
-        : `<img class="avatar" src="https://api.dicebear.com/9.x/toon-head/svg?seed=${encodeURIComponent(p.username)}" alt="${p.username}" onerror="this.onerror=null;this.style.background='#D4AF37';this.style.fontSize='18px';this.alt='${p.username.charAt(0)}';">`;
-    return `<div class="p-chip${p.isYou?' you':''}" data-name="${p.username}">${avHtml}${p.username}${p.isYou?' (Du)':''}</div>`;
+    let avHtml = '';
+    if (typeof _activeVideos !== 'undefined' && _activeVideos[p.id]) {
+      avHtml = `<div class="avatar" id="rl-vid-${p.id}" style="border:2px solid #4CAF50;overflow:hidden;background:#000;"></div>`;
+    } else if (p.avatarConfig && p.avatarConfig.emoji) {
+      avHtml = `<span class="avatar" style="display:inline-flex;align-items:center;justify-content:center;background:${p.avatarConfig.color||'#D4AF37'};font-size:18px">${p.avatarConfig.emoji}</span>`;
+    } else if (p.avatarUrl) {
+      avHtml = `<img class="avatar" src="${p.avatarUrl}" alt="${p.username}" onerror="this.onerror=null;this.src='https://api.dicebear.com/9.x/toon-head/svg?seed=${encodeURIComponent(p.username)}';">`;
+    } else {
+      avHtml = `<img class="avatar" src="https://api.dicebear.com/9.x/toon-head/svg?seed=${encodeURIComponent(p.username)}" alt="${p.username}" onerror="this.onerror=null;this.style.background='#D4AF37';this.style.fontSize='18px';this.alt='${p.username.charAt(0)}';">`;
+    }
+    return `<div class="p-chip${p.isYou?' you':''}" data-id="${p.id}" data-name="${p.username}">${avHtml}${p.username}${p.isYou?' (Du)':''}</div>`;
   }).join('');
+  
   if (botsEnabled) {
     bots.forEach((b, i) => {
       html += `<div class="p-chip" data-name="${b.name}"><img class="avatar" style="animation-delay:${(i*0.7)%3}s" src="${botAvatar(b.name)}" alt="${b.name}" onerror="this.onerror=null;this.style.background='#D4AF37';this.style.fontSize='18px';this.alt='${b.name.charAt(0)}';">${b.name}</div>`;
@@ -2244,11 +2250,29 @@ function renderPlayers() {
   document.getElementById('playersBar').innerHTML = html;
   const total = players.length + (botsEnabled ? bots.length : 0);
   document.getElementById('tableInfo').textContent = `Tisch ${tableId} · ${total} Spieler`;
-  document.getElementById('vcWrap').innerHTML = players.filter(p => !p.isYou && p.video).map(p =>
-    `<div class="vc-slot" data-peer="${p.id}"><video autoplay playsinline></video><div class="vc-name">${p.username}</div></div>`
-  ).join('');
+  
+  // Hide the old vcWrap as videos are now native in chips
+  document.getElementById('vcWrap').style.display = 'none';
+
   // Restore saved positions & make draggable
   initDraggableChips();
+
+  // Inject active streams
+  setTimeout(() => {
+    players.forEach(p => {
+      if (typeof _activeVideos !== 'undefined' && _activeVideos[p.id]) {
+        const ph = document.getElementById('rl-vid-' + p.id);
+        if (ph && !ph.querySelector('video')) {
+          const v = document.createElement('video');
+          v.autoplay = true;
+          v.playsInline = true;
+          v.style.cssText = 'width:100%;height:100%;object-fit:cover;transform:scaleX(-1);';
+          v.srcObject = _activeVideos[p.id];
+          ph.appendChild(v);
+        }
+      }
+    });
+  }, 0);
 }
 
 // ═══════════════════════════════════════
@@ -3029,6 +3053,21 @@ if (!isEmbed) {
 }
 initBots();
 startBotAutoPlay();
+
+// --- VIDEO CHAT UI INTEGRATION ---
+const _activeVideos = {};
+
+window.addEventListener('rtc:video', function(e) {
+  const { peerId, stream } = e.detail;
+  _activeVideos[peerId] = stream;
+  if (typeof renderPlayers === 'function') setTimeout(renderPlayers, 10);
+});
+
+window.addEventListener('rtc:video:remove', function(e) {
+  const { peerId } = e.detail;
+  delete _activeVideos[peerId];
+  if (typeof renderPlayers === 'function') setTimeout(renderPlayers, 10);
+});
 </script>
 <script src="/js/baxt-coins.js"></script>
 <script src="/js/friends.js"></script>
