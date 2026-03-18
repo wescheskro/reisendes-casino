@@ -3744,10 +3744,12 @@ io.on('connection', (socket) => {
           const RED = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
           function calcRoulettePayout(bets, winNumber) {
             let totalWin = 0;
+            const isRed = RED.has(winNumber);
             for (const bet of bets) {
               const { type, value, amount } = bet;
               let win = 0;
-              if (type === 'straight' && parseInt(value) === winNumber) win = amount * 36;
+              // Nummer (Frontend: 'number', alt: 'straight')
+              if ((type === 'straight' || type === 'number') && parseInt(value) === winNumber) win = amount * 36;
               else if (type === 'split') {
                 const nums = String(value).split(',').map(Number);
                 if (nums.includes(winNumber)) win = amount * 18;
@@ -3764,20 +3766,36 @@ io.on('connection', (socket) => {
                 const nums = String(value).split(',').map(Number);
                 if (nums.includes(winNumber)) win = amount * 6;
               }
-              else if (type === 'column') {
-                const col = parseInt(value);
-                if (winNumber > 0 && winNumber % 3 === (col === 3 ? 0 : col)) win = amount * 3;
+              // Farbe (Frontend: 'color' mit value 'red'/'black', alt: 'red'/'black')
+              else if (type === 'color') {
+                if (value === 'red' && winNumber > 0 && isRed) win = amount * 2;
+                else if (value === 'black' && winNumber > 0 && !isRed) win = amount * 2;
               }
-              else if (type === 'dozen') {
-                const dz = parseInt(value);
-                if (winNumber > 0 && Math.ceil(winNumber / 12) === dz) win = amount * 3;
-              }
-              else if (type === 'red' && RED.has(winNumber)) win = amount * 2;
-              else if (type === 'black' && winNumber > 0 && !RED.has(winNumber)) win = amount * 2;
+              else if (type === 'red' && winNumber > 0 && isRed) win = amount * 2;
+              else if (type === 'black' && winNumber > 0 && !isRed) win = amount * 2;
+              // Gerade/Ungerade
               else if (type === 'even' && winNumber > 0 && winNumber % 2 === 0) win = amount * 2;
               else if (type === 'odd' && winNumber > 0 && winNumber % 2 === 1) win = amount * 2;
+              // Hälfte (Frontend: 'half' mit value 0/1, alt: 'low'/'high')
+              else if (type === 'half') {
+                if (parseInt(value) === 0 && winNumber >= 1 && winNumber <= 18) win = amount * 2;
+                else if (parseInt(value) === 1 && winNumber >= 19 && winNumber <= 36) win = amount * 2;
+              }
               else if (type === 'low' && winNumber >= 1 && winNumber <= 18) win = amount * 2;
               else if (type === 'high' && winNumber >= 19 && winNumber <= 36) win = amount * 2;
+              // Column (Frontend: value 0/1/2)
+              else if (type === 'column') {
+                const col = parseInt(value);
+                const colMod = col === 2 ? 0 : col === 1 ? 2 : 1;
+                if (winNumber > 0 && winNumber % 3 === colMod) win = amount * 3;
+              }
+              // Dutzend (Frontend: value 0/1/2)
+              else if (type === 'dozen') {
+                const dz = parseInt(value);
+                if (dz === 0 && winNumber >= 1 && winNumber <= 12) win = amount * 3;
+                else if (dz === 1 && winNumber >= 13 && winNumber <= 24) win = amount * 3;
+                else if (dz === 2 && winNumber >= 25 && winNumber <= 36) win = amount * 3;
+              }
               totalWin += win;
             }
             return totalWin;
