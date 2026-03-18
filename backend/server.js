@@ -104,7 +104,8 @@ const db = {
   transactions: new Map(),
   sessions: new Map(),
   leaderboard: new Map(),
-  weeklyWinners: []
+  weeklyWinners: [],
+  adminLayout: {}  // Server-seitige Layout-Positionen (vom Admin gesetzt, für alle gültig)
 };
 
 // ── DB laden ──
@@ -120,6 +121,13 @@ function loadDB() {
       db.leaderboard.set(k, weekMap);
     }
     if (raw.weeklyWinners) db.weeklyWinners = raw.weeklyWinners;
+    if (raw.adminLayout) db.adminLayout = raw.adminLayout;
+    if (raw.gameSettings) db.gameSettings = raw.gameSettings;
+    // Admin-Accounts setzen (Username-basiert)
+    const ADMIN_USERNAMES = ['Jerome'];
+    for (const [, user] of db.users) {
+      if (ADMIN_USERNAMES.includes(user.username)) user.isAdmin = true;
+    }
     console.log(`[DB] ${db.users.size} User geladen aus ${DB_FILE}`);
   } catch (e) {
     console.error('[DB] Fehler beim Laden:', e.message);
@@ -140,7 +148,9 @@ function saveDB() {
         users: Object.fromEntries(db.users),
         transactions: Object.fromEntries(db.transactions),
         leaderboard: {},
-        weeklyWinners: db.weeklyWinners
+        weeklyWinners: db.weeklyWinners,
+        adminLayout: db.adminLayout || {},
+        gameSettings: db.gameSettings || {}
       };
       for (const [wk, wMap] of db.leaderboard) {
         data.leaderboard[wk] = Object.fromEntries(wMap);
@@ -615,11 +625,12 @@ app.post('/api/auth/register', async (req, res) => {
 
 // Login
 app.post('/api/auth/login', async (req, res) => {
-  const { phone, pin } = req.body;
+  const { phone, pin, username } = req.body;
 
   let foundUser = null;
   for (const [, user] of db.users) {
-    if (user.phone === phone) { foundUser = user; break; }
+    if (username && user.username && user.username.toLowerCase() === username.toLowerCase()) { foundUser = user; break; }
+    if (phone && user.phone === phone) { foundUser = user; break; }
   }
 
   if (!foundUser) {
@@ -1415,6 +1426,7 @@ app.put('/api/user/avatar', authMiddleware, (req, res) => {
   const { avatarUrl, avatarConfig } = req.body;
   if (avatarUrl !== undefined) req.user.avatarUrl = avatarUrl;
   if (avatarConfig !== undefined) req.user.avatarConfig = avatarConfig;
+  saveDB();
   res.json({
     success: true,
     avatarUrl: req.user.avatarUrl || null,
@@ -1570,6 +1582,92 @@ app.get('/api/config', (req, res) => {
     googleClientId: GOOGLE_CLIENT_ID || null,
     emailEnabled: !!mailTransporter
   });
+});
+
+// ── Admin Middleware ──
+function adminMiddleware(req, res, next) {
+  const authH = req.headers.authorization;
+  if (!authH) return res.status(401).json({ error: 'Nicht eingeloggt' });
+  try {
+    const decoded = jwt.verify(authH.replace('Bearer ', ''), JWT_SECRET);
+    const user = db.users.get(decoded.userId);
+    if (!user || !user.isAdmin) return res.status(403).json({ error: 'Kein Admin' });
+    req.user = user;
+    next();
+  } catch(e) { return res.status(401).json({ error: 'Token ungültig' }); }
+}
+
+// ── Admin: Layout speichern (Positionen die für ALLE gelten) ──
+app.put('/api/admin/layout', adminMiddleware, (req, res) => {
+  const { key, value } = req.body;
+  if (!key) return res.status(400).json({ error: 'Key erforderlich' });
+  db.adminLayout[key] = value;
+  dbDirty = true;
+  saveDB();
+  console.log(`[ADMIN] Layout '${key}' gespeichert von ${req.user.username}`);
+  res.json({ success: true, key, value });
+});
+
+// ── Admin: Layout lesen ──
+app.get('/api/admin/layout', (req, res) => {
+  res.json(db.adminLayout || {});
+});
+
+// ── Admin: Einzelnes Layout lesen ──
+app.get('/api/admin/layout/:key', (req, res) => {
+  res.json({ value: (db.adminLayout || {})[req.params.key] || null });
+});
+
+// ── Admin-Status prüfen ──
+app.get('/api/admin/check', authMiddleware, (req, res) => {
+  res.json({ isAdmin: !!req.user.isAdmin });
+});
+
+// ── Admin: Baxt Coins vergeben ──
+app.post('/api/admin/give-coins', adminMiddleware, (req, res) => {
+  const { targetUsername, amount } = req.body;
+  if (!amount || isNaN(amount)) return res.status(400).json({ error: 'Betrag erforderlich' });
+  const coins = parseInt(amount);
+
+  // Sich selbst oder anderem User geben
+  let target = null;
+  if (!targetUsername || targetUsername.toLowerCase() === req.user.username.toLowerCase()) {
+    target = req.user;
+  } else {
+    for (const [, u] of db.users) {
+      if (u.username && u.username.toLowerCase() === targetUsername.toLowerCase()) { target = u; break; }
+    }
+  }
+  if (!target) return res.status(404).json({ error: 'User nicht gefunden' });
+
+  target.baxtCoins = (target.baxtCoins || 0) + coins;
+  saveDB();
+  console.log(`[ADMIN] ${req.user.username} gab ${coins} ₿ an ${target.username} (neu: ${target.baxtCoins})`);
+  res.json({ success: true, username: target.username, newBalance: target.baxtCoins });
+});
+
+// ── Admin: Alle User auflisten ──
+app.get('/api/admin/users', adminMiddleware, (req, res) => {
+  const users = [];
+  for (const [id, u] of db.users) {
+    users.push({ id, username: u.username, baxtCoins: u.baxtCoins || 0, level: u.level || 1, isAdmin: !!u.isAdmin });
+  }
+  res.json(users);
+});
+
+// ── Admin: Game-Settings lesen/speichern ──
+app.get('/api/admin/game-settings', (req, res) => {
+  res.json(db.gameSettings || {});
+});
+
+app.put('/api/admin/game-settings', adminMiddleware, (req, res) => {
+  const { game, settings } = req.body;
+  if (!game) return res.status(400).json({ error: 'Game erforderlich' });
+  if (!db.gameSettings) db.gameSettings = {};
+  db.gameSettings[game] = { ...(db.gameSettings[game] || {}), ...settings };
+  saveDB();
+  console.log(`[ADMIN] Game-Settings für '${game}' aktualisiert von ${req.user.username}`);
+  res.json({ success: true, game, settings: db.gameSettings[game] });
 });
 
 // Live Online-Status
@@ -2368,7 +2466,7 @@ function addBotToTable(table) {
 
   table.players.set(botId, {
     id: botId, username: name, socketId: null,
-    cards: [], chips: 10000, folded: false, roundBet: 0,
+    cards: [], chips: 1000, folded: false, roundBet: 0,
     spectator: false, allIn: false, hasActed: false,
     isBot: true, botStyle: style
   });
@@ -2924,12 +3022,13 @@ function ensureShowcaseBots() {
     botIds.forEach(id => removeBotFromTable(showcaseTable, id));
   }
 
-  // Bots mit 0 Chips resetten
+  // Bots mit 0 Chips resetten + max 1000 begrenzen
   for (const [, p] of showcaseTable.players) {
     if (p.isBot && (p.chips <= 0 || p.spectator)) {
-      p.chips = 10000;
+      p.chips = 1000;
       p.spectator = false;
     }
+    if (p.isBot && p.chips > 1000) p.chips = 1000;
   }
 
   // Falls Runde steckengeblieben ist (waiting obwohl genug Spieler da)

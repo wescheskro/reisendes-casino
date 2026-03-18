@@ -763,8 +763,9 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
     <span class="bot-switch"></span>
     Bots
   </label>
-  <button class="back" onclick="location.href='/'" style="margin-left:8px">← Lobby</button>
+  <button class="back" id="bjLobbyBtn" onclick="location.href='/'" style="margin-left:8px">← Lobby</button>
 </div>
+<script>if(location.search.includes('embed=1') || window.self !== window.top)document.getElementById('bjLobbyBtn').style.display='none';</script>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -951,9 +952,7 @@ function renderState(state) {
     if (!s) {
       div.className += ' empty';
       div.innerHTML = `<div class="seat-inner">
-        <div class="seat-avatar"></div>
-        <div class="seat-cards"></div>
-        <div class="seat-name">Freier Platz</div>
+        <div class="seat-avatar" style="opacity:.3;border-style:dashed"><span style="font-size:20px;color:rgba(212,175,55,.3)">+</span></div>
       </div>`;
       div.onclick = () => joinSeat(i);
     } else {
@@ -1040,8 +1039,7 @@ function renderState(state) {
   // Sound effects
   if (isNewCards && state.phase === 'playing') BJSFX.cardDeal();
 
-  // Players bar (Roulette-style)
-  renderPlayersBar(state);
+  // Players bar disabled - seats show everything
 }
 
 // ═══════ PLAYERS BAR + DRAGGABLE CHIPS ═══════
@@ -1546,12 +1544,13 @@ socket.on('chat:msg', d => {
 const _activeBubbles = {}; // name -> { text, timer, created }
 
 function showSpeechBubble(name, text) {
+  const clean = name.replace(' 🤖','');
   // Clear old timer
-  if (_activeBubbles[name]?.timer) clearTimeout(_activeBubbles[name].timer);
-  _activeBubbles[name] = { text, created: Date.now() };
+  if (_activeBubbles[clean]?.timer) clearTimeout(_activeBubbles[clean].timer);
+  _activeBubbles[clean] = { text, created: Date.now() };
   _renderBubbles();
-  _activeBubbles[name].timer = setTimeout(() => {
-    delete _activeBubbles[name];
+  _activeBubbles[clean].timer = setTimeout(() => {
+    delete _activeBubbles[clean];
     _renderBubbles();
   }, 4500);
 }
@@ -1647,6 +1646,12 @@ document.addEventListener('keydown', e => {
 
 // ═══════ EMBED AUDIO CONTROL ═══════
 if (location.search.includes('embed=1')) {
+  // Embed: UI-Elemente ausblenden
+  document.querySelector('.chat-toggle').style.display = 'none';
+  document.getElementById('chatBox').style.display = 'none';
+  document.querySelector('.bot-controls').style.display = 'none';
+  var vcFabEl = document.getElementById('vcFab');
+  if (vcFabEl) vcFabEl.style.display = 'none';
   // Im Embed standardmäßig stumm — Lobby schaltet Sound per postMessage ein
   BJSFX._embedMuted = true;
   const origPlay = BJSFX.play.bind(BJSFX);
@@ -1661,8 +1666,8 @@ if (location.search.includes('embed=1')) {
   });
 }
 </script>
-<!-- PLAYERS BAR -->
-<div class="players-bar" id="playersBar"></div>
+<!-- PLAYERS BAR (disabled) -->
+<div class="players-bar" id="playersBar" style="display:none"></div>
 
 <!-- PLAYER MENU -->
 <div class="player-menu-overlay" id="pmOverlay" onclick="closePlayerMenu()"></div>

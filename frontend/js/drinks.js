@@ -17,54 +17,67 @@
   style.textContent = `
     .ice-bucket {
       position: fixed;
-      bottom: 80px;
+      bottom: 140px;
       right: 12px;
       z-index: 90;
       cursor: pointer;
       transition: transform .2s;
       filter: drop-shadow(0 4px 12px rgba(0,0,0,.6));
     }
-    .ice-bucket img { width: 50px; height: auto; }
+    .ice-bucket img { width: 65px; height: auto; }
     .ice-bucket:hover { transform: scale(1.15); }
     .ice-bucket:active { transform: scale(.95); }
 
-    .drink-menu {
+    .drink-menu-overlay {
       display: none;
       position: fixed;
-      bottom: 140px;
-      right: 12px;
-      z-index: 91;
+      inset: 0;
+      z-index: 100000;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(4px);
+      justify-content: center;
+      align-items: center;
+    }
+    .drink-menu-overlay.active { display: flex; }
+    .drink-menu {
       background: rgba(15,10,5,.95);
       border: 2px solid rgba(212,175,55,.4);
       border-radius: 16px;
-      padding: 12px;
-      backdrop-filter: blur(10px);
-      min-width: 160px;
+      padding: 16px;
+      min-width: 260px;
+      max-width: 90vw;
     }
-    .drink-menu.active { display: block; }
     .drink-menu-title {
       color: #D4AF37;
       font-family: 'Playfair Display', serif;
-      font-size: 13px;
+      font-size: 18px;
       font-weight: 700;
       text-align: center;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       letter-spacing: 1px;
     }
     .drink-menu-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 8px 10px;
-      border-radius: 10px;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 12px;
       cursor: pointer;
       transition: background .2s;
+      border: 1px solid rgba(212,175,55,.2);
+      margin-bottom: 8px;
     }
-    .drink-menu-item:hover { background: rgba(212,175,55,.15); }
-    .drink-menu-item img { width: 24px; height: 40px; object-fit: contain; }
+    .drink-menu-item:hover, .drink-menu-item:active { background: rgba(212,175,55,.2); border-color: #D4AF37; }
+    .drink-menu-item img { width: 32px; height: 50px; object-fit: contain; }
     .drink-menu-item-info { flex: 1; }
-    .drink-menu-item-name { color: #F0E6D3; font-size: 13px; font-weight: 700; }
-    .drink-menu-item-price { color: #D4AF37; font-size: 11px; }
+    .drink-menu-item-name { color: #F0E6D3; font-size: 15px; font-weight: 700; }
+    .drink-menu-item-price { color: #D4AF37; font-size: 13px; font-weight: 600; }
+    .drink-menu-cancel {
+      display: block; width: 100%; padding: 10px; margin-top: 4px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 10px; color: #aaa; font-size: 14px; cursor: pointer; text-align: center;
+    }
+    .drink-menu-cancel:hover { background: rgba(255,255,255,.12); }
 
     .drink-video-overlay {
       position: fixed; inset: 0; z-index: 100001;
@@ -82,23 +95,42 @@
   bucket.className = 'ice-bucket';
   bucket.innerHTML = '<img src="/img/ice-bucket.png" alt="Getränke" draggable="false">';
 
+  const menuOverlay = document.createElement('div');
+  menuOverlay.className = 'drink-menu-overlay';
   const menu = document.createElement('div');
   menu.className = 'drink-menu';
-  menu.id = 'drinkMenu';
-  let menuHTML = '<div class="drink-menu-title">Getränke</div>';
+  let menuHTML = '<div class="drink-menu-title">🍸 Getränke bestellen</div>';
   for (const [id, d] of Object.entries(DRINKS)) {
-    menuHTML += `<div class="drink-menu-item" onclick="window._drinks.buy('${id}')">
+    menuHTML += `<div class="drink-menu-item" data-drink="${id}">
       <img src="${d.img}" alt="${d.name}">
       <div class="drink-menu-item-info">
-        <div class="drink-menu-item-name">${d.name}</div>
+        <div class="drink-menu-item-name">${d.emoji} ${d.name}</div>
         <div class="drink-menu-item-price">${d.price.toLocaleString('de-DE')} ₿</div>
       </div>
     </div>`;
   }
+  menuHTML += '<div class="drink-menu-cancel" data-drink="cancel">Abbrechen</div>';
   menu.innerHTML = menuHTML;
+  menuOverlay.appendChild(menu);
+
+  // Click on overlay background closes menu
+  menuOverlay.addEventListener('click', (e) => {
+    if (e.target === menuOverlay) { menuOverlay.classList.remove('active'); }
+  });
+  // Click on menu items
+  menu.addEventListener('click', (e) => {
+    const item = e.target.closest('[data-drink]');
+    if (!item) return;
+    e.stopPropagation();
+    if (item.dataset.drink === 'cancel') {
+      menuOverlay.classList.remove('active');
+    } else {
+      buyDrink(item.dataset.drink);
+    }
+  });
 
   document.body.appendChild(bucket);
-  document.body.appendChild(menu);
+  document.body.appendChild(menuOverlay);
 
   // Draggable bucket
   let bDragging = false, bWasDragged = false, bStartX, bStartY, bOrigX, bOrigY;
@@ -115,7 +147,6 @@
     bStartX = t.clientX; bStartY = t.clientY;
     const r = bucket.getBoundingClientRect();
     bOrigX = r.left; bOrigY = r.top;
-    e.preventDefault();
   }
   function bOnMove(e) {
     if (!bDragging) return;
@@ -137,41 +168,41 @@
     }
   }
   bucket.addEventListener('mousedown', bOnStart);
-  bucket.addEventListener('touchstart', bOnStart, {passive:false});
+  bucket.addEventListener('touchstart', bOnStart, {passive:true});
   window.addEventListener('mousemove', bOnMove);
   window.addEventListener('touchmove', bOnMove, {passive:false});
   window.addEventListener('mouseup', bOnEnd);
   window.addEventListener('touchend', bOnEnd);
 
   function toggleDrinkMenu() {
-    const r = bucket.getBoundingClientRect();
-    menu.style.bottom = 'auto';
-    menu.style.right = 'auto';
-    menu.style.left = Math.min(window.innerWidth - 180, r.left) + 'px';
-    menu.style.top = Math.max(0, r.top - 200) + 'px';
-    menu.classList.toggle('active');
-  }
-
-  // Close on outside click
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.ice-bucket') && !e.target.closest('.drink-menu')) {
-      menu.classList.remove('active');
+    if (menuOverlay.classList.contains('active')) {
+      menuOverlay.classList.remove('active');
+    } else {
+      menuOverlay.classList.add('active');
     }
-  });
+  }
 
   async function buyDrink(drinkId) {
     const drink = DRINKS[drinkId];
     if (!drink) return;
-    menu.classList.remove('active');
+    menuOverlay.classList.remove('active');
 
     const token = localStorage.getItem('casinoToken');
     const isGuest = !token && localStorage.getItem('casinoGuest');
 
-    if (!token && !isGuest) { alert('Bitte zuerst anmelden!'); return; }
+    function drinkToast(msg) {
+      const t = document.createElement('div');
+      t.textContent = msg;
+      t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:100002;background:rgba(231,76,60,.9);color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;pointer-events:none;';
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    if (!token && !isGuest) { drinkToast('Bitte zuerst anmelden!'); return; }
 
     if (isGuest) {
       let guestBaxt = parseInt(localStorage.getItem('guestBaxt') || '0');
-      if (guestBaxt < drink.price) { alert('Nicht genug Baxt Coins!'); return; }
+      if (guestBaxt < drink.price) { drinkToast('Nicht genug Baxt Coins!'); return; }
       guestBaxt -= drink.price;
       localStorage.setItem('guestBaxt', String(guestBaxt));
     } else {
@@ -182,10 +213,9 @@
           body: JSON.stringify({ amount: drink.price })
         });
         const data = await res.json();
-        if (data.error) { alert(data.error); return; }
-      } catch(e) { alert('Fehler beim Kauf'); return; }
+        if (data.error) { drinkToast(data.error); return; }
+      } catch(e) { drinkToast('Fehler beim Kauf'); return; }
     }
-
     // Chat-Nachricht senden
     const socket = window._gameSocket || (window.io && io.sockets && Object.values(io.sockets)[0]);
     if (typeof addChat === 'function') addChat(drink.emoji, drink.emoji + ' ' + (localStorage.getItem('casinoGuest') ? JSON.parse(localStorage.getItem('casinoGuest')).username : 'Du') + ' hat ' + drink.msg + ' bestellt! Prost! 🥂');
@@ -193,18 +223,24 @@
 
     if (window._baxt) window._baxt.loadBalance();
 
-    // Video abspielen
+    // Video abspielen (lokal im aktuellen Dokument)
     if (drink.video) {
       const overlay = document.createElement('div');
-      overlay.className = 'drink-video-overlay';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;cursor:pointer;';
       const vid = document.createElement('video');
       vid.src = drink.video;
       vid.autoplay = true;
       vid.playsInline = true;
+      vid.muted = true;
+      vid.style.cssText = 'max-width:90%;max-height:80%;border-radius:16px;';
+      vid.onplay = () => { setTimeout(() => { vid.muted = false; }, 100); };
       vid.onended = () => overlay.remove();
+      vid.onerror = () => { console.log('[DRINKS] video error, removing overlay'); overlay.remove(); };
       overlay.onclick = () => overlay.remove();
       overlay.appendChild(vid);
       document.body.appendChild(overlay);
+      // Fallback: play manually if autoplay blocked
+      vid.play().catch(() => { vid.muted = true; vid.play().catch(() => {}); });
     }
   }
 

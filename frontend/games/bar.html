@@ -413,7 +413,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
   Bots
 </label>
 <button class="back" id="barLobbyBtn" onclick="location.href='/'" style="position:fixed;top:64px;left:16px;z-index:50;padding:10px 20px;font-size:14px">← Lobby</button>
-<script>if(location.search.includes('embed=1'))document.getElementById('barLobbyBtn').style.display='none';</script>
+<script>if(location.search.includes('embed=1') || window.self !== window.top)document.getElementById('barLobbyBtn').style.display='none';</script>
 
 <!-- SITZPLÄTZE -->
 <div class="seats" id="seats"></div>
@@ -423,24 +423,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
   <video id="localVideo" autoplay playsinline muted></video>
 </div>
 
-<!-- GETRÄNKE AUF DEM TISCH -->
-<div class="bar-drinks">
-  <div class="bar-drink" id="drink-ice-bucket" onclick="openDrinkMenu()" style="cursor:pointer">
-    <img src="/img/ice-bucket.png" alt="Eiskübel" draggable="false" style="width:100px;height:130px">
-  </div>
-</div>
-
-<!-- GETRÄNK KAUF-DIALOG -->
-<div class="champagne-modal" id="drinkModal" onclick="if(event.target===this)closeDrinkModal()">
-  <div class="champagne-card">
-    <img id="drinkModalImg" src="" alt="">
-    <h3 id="drinkModalTitle"></h3>
-    <p>Spendiere eine Runde f&uuml;r alle am Tisch!</p>
-    <div class="champagne-price" id="drinkModalPrice"></div>
-    <button class="champagne-buy" onclick="buyDrink()">🥂 Bestellen</button>
-    <button class="champagne-cancel" onclick="closeDrinkModal()">Abbrechen</button>
-  </div>
-</div>
+<!-- GETRÄNKE: werden von drinks.js injiziert (shared Eiskübel) -->
 
 <!-- CHAT -->
 <div class="bar-chat">
@@ -771,17 +754,11 @@ function sendChat() {
   input.value = '';
 }
 
-// ── GETRÄNKE BESTELLEN ──
-const DRINKS = {
-  whiskey: { name: 'Whiskey', price: 500, img: '/img/whiskey.png', emoji: '🥃', msg: 'eine Runde Whiskey', video: '/games/sounds/whiskey-order.mp4' },
-  vodka: { name: 'Vodka', price: 800, img: '/img/vodka.jpg', emoji: '🍸', msg: 'eine Runde Vodka', video: '/games/sounds/vodka-order.mp4' },
-  champagner: { name: 'Champagner', price: 1500, img: '/img/champagne.png', emoji: '🍾', msg: 'eine Flasche Champagner', video: '/games/sounds/champagne-order.mp4' }
-};
-let selectedDrink = null;
+// ── GETRÄNKE: drinks.js (shared) wird am Ende geladen ──
 
-// ── Eiskübel Drag ──
+// ── Eiskübel Drag: ENTFERNT — drinks.js übernimmt ──
 (function(){
-  const el = document.querySelector('.bar-drinks');
+  const el = null; // drinks.js handles everything
   if (!el) return;
   let dragging = false, wasDragged = false, startX, startY, origX, origY;
   const THRESHOLD = 8;
@@ -827,7 +804,8 @@ let selectedDrink = null;
 })();
 
 function openDrinkMenu() {
-  // Build drink menu HTML
+  // Redirect to shared drinks.js menu
+  if (window._drinks) { window._drinks.toggle(); return; }
   let html = '<h3 style="color:#D4AF37;font-family:\'Playfair Display\',serif;font-size:20px;margin:0 0 16px">Getränke bestellen</h3>';
   for (const [id, d] of Object.entries(DRINKS)) {
     html += '<div style="display:flex;align-items:center;gap:12px;padding:10px;border:1px solid rgba(212,175,55,.3);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:.2s" onclick="selectAndBuyDrink(\'' + id + '\')" onmouseover="this.style.borderColor=\'#D4AF37\'" onmouseout="this.style.borderColor=\'rgba(212,175,55,.3)\'">';
@@ -1376,6 +1354,7 @@ function openVoiceRecorder(name) { createActionModal('🎙 Sprachnachricht an ' 
 function openSendMoney(name) { createActionModal('💰 Geld senden an ' + name, `<div style="text-align:center"><input type="number" placeholder="Betrag in ₿" style="width:100%;padding:10px;background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.2);border-radius:8px;color:#F0E6D3;font-family:inherit;font-size:16px;text-align:center;margin-bottom:10px"><button onclick="closeActionModal()" style="width:100%;padding:10px;background:linear-gradient(135deg,#D4AF37,#8B6914);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Überweisen</button></div>`); }
 </script>
 <script src="/js/door-sound.js"></script>
+<script src="/js/drinks.js"></script>
 <script src="/js/settings-fab.js"></script>
 
 </body>

@@ -944,8 +944,8 @@ let players = [];
 let myStream = null, micOn = false, camOn = false;
 let peerConnections = {};
 
-// ─── EMBED ───
-if (isEmbed) {
+// ─── EMBED / IFRAME ───
+if (isEmbed || window.self !== window.top) {
   var lobbyBtn = document.getElementById('lobbyBtn');
   if (lobbyBtn) lobbyBtn.style.display = 'none';
   var mcBar = document.getElementById('mcBar');
@@ -1861,10 +1861,8 @@ let physUnlocked = false;
 function unlockPhysPanel() {
   const panel = document.getElementById('physPanel');
   if (panel.classList.contains('open')) { panel.classList.remove('open'); return; }
-  if (physUnlocked) { panel.classList.add('open'); return; }
-  const code = prompt('Code eingeben:');
-  if (code === '1986') { physUnlocked = true; panel.classList.add('open'); }
-  else if (code !== null) { alert('Falscher Code!'); }
+  if (!window._isAdmin) { alert('Nur für Admins!'); return; }
+  panel.classList.add('open');
 }
 
 // ═══════════════════════════════════════

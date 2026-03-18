@@ -1,8 +1,30 @@
-// Settings Fab - Draggable with position persistence
+// Settings Fab - Draggable with position persistence (Admin only)
 (function(){
   const fab = document.querySelector('.settings-fab') || document.querySelector('.vc-fab');
   if (!fab) return;
   const menu = document.querySelector('.settings-menu') || document.querySelector('.vc-controls');
+
+  // Hide by default — show only for admins
+  fab.style.display = 'none';
+  if (menu) menu.style.display = 'none';
+
+  // Check admin status
+  function checkAdmin() {
+    const token = localStorage.getItem('casinoToken');
+    if (!token) return;
+    const API = window.API || (location.origin.includes('localhost') ? 'http://localhost:3000' : '');
+    fetch((API || '') + '/api/admin/check', { headers: { 'Authorization': 'Bearer ' + token } })
+      .then(r => r.json())
+      .then(d => {
+        if (d.isAdmin) {
+          fab.style.display = '';
+          window._isAdmin = true;
+        }
+      })
+      .catch(() => {});
+  }
+  checkAdmin();
+
   const KEY = 'settings-fab-pos';
   let dragging = false, wasDragged = false, startX, startY, origX, origY;
   const THRESHOLD = 8;

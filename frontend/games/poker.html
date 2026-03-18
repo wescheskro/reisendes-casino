@@ -249,7 +249,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   font-size:14px;color:rgba(212,175,55,.6);margin-top:1px;
   font-style:italic;
 }
-.seat-chips{font-size:8px;color:rgba(240,230,211,.55)}
+.seat-chips{font-size:14px;color:rgba(240,230,211,.7);font-weight:600}
 .seat-bet-bubble{
   font-size:8px;color:#F4D03F;
   background:rgba(0,0,0,.65);padding:1px 6px;border-radius:8px;
@@ -1116,7 +1116,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
 
   /* Seat Details */
   .seat-name{font-size:22px}
-  .seat-chips{font-size:9px}
+  .seat-chips{font-size:12px}
   .seat-bet-bubble{font-size:9px;padding:2px 6px}
   .dealer-chip{width:20px;height:20px;font-size:9px;top:-6px;right:-6px}
   .bot-badge{font-size:7px;padding:1px 4px}
@@ -1275,7 +1275,7 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;-webkit
   <div class="info" id="tableInfo">Verbinde...</div>
   <button class="back" id="pokerLobbyBtn" onclick="location.href='/'">← Lobby</button>
 </div>
-<script>if(location.search.includes('embed=1'))document.getElementById('pokerLobbyBtn').style.display='none';</script>
+<script>if(location.search.includes('embed=1') || window.self !== window.top)document.getElementById('pokerLobbyBtn').style.display='none';</script>
 
 <!-- GEGNER auf dem Tisch -->
 <div class="seats-container" id="seatsContainer"></div>
@@ -3331,18 +3331,14 @@ function renderState(state) {
       const betBubble = s.bet > 0 ? `<div class="seat-bet-bubble">${s.bet.toLocaleString('de-DE')} ₿</div>` : '';
       const handName = s.handName ? `<div class="seat-hand">${s.handName}</div>` : '';
       const foldedLabel = s.folded ? '<div style="font-size:10px;color:#d44;margin-top:2px">Gepasst</div>' : '';
-      const botBadge = s.isBot ? `<span class="bot-badge">KI</span>` : '';
-      const botStyle = s.isBot && s.botStyle ? `<div class="bot-style-tag ${s.botStyle}">${s.botStyle}</div>` : '';
-
       const avatarHTML = renderAvatar(s.username, s.isYou, s.avatarUrl, s.avatarConfig);
       div.innerHTML = `<div class="seat-inner" style="position:relative">
         ${dealerChip}
         ${avatarHTML}
         <div class="seat-cards">${s.cards.map(renderCard).join('')}</div>
-        <div class="seat-name">${s.username}${s.isYou ? ' (Du)' : ''}${botBadge}</div>
-        ${s.rang ? `<div class="seat-rang">${s.rang}</div>` : ''}
+        <div class="seat-name">${s.username.replace(' 🤖','')}${s.isYou ? ' (Du)' : ''}</div>
         <div class="seat-chips">💰 ${(s.chips || 0).toLocaleString('de-DE')} ₿</div>
-        ${botStyle}${betBubble}${handName}${foldedLabel}
+        ${handName}${foldedLabel}
       </div>`;
       div.onclick = (e) => {
         if (div._dragMoved) return;
@@ -3711,11 +3707,12 @@ function sendChat() {
 const _activeBubbles = {};
 
 function showSpeechBubble(name, text) {
-  if (_activeBubbles[name]?.timer) clearTimeout(_activeBubbles[name].timer);
-  _activeBubbles[name] = { text, created: Date.now() };
+  const clean = name.replace(' 🤖','');
+  if (_activeBubbles[clean]?.timer) clearTimeout(_activeBubbles[clean].timer);
+  _activeBubbles[clean] = { text, created: Date.now() };
   _renderBubbles();
-  _activeBubbles[name].timer = setTimeout(() => {
-    delete _activeBubbles[name];
+  _activeBubbles[clean].timer = setTimeout(() => {
+    delete _activeBubbles[clean];
     _renderBubbles();
   }, 4500);
 }
@@ -3910,6 +3907,8 @@ if (isEmbedMode) {
     body.embed-mode .chat-btn { display: none !important; }
     body.embed-mode #chatBox { display: none !important; }
     body.embed-mode .vc-btn { display: none !important; }
+    body.embed-mode .vc-fab { display: none !important; }
+    body.embed-mode .vc-controls { display: none !important; }
     body.embed-mode .hand-label { font-size: 8px !important; }
     body.embed-mode #nameOverlay { display: none !important; }
     body.embed-mode .action-bar { display: none !important; }

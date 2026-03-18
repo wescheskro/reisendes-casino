@@ -313,24 +313,24 @@
     .slot-embed-frame {
       position: relative;
       width: 100%;
-      max-width: 500px;
-      margin: 0 auto;
-      height: 550px;
-      border-radius: 14px;
+      max-width: 100%;
+      margin: 0;
+      height: 600px;
+      border-radius: 0;
       overflow: hidden;
-      border: 2px solid rgba(212,175,55,0.35);
-      box-shadow: 0 8px 35px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,175,55,0.15);
+      border: none;
+      border-top: 2px solid rgba(212,175,55,0.35);
+      border-bottom: 2px solid rgba(212,175,55,0.35);
+      box-shadow: 0 8px 35px rgba(0,0,0,0.6);
       background: #0a0a12;
     }
     .slot-embed-iframe {
       position: absolute;
       top: 0; left: 0;
-      width: calc(100% / 0.85);
-      height: calc(100% / 0.85);
+      width: 100%;
+      height: 100%;
       border: none;
       pointer-events: auto;
-      transform: scale(0.85);
-      transform-origin: top left;
       z-index: 1;
     }
 
@@ -388,8 +388,8 @@
     #pokerEmbedWrap { height: 549px; }
     #bjEmbedWrap { height: 796px; }
     #rlEmbedWrap { height: 610px; }
-    .slot-embed-frame { height: 550px; }
-    @media (max-width: 480px) { .slot-embed-frame { height: 326px; max-width: none; } }
+    .slot-embed-frame { height: 600px; }
+    @media (max-width: 480px) { .slot-embed-frame { height: 500px; } }
     .live-iframe {
       position: absolute;
       top: 0; left: 0;
@@ -1733,35 +1733,126 @@
     .profile-btn:hover { filter:brightness(1.15); }
 
     /* ====== AVATAR EDITOR ====== */
+    /* ── Admin Panel ── */
+    .admin-panel-overlay {
+      display:none; position:fixed; inset:0; z-index:10002;
+      background:rgba(0,0,0,.85); backdrop-filter:blur(6px);
+      justify-content:center; align-items:center;
+    }
+    .admin-panel-overlay.active { display:flex; }
+    .admin-panel {
+      background:linear-gradient(145deg,#1a1a2e,#16213e);
+      border:2px solid #D4AF37; border-radius:16px;
+      width:min(420px,94vw); max-height:90vh; overflow-y:auto;
+      padding:24px; position:relative;
+    }
+    .admin-panel h3 {
+      color:#D4AF37; font-family:'Playfair Display',serif;
+      font-size:20px; margin:0 0 16px; text-align:center;
+    }
+    .admin-section { margin-bottom:20px; }
+    .admin-section-title {
+      color:rgba(240,230,211,.6); font-size:11px; text-transform:uppercase;
+      letter-spacing:1px; margin-bottom:8px; font-weight:600;
+    }
+    .admin-input {
+      width:100%; padding:10px 14px; background:rgba(255,255,255,.06);
+      border:1px solid rgba(212,175,55,.3); border-radius:10px;
+      color:#F0E6D3; font-size:15px; margin-bottom:8px; box-sizing:border-box;
+    }
+    .admin-input::placeholder { color:rgba(240,230,211,.3); }
+    .admin-input:focus { border-color:#D4AF37; outline:none; }
+    .admin-btn {
+      width:100%; padding:12px; border:none; border-radius:10px;
+      font-size:15px; font-weight:700; cursor:pointer; margin-bottom:8px;
+    }
+    .admin-btn-gold {
+      background:linear-gradient(135deg,#D4AF37,#B8860B);
+      color:#1a1a2e;
+    }
+    .admin-btn-red {
+      background:linear-gradient(135deg,#e74c3c,#c0392b);
+      color:#fff;
+    }
+    .admin-result {
+      padding:10px; border-radius:8px; font-size:13px;
+      margin-top:8px; display:none;
+    }
+    .admin-result.success { display:block; background:rgba(46,204,113,.15); color:#2ecc71; border:1px solid rgba(46,204,113,.3); }
+    .admin-result.error { display:block; background:rgba(231,76,60,.15); color:#e74c3c; border:1px solid rgba(231,76,60,.3); }
+    .admin-nav-btn {
+      display:none; background:rgba(212,175,55,.15); border:1px solid rgba(212,175,55,.3);
+      color:#D4AF37; padding:4px 10px; border-radius:8px; font-size:11px;
+      cursor:pointer; font-weight:600;
+    }
+    .admin-nav-btn.visible { display:inline-block; }
+    .admin-user-list {
+      max-height:200px; overflow-y:auto; margin-top:8px;
+    }
+    .admin-user-item {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.06);
+      font-size:13px; color:#F0E6D3;
+    }
+    .admin-user-item span:last-child { color:#D4AF37; font-weight:600; }
+
     .avatar-editor-overlay {
       display:none; position:fixed; inset:0; z-index:10001;
-      background:rgba(0,0,0,.8); backdrop-filter:blur(6px);
+      background:rgba(0,0,0,.85); backdrop-filter:blur(6px);
       justify-content:center; align-items:center;
     }
     .avatar-editor-overlay.active { display:flex; }
     .avatar-editor {
       background:linear-gradient(145deg,#1a1a2e,#16213e);
       border:2px solid #D4AF37; border-radius:16px;
-      width:min(380px,92vw); padding:24px; position:relative;
+      width:min(400px,94vw); max-height:90vh; overflow-y:auto;
+      padding:20px; position:relative;
     }
     .avatar-editor h3 {
       color:#D4AF37; font-family:'Playfair Display',serif;
-      font-size:18px; margin:0 0 16px; text-align:center;
+      font-size:18px; margin:0 0 12px; text-align:center;
     }
     .avatar-preview-area {
-      text-align:center; margin-bottom:16px;
+      text-align:center; margin-bottom:12px;
     }
     .avatar-preview {
-      width:90px; height:90px; border-radius:50%;
+      width:120px; height:120px; border-radius:50%;
       display:inline-flex; align-items:center; justify-content:center;
-      font-size:40px; border:3px solid #D4AF37;
+      font-size:40px; border:3px solid #D4AF37; background:#1a1a2e;
+      overflow:hidden;
     }
     .avatar-preview img {
       width:100%; height:100%; border-radius:50%; object-fit:cover;
     }
     .avatar-section-label {
-      color:rgba(240,230,211,.6); font-size:12px;
-      margin:12px 0 6px; font-weight:600;
+      color:rgba(240,230,211,.6); font-size:11px;
+      margin:10px 0 4px; font-weight:600; text-transform:uppercase;
+      letter-spacing:1px;
+    }
+    .av-opt-row {
+      display:flex; gap:6px; flex-wrap:wrap; margin-bottom:4px;
+    }
+    .av-opt-btn {
+      width:42px; height:42px; border-radius:10px;
+      border:2px solid rgba(212,175,55,.2); background:rgba(255,255,255,.06);
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      font-size:20px; color:#F0E6D3; transition:.2s;
+      overflow:hidden; padding:0;
+    }
+    .av-opt-btn:hover { border-color:rgba(212,175,55,.5); background:rgba(255,255,255,.12); }
+    .av-opt-btn.selected { border-color:#D4AF37; background:rgba(212,175,55,.2); box-shadow:0 0 8px rgba(212,175,55,.3); }
+    .av-opt-btn img { width:100%; height:100%; object-fit:cover; border-radius:8px; }
+    .av-color-btn {
+      width:30px; height:30px; border-radius:50%;
+      border:2px solid rgba(255,255,255,.15); cursor:pointer; transition:.2s;
+    }
+    .av-color-btn:hover { transform:scale(1.15); }
+    .av-color-btn.selected { border-color:#D4AF37; box-shadow:0 0 8px rgba(212,175,55,.5); transform:scale(1.15); }
+    .av-randomize {
+      background:linear-gradient(135deg,#D4AF37,#B8860B);
+      color:#1a1a2e; border:none; border-radius:10px;
+      padding:8px 16px; font-weight:700; cursor:pointer;
+      font-size:13px; margin:0 auto; display:block;
     }
     .avatar-color-grid {
       display:flex; flex-wrap:wrap; gap:8px;
@@ -2128,6 +2219,7 @@
           <div class="user-name" id="userName">-</div>
           <div class="user-rank" id="userRank">-</div>
         </div>
+        <button class="admin-nav-btn" id="adminNavBtn" onclick="openAdminPanel()">👑</button>
         <button class="auth-btn logout" onclick="logout()">✕</button>
       </div>
     </div>
@@ -2620,14 +2712,13 @@
       <form id="registerForm" onsubmit="doRegister(event)">
         <input class="auth-input" type="text" id="regUsername" placeholder="Dein Spielername" maxlength="20" required>
         <input class="auth-input" type="email" id="regEmail" placeholder="E-Mail (für Passwort-Reset)" required>
-        <input class="auth-input" type="tel" id="regPhone" placeholder="Handy-Nummer" required>
         <input class="auth-input" type="password" id="regPin" placeholder="4-stelliger PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
         <button class="auth-submit" type="submit">🦔 Registrieren &amp; 5.000 ₿ kassieren!</button>
       </form>
 
       <!-- LOGIN FORM -->
       <form id="loginForm" onsubmit="doLogin(event)" style="display:none">
-        <input class="auth-input" type="tel" id="loginPhone" placeholder="Handy-Nummer" required>
+        <input class="auth-input" type="text" id="loginPhone" placeholder="Spielername oder E-Mail" required>
         <input class="auth-input" type="password" id="loginPin" placeholder="4-stelliger PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required>
         <button class="auth-submit" type="submit">Anmelden</button>
         <span class="auth-link" onclick="showForgotPassword()">PIN vergessen?</span>
@@ -2822,19 +2913,58 @@
     </div>
   </div>
 
+  <!-- ADMIN PANEL -->
+  <div class="admin-panel-overlay" id="adminPanelOverlay" onclick="if(event.target===this)closeAdminPanel()">
+    <div class="admin-panel">
+      <span style="position:absolute;top:12px;right:16px;cursor:pointer;color:#F0E6D3;font-size:20px" onclick="closeAdminPanel()">✕</span>
+      <h3>👑 Admin Panel</h3>
+
+      <div class="admin-section">
+        <div class="admin-section-title">BAXT COINS VERGEBEN</div>
+        <input class="admin-input" type="text" id="adminTargetUser" placeholder="Username (leer = du selbst)">
+        <input class="admin-input" type="number" id="adminCoinAmount" placeholder="Betrag (z.B. 10000)">
+        <button class="admin-btn admin-btn-gold" onclick="adminGiveCoins()">💰 Coins vergeben</button>
+        <div class="admin-result" id="adminCoinResult"></div>
+      </div>
+
+      <div class="admin-section">
+        <div class="admin-section-title">ALLE USER</div>
+        <button class="admin-btn admin-btn-gold" onclick="adminLoadUsers()" style="margin-bottom:4px">👥 User laden</button>
+        <div class="admin-user-list" id="adminUserList"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- AVATAR EDITOR -->
   <div class="avatar-editor-overlay" id="avatarEditorOverlay" onclick="if(event.target===this)closeAvatarEditor()">
     <div class="avatar-editor">
       <button class="profile-close" onclick="closeAvatarEditor()">&times;</button>
       <h3>Avatar erstellen</h3>
       <div class="avatar-preview-area">
-        <div class="avatar-preview" id="avatarPreview"></div>
+        <div class="avatar-preview" id="avatarPreview"><img id="avPreviewImg" src="" alt="Avatar"></div>
       </div>
-      <div class="avatar-section-label">Farbe wählen</div>
-      <div class="avatar-color-grid" id="avatarColorGrid"></div>
-      <div class="avatar-section-label">Symbol wählen</div>
-      <div class="avatar-emoji-grid" id="avatarEmojiGrid"></div>
-      <button class="profile-btn" onclick="saveAvatar()" style="margin-top:18px">💾 Avatar speichern</button>
+      <button class="av-randomize" onclick="randomizeAvatar()">🎲 Zufällig</button>
+      <div class="avatar-section-label">Hautfarbe</div>
+      <div class="av-opt-row" id="avSkinRow"></div>
+      <div class="avatar-section-label">Haare</div>
+      <div class="av-opt-row" id="avHairRow"></div>
+      <div class="avatar-section-label">Haarfarbe</div>
+      <div class="av-opt-row" id="avHairColorRow"></div>
+      <div class="avatar-section-label">Augen</div>
+      <div class="av-opt-row" id="avEyesRow"></div>
+      <div class="avatar-section-label">Augenbrauen</div>
+      <div class="av-opt-row" id="avBrowsRow"></div>
+      <div class="avatar-section-label">Mund</div>
+      <div class="av-opt-row" id="avMouthRow"></div>
+      <div class="avatar-section-label">Bart</div>
+      <div class="av-opt-row" id="avBeardRow"></div>
+      <div class="avatar-section-label">Kleidung</div>
+      <div class="av-opt-row" id="avClothesRow"></div>
+      <div class="avatar-section-label">Kleidungsfarbe</div>
+      <div class="av-opt-row" id="avClothesColorRow"></div>
+      <div class="avatar-section-label">Hintergrund</div>
+      <div class="av-opt-row" id="avBgRow"></div>
+      <button class="profile-btn" onclick="saveAvatar()" style="margin-top:14px">💾 Avatar speichern</button>
     </div>
   </div>
 
@@ -3076,7 +3206,6 @@
       e.preventDefault();
       const username = document.getElementById('regUsername').value.trim();
       const email = document.getElementById('regEmail').value.trim();
-      const phone = document.getElementById('regPhone').value.trim();
       const pin = document.getElementById('regPin').value;
 
       if (pin.length !== 4) { showAuthError('PIN muss 4 Ziffern haben!'); return; }
@@ -3086,7 +3215,7 @@
         const res = await fetch(API + '/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, email, phone, pin })
+          body: JSON.stringify({ username, email, pin })
         });
         const data = await res.json();
         if (!res.ok) {
@@ -3116,14 +3245,14 @@
 
     async function doLogin(e) {
       e.preventDefault();
-      const phone = document.getElementById('loginPhone').value.trim();
+      const username = document.getElementById('loginPhone').value.trim();
       const pin = document.getElementById('loginPin').value;
 
       try {
         const res = await fetch(API + '/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone, pin })
+          body: JSON.stringify({ username, pin })
         });
         const data = await res.json();
         if (!res.ok) { showAuthError('Falsche Daten!'); return; }
@@ -3921,85 +4050,165 @@
       const big = document.getElementById('profileAvatarBig');
       const hdr = document.getElementById('userAvatar');
       const username = getUser()?.username || 'Spieler';
-      const diceBearSrc = 'https://api.dicebear.com/9.x/toon-head/svg?seed=' + encodeURIComponent(username);
 
-      if (cfg.emoji) {
-        big.style.background = cfg.color || AVATAR_COLORS[0];
-        big.innerHTML = cfg.emoji;
-        hdr.style.background = cfg.color || '';
-        hdr.textContent = cfg.emoji;
+      // DiceBear custom avatar (from editor) or seed-based fallback
+      let src;
+      if (cfg && cfg.avatarUrl) {
+        src = cfg.avatarUrl;
+      } else if (cfg && cfg.dicebear) {
+        src = avBuildUrl(cfg.dicebear);
       } else {
-        big.style.background = 'transparent';
-        big.innerHTML = '<img src="' + diceBearSrc + '" style="width:100%;height:100%;border-radius:50%">';
-        hdr.style.background = 'transparent';
-        hdr.innerHTML = '<img src="' + diceBearSrc + '" style="width:100%;height:100%;border-radius:50%">';
+        src = 'https://api.dicebear.com/9.x/toon-head/svg?seed=' + encodeURIComponent(username);
       }
+
+      big.style.background = 'transparent';
+      big.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+      hdr.style.background = 'transparent';
+      hdr.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+    }
+
+    // ── DiceBear Toon-Head Avatar Creator ──
+    const AV_OPTIONS = {
+      skin: ['f5d0a9','d4a574','c68642','8d5524','6b3a2a'],
+      hair: ['none','sideComed','undercut','spiky','bun'],
+      hairColor: ['2c1b18','4a3728','b58143','d4a574','e8c07a','c93305','090806','71635a','dbe2e5'],
+      eyes: ['happy','wide','bow','humble','wink'],
+      eyebrows: ['raised','angry','happy','sad','neutral'],
+      mouth: ['laugh','angry','agape','smile','sad'],
+      beard: ['none','moustacheTwirl','fullBeard','chin','chinMoustache','longBeard'],
+      clothes: ['turtleNeck','openJacket','dress','shirt','tShirt'],
+      clothesColor: ['D4AF37','e74c3c','3498db','2ecc71','9b59b6','e67e22','1abc9c','34495e','f39c12','ecf0f1'],
+      bg: ['transparent','D4AF37','1a1a2e','2c3e50','8e44ad','27ae60','c0392b','2980b9','f39c12','1abc9c']
+    };
+    const AV_HAIR_LABELS = {none:'Keine',sideComed:'Seitlich',undercut:'Undercut',spiky:'Stachel',bun:'Dutt'};
+    const AV_EYES_LABELS = {happy:'Fröhlich',wide:'Weit',bow:'Bogen',humble:'Schüchtern',wink:'Zwinkern'};
+    const AV_BROWS_LABELS = {raised:'Hoch',angry:'Böse',happy:'Fröhlich',sad:'Traurig',neutral:'Normal'};
+    const AV_MOUTH_LABELS = {laugh:'Lachen',angry:'Böse',agape:'Offen',smile:'Lächeln',sad:'Traurig'};
+    const AV_BEARD_LABELS = {none:'Keiner',moustacheTwirl:'Schnurrbart',fullBeard:'Vollbart',chin:'Kinnbart',chinMoustache:'Kinn+Bart',longBeard:'Langbart'};
+    const AV_CLOTHES_LABELS = {turtleNeck:'Rollkragen',openJacket:'Jacke',dress:'Kleid',shirt:'Hemd',tShirt:'T-Shirt'};
+
+    let avConfig = { skin:'f5d0a9', hair:'sideComed', hairColor:'2c1b18', eyes:'happy', eyebrows:'neutral', mouth:'smile', beard:'none', clothes:'shirt', clothesColor:'D4AF37', bg:'transparent' };
+
+    function avBuildUrl(cfg) {
+      const c = cfg || avConfig;
+      let url = 'https://api.dicebear.com/9.x/toon-head/svg?';
+      url += 'skinColor=' + c.skin;
+      if (c.hair !== 'none') { url += '&hair=' + c.hair + '&hairProbability=100&hairColor=' + c.hairColor; } else { url += '&hairProbability=0'; }
+      url += '&eyes=' + c.eyes + '&eyebrows=' + c.eyebrows + '&mouth=' + c.mouth;
+      if (c.beard !== 'none') { url += '&beard=' + c.beard + '&beardProbability=100'; } else { url += '&beardProbability=0'; }
+      url += '&clothes=' + c.clothes + '&clothesColor=' + c.clothesColor;
+      if (c.bg !== 'transparent') { url += '&backgroundColor=' + c.bg; }
+      return url;
+    }
+
+    function avUpdatePreview() {
+      document.getElementById('avPreviewImg').src = avBuildUrl();
+    }
+
+    function avRenderOptionRow(rowId, options, configKey, labels) {
+      const row = document.getElementById(rowId);
+      if (!row) return;
+      row.innerHTML = options.map(opt => {
+        const sel = avConfig[configKey] === opt ? ' selected' : '';
+        const preview = avBuildUrl({...avConfig, [configKey]: opt});
+        const label = labels ? (labels[opt] || opt) : opt;
+        return `<button class="av-opt-btn${sel}" title="${label}" onclick="avPick('${configKey}','${opt}','${rowId}',this)">
+          <img src="${preview}" alt="${label}">
+        </button>`;
+      }).join('');
+    }
+
+    function avRenderColorRow(rowId, colors, configKey) {
+      const row = document.getElementById(rowId);
+      if (!row) return;
+      row.innerHTML = colors.map(c => {
+        const sel = avConfig[configKey] === c ? ' selected' : '';
+        const bg = c === 'transparent' ? 'linear-gradient(45deg,#ccc 25%,transparent 25%,transparent 75%,#ccc 75%),linear-gradient(45deg,#ccc 25%,transparent 25%,transparent 75%,#ccc 75%)' : '#' + c;
+        return `<button class="av-color-btn${sel}" style="background:${bg};background-size:8px 8px;background-position:0 0,4px 4px" onclick="avPickColor('${configKey}','${c}','${rowId}',this)"></button>`;
+      }).join('');
+    }
+
+    function avPick(key, val, rowId, btn) {
+      avConfig[key] = val;
+      document.querySelectorAll('#' + rowId + ' .av-opt-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      avUpdatePreview();
+    }
+
+    function avPickColor(key, val, rowId, btn) {
+      avConfig[key] = val;
+      document.querySelectorAll('#' + rowId + ' .av-color-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      avUpdatePreview();
+    }
+
+    function randomizeAvatar() {
+      const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+      avConfig.skin = pick(AV_OPTIONS.skin);
+      avConfig.hair = pick(AV_OPTIONS.hair);
+      avConfig.hairColor = pick(AV_OPTIONS.hairColor);
+      avConfig.eyes = pick(AV_OPTIONS.eyes);
+      avConfig.eyebrows = pick(AV_OPTIONS.eyebrows);
+      avConfig.mouth = pick(AV_OPTIONS.mouth);
+      avConfig.beard = pick(AV_OPTIONS.beard);
+      avConfig.clothes = pick(AV_OPTIONS.clothes);
+      avConfig.clothesColor = pick(AV_OPTIONS.clothesColor);
+      avConfig.bg = pick(AV_OPTIONS.bg);
+      renderAllAvatarOptions();
+      avUpdatePreview();
+    }
+
+    function renderAllAvatarOptions() {
+      avRenderColorRow('avSkinRow', AV_OPTIONS.skin, 'skin');
+      avRenderOptionRow('avHairRow', AV_OPTIONS.hair, 'hair', AV_HAIR_LABELS);
+      avRenderColorRow('avHairColorRow', AV_OPTIONS.hairColor, 'hairColor');
+      avRenderOptionRow('avEyesRow', AV_OPTIONS.eyes, 'eyes', AV_EYES_LABELS);
+      avRenderOptionRow('avBrowsRow', AV_OPTIONS.eyebrows, 'eyebrows', AV_BROWS_LABELS);
+      avRenderOptionRow('avMouthRow', AV_OPTIONS.mouth, 'mouth', AV_MOUTH_LABELS);
+      avRenderOptionRow('avBeardRow', AV_OPTIONS.beard, 'beard', AV_BEARD_LABELS);
+      avRenderOptionRow('avClothesRow', AV_OPTIONS.clothes, 'clothes', AV_CLOTHES_LABELS);
+      avRenderColorRow('avClothesColorRow', AV_OPTIONS.clothesColor, 'clothesColor');
+      avRenderColorRow('avBgRow', AV_OPTIONS.bg, 'bg');
     }
 
     function openAvatarEditor() {
+      // Load existing config if saved
+      if (currentAvatarConfig && currentAvatarConfig.dicebear) {
+        Object.assign(avConfig, currentAvatarConfig.dicebear);
+      }
       document.getElementById('avatarEditorOverlay').classList.add('active');
-      renderAvatarColorGrid();
-      renderAvatarEmojiGrid();
-      updateAvatarPreview();
+      renderAllAvatarOptions();
+      avUpdatePreview();
     }
 
     function closeAvatarEditor() {
       document.getElementById('avatarEditorOverlay').classList.remove('active');
     }
 
-    function renderAvatarColorGrid() {
-      const grid = document.getElementById('avatarColorGrid');
-      grid.innerHTML = AVATAR_COLORS.map(c =>
-        `<button class="avatar-color-btn${currentAvatarConfig.color===c?' selected':''}"
-          style="background:${c}" onclick="pickAvatarColor('${c}',this)"></button>`
-      ).join('');
-    }
-
-    function renderAvatarEmojiGrid() {
-      const grid = document.getElementById('avatarEmojiGrid');
-      grid.innerHTML = AVATAR_EMOJIS.map(e =>
-        `<button class="avatar-emoji-btn${currentAvatarConfig.emoji===e?' selected':''}"
-          onclick="pickAvatarEmoji('${e}',this)">${e}</button>`
-      ).join('');
-    }
-
-    function pickAvatarColor(color, btn) {
-      currentAvatarConfig.color = color;
-      document.querySelectorAll('.avatar-color-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      updateAvatarPreview();
-    }
-
-    function pickAvatarEmoji(emoji, btn) {
-      currentAvatarConfig.emoji = emoji;
-      document.querySelectorAll('.avatar-emoji-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      updateAvatarPreview();
-    }
-
-    function updateAvatarPreview() {
-      const preview = document.getElementById('avatarPreview');
-      preview.style.background = currentAvatarConfig.color || AVATAR_COLORS[0];
-      preview.textContent = currentAvatarConfig.emoji || '?';
-    }
-
     async function saveAvatar() {
       const token = getToken();
       if (!token) return;
+      // Save DiceBear config + generated URL
+      const avatarUrl = avBuildUrl();
+      currentAvatarConfig = { dicebear: {...avConfig}, avatarUrl: avatarUrl };
       try {
         const res = await fetch(API + '/api/user/avatar', {
           method: 'PUT',
           headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ avatarConfig: currentAvatarConfig })
+          body: JSON.stringify({ avatarConfig: currentAvatarConfig, avatarUrl: avatarUrl })
         });
         if (res.ok) {
           renderProfileAvatar();
           closeAvatarEditor();
           showToast('Avatar gespeichert!');
+          // Update header avatar
+          const hdr = document.getElementById('userAvatar');
+          if (hdr) { hdr.innerHTML = '<img src="' + avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">'; hdr.style.background = ''; }
           // Save locally too
           const user = getUser();
           if (user) {
             user.avatarConfig = currentAvatarConfig;
+            user.avatarUrl = avatarUrl;
             localStorage.setItem('casinoUser', JSON.stringify(user));
           }
         }
@@ -4007,11 +4216,133 @@
     }
 
     // =========================================================================
+    // ADMIN LAYOUT SYSTEM
+    // =========================================================================
+    window._isAdmin = false;
+    window._adminLayout = {};
+
+    // Admin-Layout vom Server laden (für ALLE Besucher)
+    (async function loadAdminLayout() {
+      try {
+        const r = await fetch(API + '/api/admin/layout');
+        if (r.ok) window._adminLayout = await r.json();
+      } catch(e) {}
+    })();
+
+    // Admin-Check nach Login
+    window.checkAdminStatus = async function() {
+      const token = getToken();
+      if (!token || localStorage.getItem('casinoGuest') === 'true') { window._isAdmin = false; return; }
+      try {
+        const r = await fetch(API + '/api/admin/check', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (r.ok) {
+          const d = await r.json();
+          window._isAdmin = !!d.isAdmin;
+          if (window._isAdmin) {
+            console.log('[ADMIN] Admin-Modus aktiv');
+            const ab = document.getElementById('adminNavBtn');
+            if (ab) ab.classList.add('visible');
+          }
+        }
+      } catch(e) {}
+    };
+
+    // Admin: Layout-Wert speichern (server-seitig, gilt für alle)
+    window.adminSaveLayout = async function(key, value) {
+      if (!window._isAdmin) return;
+      const token = getToken();
+      if (!token) return;
+      try {
+        await fetch(API + '/api/admin/layout', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ key, value })
+        });
+        window._adminLayout[key] = value;
+      } catch(e) {}
+    };
+
+    // =========================================================================
+    // ADMIN PANEL FUNCTIONS
+    // =========================================================================
+    function openAdminPanel() {
+      if (!window._isAdmin) return;
+      document.getElementById('adminPanelOverlay').classList.add('active');
+    }
+    function closeAdminPanel() {
+      document.getElementById('adminPanelOverlay').classList.remove('active');
+    }
+
+    async function adminGiveCoins() {
+      const target = document.getElementById('adminTargetUser').value.trim();
+      const amount = parseInt(document.getElementById('adminCoinAmount').value);
+      const result = document.getElementById('adminCoinResult');
+      if (!amount || amount === 0) { result.className = 'admin-result error'; result.textContent = 'Betrag eingeben!'; return; }
+      try {
+        const res = await fetch(API + '/api/admin/give-coins', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+          body: JSON.stringify({ targetUsername: target || undefined, amount })
+        });
+        const d = await res.json();
+        if (res.ok) {
+          result.className = 'admin-result success';
+          result.textContent = '✓ ' + d.username + ' hat jetzt ' + d.newBalance.toLocaleString() + ' ₿';
+          // Update own balance display if self
+          if (!target || target.toLowerCase() === (getUser()?.username || '').toLowerCase()) {
+            const u = getUser();
+            if (u) { u.baxtCoins = d.newBalance; localStorage.setItem('casinoUser', JSON.stringify(u)); }
+            const bc = document.getElementById('baxtDisplay');
+            if (bc) bc.textContent = d.newBalance.toLocaleString();
+          }
+        } else {
+          result.className = 'admin-result error';
+          result.textContent = '✗ ' + (d.error || 'Fehler');
+        }
+      } catch(e) { result.className = 'admin-result error'; result.textContent = '✗ Netzwerkfehler'; }
+    }
+
+    async function adminLoadUsers() {
+      const list = document.getElementById('adminUserList');
+      try {
+        const res = await fetch(API + '/api/admin/users', {
+          headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
+        const users = await res.json();
+        list.innerHTML = users.map(u =>
+          '<div class="admin-user-item"><span>' + (u.isAdmin ? '👑 ' : '') + u.username + ' (Lv.' + u.level + ')</span><span>' + (u.baxtCoins || 0).toLocaleString() + ' ₿</span></div>'
+        ).join('') || '<div style="color:#aaa;font-size:12px;padding:8px">Keine User</div>';
+      } catch(e) { list.innerHTML = '<div style="color:#e74c3c;font-size:12px;padding:8px">Fehler beim Laden</div>'; }
+    }
+
+    // =========================================================================
     // INIT
     // =========================================================================
     updateAuthUI();
+    // Admin-Check nach Auth
+    setTimeout(() => window.checkAdminStatus(), 1000);
     // Onboarding für neue Besucher
     setTimeout(() => checkFirstVisit(), 500);
+
+    // Drink-Video aus iframe empfangen und im Top-Window abspielen
+    window.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'drinkVideo' && e.data.src) {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;';
+        const vid = document.createElement('video');
+        vid.src = e.data.src;
+        vid.autoplay = true;
+        vid.playsInline = true;
+        vid.muted = true;
+        vid.style.cssText = 'max-width:90%;max-height:80%;border-radius:16px;';
+        vid.onplay = function(){ vid.muted = false; };
+        vid.onended = function(){ overlay.remove(); };
+        vid.onerror = function(){ overlay.remove(); };
+        overlay.onclick = function(){ overlay.remove(); };
+        overlay.appendChild(vid);
+        document.body.appendChild(overlay);
+      }
+    });
 
     // Games-Row: Touch pausiert Animation zum manuellen Scrollen
     (function(){
