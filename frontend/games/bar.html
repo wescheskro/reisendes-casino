@@ -464,12 +464,6 @@ body{font-family:'Playfair Display',serif;color:#F0E6D3;user-select:none;touch-a
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script>
-// Raum-Kontext für Jukebox setzen BEVOR jukebox.js lädt
-// Raum 1 = globale Jukebox (läuft auf Hauptseite), Raum 2+ = eigene Jukebox pro Raum
-window._jkRoom = new URLSearchParams(location.search).get('room') || '1';
-</script>
-<script src="/js/jukebox.js"></script>
 <script src="/js/friends.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════

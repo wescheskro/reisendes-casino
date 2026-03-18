@@ -3363,7 +3363,7 @@
       overlay.style.display = 'block';
       document.body.style.overflow = 'hidden';
       if (window.playDoorSound) window.playDoorSound();
-      // Jukebox bleibt an — spielt in allen Spielen weiter
+      // Jukebox bleibt an (z-index 100001 > overlay 99999)
     }
 
     function closeGame() {
@@ -3372,11 +3372,7 @@
       overlay.style.display = 'none';
       frame.src = '';
       document.body.style.overflow = '';
-      // Balance neu laden nach Spiel-Wechsel
       if (window._baxt) window._baxt.refresh();
-      // Jukebox wieder zeigen + starten wenn zurück in Lobby
-      if (window._jk) { window._jk.show(); window._jk.resume(); }
-      // Tür-Sound
       if (window.playDoorSound) window.playDoorSound();
     }
 

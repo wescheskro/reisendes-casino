@@ -1170,22 +1170,9 @@ window._jk = {
 
 // ---- Init ----
 function init() {
-  const hasEmbedParam = window.location.search.includes('embed=1');
+  // Jukebox nur auf der Hauptseite laden (nicht in iframes/embeds)
   const isInIframe = window !== window.top;
-
-  // Embed-Vorschau auf Landingpage: keine Jukebox (Landingpage hat schon eine)
-  if (hasEmbedParam && !IS_ROOM_JUKEBOX) return;
-
-  // Im iframe-Overlay (Spiel über Lobby geöffnet): eigene Jukebox laden
-  if (isInIframe && !IS_ROOM_JUKEBOX) {
-    try {
-      // Parent-Jukebox pausieren damit nicht doppelt spielt
-      if (window.parent._jk && window.parent._jk.pause) window.parent._jk.pause();
-    } catch(e) {} // Cross-origin → laden (direkt eingebettet von anderer Seite)
-  }
-
-  // Raum 1 in der Bar: nicht laden (nutzt die globale Jukebox)
-  if (JK_ROOM === '1' && (hasEmbedParam || isInIframe)) return;
+  if (isInIframe) return; // Spiele laufen im iframe, Jukebox bleibt auf der Landing Page
 
   buildUI();
   loadYTApi();
