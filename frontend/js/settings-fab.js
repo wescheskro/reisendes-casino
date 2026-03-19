@@ -14,12 +14,12 @@
       flex-direction: row !important;
       gap: 12px !important;
       align-items: center !important;
-      background: linear-gradient(145deg, rgba(20,20,30,0.95), rgba(10,10,15,0.98)) !important;
+      background: rgba(0,0,0,0.15) !important;
       padding: 10px 18px !important;
       border-radius: 40px !important;
-      border: 1px solid rgba(212,175,55,0.4) !important;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.8), 0 0 16px rgba(212,175,55,0.15) !important;
-      backdrop-filter: blur(12px) !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      box-shadow: none !important;
+      backdrop-filter: blur(8px) !important;
       z-index: 99999 !important;
       cursor: grab !important;
       transition: none !important; /* Animationen für Sichtbarkeit deaktivieren */
@@ -31,8 +31,8 @@
       width: 44px !important;
       height: 44px !important;
       border-radius: 50% !important;
-      background: rgba(255,255,255,0.08) !important;
-      border: 1px solid rgba(255,255,255,0.15) !important;
+      background: rgba(255,255,255,0.05) !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
       color: #F0E6D3 !important;
       font-size: 20px !important;
       cursor: pointer !important;
@@ -40,7 +40,7 @@
       align-items: center !important;
       justify-content: center !important;
       transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+      box-shadow: none !important;
     }
     .settings-menu-btn:hover, .vc-btn:hover {
       background: rgba(212,175,55,0.2) !important;
