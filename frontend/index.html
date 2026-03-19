@@ -3363,8 +3363,11 @@
       overlay.style.display = 'block';
       document.body.style.overflow = 'hidden';
       if (window.playDoorSound) window.playDoorSound();
-      // Jukebox pausieren und verstecken wenn ein Spiel geöffnet wird
-      if (window._jk) { window._jk.pause(); window._jk.hide(); }
+      // Jukebox bleibt an — aber alle Vorschau-Embeds stumm schalten/entladen
+      document.querySelectorAll('.live-iframe, .slot-embed-iframe, .lazy-embed').forEach(function(f) {
+        if (f.id === 'gameFrame') return;   // nicht das Spiel selbst!
+        if (f.src) { f.dataset.wasSrc = f.src; f.src = ''; }
+      });
     }
 
     function closeGame() {
@@ -3375,8 +3378,10 @@
       document.body.style.overflow = '';
       if (window._baxt) window._baxt.refresh();
       if (window.playDoorSound) window.playDoorSound();
-      // Jukebox wieder einblenden und fortsetzen
-      if (window._jk) { window._jk.show(); window._jk.resume(); }
+      // Vorschau-Embeds wieder laden
+      document.querySelectorAll('.live-iframe, .slot-embed-iframe, .lazy-embed').forEach(function(f) {
+        if (f.dataset.wasSrc) { f.src = f.dataset.wasSrc; delete f.dataset.wasSrc; }
+      });
     }
 
     function playGame() {
