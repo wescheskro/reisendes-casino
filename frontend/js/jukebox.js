@@ -67,12 +67,26 @@ try {
 }
 
 // Playlist vom Server laden (gilt für alle User)
+// Falls Server leere Playlist hat (z.B. nach Neustart), lokale Playlist hochladen
 fetch('/api/jukebox/playlist').then(r => r.json()).then(data => {
   if (data && data.playlist && Array.isArray(data.playlist) && data.playlist.length > 0) {
+    // Server hat Playlist → übernehmen
     playlist = data.playlist;
     localStorage.setItem(PLAYLIST_KEY, JSON.stringify(playlist));
     if (currentIdx >= playlist.length) currentIdx = 0;
     if (typeof buildPlaylist === 'function') buildPlaylist();
+  } else if (playlist.length > 0) {
+    // Server hat KEINE Playlist, aber wir haben lokal eine → hochladen
+    console.log('[Jukebox] Server-Playlist leer — lade lokale Playlist hoch (' + playlist.length + ' Songs)');
+    var token = '';
+    try { token = JSON.parse(localStorage.getItem('casinoUser') || '{}').token; } catch(e) {}
+    if (token) {
+      fetch('/api/jukebox/playlist', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ playlist: playlist })
+      }).catch(function(){});
+    }
   }
 }).catch(function(){});
 
