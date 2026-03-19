@@ -3134,13 +3134,13 @@
         <input class="auth-input" type="text" id="welcomeName" placeholder="Dein Name" maxlength="20" style="text-align:center;font-size:18px;margin:16px 0">
         <button class="auth-submit" onclick="welcomeNext(3)">Weiter</button>
       </div>
-      <!-- Step 3: Avatar -->
+      <!-- Step 3: Avatar (DiceBear) -->
       <div class="welcome-step" id="welcomeStep3">
         <h2>Dein Avatar</h2>
-        <div class="welcome-sub">Wähle ein Emoji</div>
-        <div class="welcome-avatar-grid" id="welcomeAvatarGrid"></div>
-        <div style="margin:12px 0">
-          <div id="welcomeAvatarPreview" style="width:72px;height:72px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:36px;border:3px solid #D4AF37"></div>
+        <div class="welcome-sub">Dein einzigartiger Look</div>
+        <div style="margin:16px 0;text-align:center">
+          <img id="welcomeAvatarPreview" src="" style="width:120px;height:120px;border-radius:50%;border:3px solid #D4AF37;background:linear-gradient(135deg,#1a1a2e,#16213e);object-fit:cover;display:block;margin:0 auto 12px;box-shadow:0 4px 20px rgba(0,0,0,.5)">
+          <button type="button" class="auth-submit" onclick="welcomeRandomAvatar()" style="background:rgba(212,175,55,0.15);border:1.5px solid rgba(212,175,55,0.4);color:#D4AF37;padding:8px 20px;font-size:13px;margin-bottom:12px">🎲 Neuer Look</button>
         </div>
         <button class="auth-submit" onclick="welcomeFinish()">Spielen! 🎰</button>
       </div>
@@ -3946,39 +3946,37 @@
     // =========================================================================
     // WILLKOMMEN-ONBOARDING (Gast-Flow)
     // =========================================================================
-    const WELCOME_EMOJIS = ['🐻','🦊','🐺','🦁','🐴','🐶','🐱','🦅','🐍','🦔','🐘','🦄','🐙','🐬','🦋','🌹','⭐','🔥','💎','🎭','🎪','🎠','🚐','🎸','🎵'];
-    const WELCOME_COLORS = ['#F39C12','#E74C3C','#3498DB','#2ECC71','#9B59B6','#1ABC9C','#E67E22','#34495E','#C0392B','#2980B9'];
-    let welcomeAvatar = { emoji: '🦔', color: '#F39C12' };
+    // Willkommen-Avatar: DiceBear-basiert
+    let welcomeDicebear = {};
 
-    function checkFirstVisit() {
-      if (getToken()) return; // Eingeloggt → kein Onboarding
-      if (localStorage.getItem('casinoGuest')) return; // Schon Gast gewesen
-      document.getElementById('welcomeOverlay').classList.add('active');
-      // Avatar-Grid füllen
-      const grid = document.getElementById('welcomeAvatarGrid');
-      grid.innerHTML = '';
-      WELCOME_EMOJIS.forEach(em => {
-        const colorIdx = WELCOME_EMOJIS.indexOf(em) % WELCOME_COLORS.length;
-        const btn = document.createElement('div');
-        btn.className = 'welcome-avatar-opt' + (em === welcomeAvatar.emoji ? ' selected' : '');
-        btn.style.background = WELCOME_COLORS[colorIdx];
-        btn.textContent = em;
-        btn.onclick = () => {
-          welcomeAvatar.emoji = em;
-          welcomeAvatar.color = WELCOME_COLORS[colorIdx];
-          grid.querySelectorAll('.welcome-avatar-opt').forEach(b => b.classList.remove('selected'));
-          btn.classList.add('selected');
-          updateWelcomePreview();
-        };
-        grid.appendChild(btn);
-      });
-      updateWelcomePreview();
+    function welcomeRandomAvatar() {
+      const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+      const skins = ['f5d0a9','d4a574','c68642','8d5524','6b3a2a'];
+      const hairs = ['none','sideComed','undercut','spiky','bun'];
+      const hairColors = ['2c1b18','4a3728','b58143','d4a574','e8c07a','c93305','090806','71635a','dbe2e5'];
+      const eyes = ['happy','wide','bow','humble','wink'];
+      const brows = ['raised','angry','happy','sad','neutral'];
+      const mouths = ['laugh','angry','agape','smile','sad'];
+      const beards = ['none','moustacheTwirl','fullBeard','chin','chinMoustache','longBeard'];
+      const clothes = ['turtleNeck','openJacket','dress','shirt','tShirt'];
+      const clothesColors = ['D4AF37','e74c3c','3498db','2ecc71','9b59b6','e67e22','1abc9c','34495e','f39c12','ecf0f1'];
+
+      welcomeDicebear = {
+        skin: pick(skins), hair: pick(hairs), hairColor: pick(hairColors),
+        eyes: pick(eyes), eyebrows: pick(brows), mouth: pick(mouths),
+        beard: pick(beards), clothes: pick(clothes), clothesColor: pick(clothesColors),
+        bg: 'transparent'
+      };
+      const url = avBuildUrl(welcomeDicebear);
+      document.getElementById('welcomeAvatarPreview').src = url;
     }
 
-    function updateWelcomePreview() {
-      const p = document.getElementById('welcomeAvatarPreview');
-      p.style.background = welcomeAvatar.color;
-      p.textContent = welcomeAvatar.emoji;
+    function checkFirstVisit() {
+      if (getToken()) return;
+      if (localStorage.getItem('casinoGuest')) return;
+      document.getElementById('welcomeOverlay').classList.add('active');
+      // Zufälligen DiceBear-Avatar generieren
+      welcomeRandomAvatar();
     }
 
     function welcomeNext(step) {
@@ -3993,18 +3991,20 @@
 
     function welcomeFinish() {
       const name = document.getElementById('welcomeName').value.trim();
+      const avatarUrl = avBuildUrl(welcomeDicebear);
       const guest = {
         id: 'guest-' + Date.now(),
         username: name,
         baxtCoins: 500,
-        avatarConfig: welcomeAvatar,
+        avatarConfig: { dicebear: welcomeDicebear, avatarUrl: avatarUrl },
+        avatarUrl: avatarUrl,
         isGuest: true
       };
       localStorage.setItem('casinoGuest', JSON.stringify(guest));
       localStorage.setItem('guestBaxt', '500');
       document.getElementById('welcomeOverlay').classList.remove('active');
       updateAuthUI();
-      showToast('Willkommen ' + name + '! 500 ₿ Startguthaben! 🦔');
+      showToast('Willkommen ' + name + '! 500 ₿ Startguthaben! 🎲');
     }
 
     function getGuestBaxt() {
@@ -4260,7 +4260,12 @@
       } else if (isGuest) {
         document.getElementById('userName').textContent = guest.username;
         const hdrAvatar = document.getElementById('userAvatar');
-        if (guest.avatarConfig && guest.avatarConfig.emoji) {
+        if (guest.avatarUrl || (guest.avatarConfig && guest.avatarConfig.avatarUrl)) {
+          const src = guest.avatarUrl || guest.avatarConfig.avatarUrl;
+          hdrAvatar.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+          hdrAvatar.style.background = 'transparent';
+          currentAvatarConfig = guest.avatarConfig;
+        } else if (guest.avatarConfig && guest.avatarConfig.emoji) {
           hdrAvatar.textContent = guest.avatarConfig.emoji;
           hdrAvatar.style.background = guest.avatarConfig.color || '';
           currentAvatarConfig = guest.avatarConfig;
