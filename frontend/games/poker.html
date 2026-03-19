@@ -4045,12 +4045,22 @@ if (isEmbedMode) {
 })();
 
 // ===================== VIDEO/SPRACH-CHAT (via rtc.js) =====================
-function toggleMic() {
-  RTC.toggleMic();
+async function toggleMic() {
+  if (!RTC.stream) await RTC.start(socket, 'pk-' + tableId);
+  if (RTC.stream) {
+    RTC.toggleMic();
+    var btn = document.getElementById('vcMicBtn');
+    if (btn) btn.classList.toggle('active', RTC.micOn);
+  }
 }
 
-function toggleCam() {
-  RTC.toggleCam();
+async function toggleCam() {
+  if (!RTC.stream) await RTC.start(socket, 'pk-' + tableId);
+  if (RTC.stream) {
+    RTC.toggleCam();
+    var btn = document.getElementById('vcCamBtn');
+    if (btn) btn.classList.toggle('active', RTC.camOn);
+  }
 }
 </script>
 <!-- PLAYER MENU -->
