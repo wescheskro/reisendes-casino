@@ -872,23 +872,27 @@ body.embed-mode .bal-display .bl{font-size:6px}
   .ctrl-panel{
     flex-wrap:wrap !important;
     height:auto !important;
-    padding:4px 0 !important;
-    gap:2px;
+    padding:6px 2px !important;
+    gap:4px;
     justify-content:center !important;
   }
   .cg{
     min-width:0 !important;
-    padding:2px 6px !important;
+    padding:6px 10px !important;
     flex:0 0 auto !important;
   }
-  .cg-label{font-size:7px !important}
-  .cg-val{font-size:11px !important}
-  .side-btn{font-size:9px !important;padding:4px 8px !important;min-height:28px}
-  .spin-btn{width:44px !important;height:44px !important}
+  .cg-label{font-size:9px !important;letter-spacing:1.5px !important}
+  .cg-val{font-size:16px !important}
+  .cg-btns button{width:34px !important;height:28px !important;font-size:18px !important;border-radius:6px !important}
+  .side-btn{font-size:12px !important;padding:8px 12px !important;min-height:36px;border-radius:8px !important}
+  .spin-btn{width:56px !important;height:56px !important}
   .spin-wrap{order:10 !important}
   .win-cg{order:11 !important}
   .hand-switch{display:none}
   .gamble-side{order:9 !important}
+  .bal-display .bv{font-size:16px !important}
+  .bal-display .bl{font-size:8px !important}
+  .info-bar{font-size:12px !important;height:24px !important}
 }
 
 /* ========== RESPONSIVE - Landscape Mobile ========== */
@@ -906,22 +910,22 @@ body.embed-mode .bal-display .bl{font-size:6px}
   .top-bar{height:28px;padding:0 6px}
   .top-bar h1{font-size:13px !important;letter-spacing:1px}
   .top-bar .sub{display:none}
-  .back-btn{padding:2px 6px;font-size:8px}
-  .bal-display{padding:1px 6px}
-  .bal-display .bv{font-size:14px}
-  .bal-display .bl{font-size:6px}
-  .info-bar{height:18px;font-size:9px}
+  .back-btn{padding:2px 6px;font-size:9px}
+  .bal-display{padding:2px 8px}
+  .bal-display .bv{font-size:15px}
+  .bal-display .bl{font-size:7px}
+  .info-bar{height:20px;font-size:10px}
   .ctrl-panel{padding-bottom:env(safe-area-inset-bottom,0px)}
-  .cg{padding:2px 2px}
-  .cg .cg-label{font-size:5px;letter-spacing:1px}
-  .cg .cg-val{font-size:14px}
-  .cg-btns button{width:20px;height:14px;font-size:10px}
-  .spin-btn{width:32px !important;height:32px !important}
-  .side-btn{font-size:7px;padding:0 4px}
-  .gamble-side{min-width:28px;font-size:7px !important}
+  .cg{padding:3px 4px}
+  .cg .cg-label{font-size:7px;letter-spacing:1px}
+  .cg .cg-val{font-size:16px}
+  .cg-btns button{width:26px;height:20px;font-size:14px}
+  .spin-btn{width:38px !important;height:38px !important}
+  .side-btn{font-size:9px;padding:2px 6px}
+  .gamble-side{min-width:32px;font-size:9px !important}
   .frame-bar{height:3px}
   .sym-cell{aspect-ratio:1/1;padding:2px}
-  .mute-btn{width:20px;height:20px;font-size:10px}
+  .mute-btn{width:22px;height:22px;font-size:11px}
   .hand-switch{font-size:12px;padding:0 4px}
   /* Reels take all remaining space */
   .reels-vp{flex:1;min-height:0}
@@ -931,10 +935,11 @@ body.embed-mode .bal-display .bl{font-size:6px}
 @media(max-height:340px){
   .top-bar{height:24px}
   .top-bar h1{font-size:11px !important}
-  .info-bar{height:16px;font-size:8px}
+  .info-bar{height:18px;font-size:9px}
   .gold-frame-l,.gold-frame-r{width:16px}
-  .spin-btn{width:28px !important;height:28px !important}
-  .cg .cg-val{font-size:11px}
+  .spin-btn{width:32px !important;height:32px !important}
+  .cg .cg-val{font-size:13px}
+  .cg-btns button{width:22px;height:16px;font-size:12px}
   .frame-bar{height:2px}
 }
 
