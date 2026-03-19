@@ -1991,7 +1991,7 @@ app.post('/api/shop/create-checkout', authMiddleware, async (req, res) => {
   const pkg = BAXT_PACKAGES[packageId];
   try {
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'paypal'],
+      payment_method_types: ['card', 'paypal', 'sepa_debit'],
       line_items: [{
         price_data: {
           currency: 'eur',
