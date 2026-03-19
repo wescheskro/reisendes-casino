@@ -63,6 +63,42 @@
       pointer-events: none;
       font-family: monospace;
     }
+    /* Collapse/Expand Toggle */
+    .toolbar-toggle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(240,230,211,0.6);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      pointer-events: auto;
+    }
+    .toolbar-toggle:hover {
+      background: rgba(212,175,55,0.2);
+      color: #FFF;
+    }
+    /* Collapsed state */
+    .settings-menu.collapsed, .vc-controls.collapsed {
+      padding: 6px 8px !important;
+      gap: 0 !important;
+    }
+    .settings-menu.collapsed .settings-menu-btn,
+    .settings-menu.collapsed .vc-btn,
+    .vc-controls.collapsed .settings-menu-btn,
+    .vc-controls.collapsed .vc-btn,
+    .settings-menu.collapsed .drag-handle,
+    .vc-controls.collapsed .drag-handle,
+    .settings-menu.collapsed input,
+    .vc-controls.collapsed input {
+      display: none !important;
+    }
   `;
   document.head.appendChild(style);
 
@@ -75,6 +111,22 @@
   handle.className = 'drag-handle';
   handle.innerHTML = '⋮⋮';
   menu.insertBefore(handle, menu.firstChild);
+
+  // Collapse/Expand Toggle-Button
+  const toggleBtn = document.createElement('div');
+  toggleBtn.className = 'toolbar-toggle';
+  toggleBtn.title = 'Einklappen / Ausklappen';
+  const collapsed = localStorage.getItem('toolbar-collapsed') === '1';
+  toggleBtn.textContent = collapsed ? '▸' : '▾';
+  if (collapsed) menu.classList.add('collapsed');
+  menu.appendChild(toggleBtn);
+
+  toggleBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const isCollapsed = menu.classList.toggle('collapsed');
+    toggleBtn.textContent = isCollapsed ? '▸' : '▾';
+    localStorage.setItem('toolbar-collapsed', isCollapsed ? '1' : '0');
+  });
 
   // Lautstärke-Regler in der Bar horizontalisieren
   const slider = document.getElementById('volumeSlider');
