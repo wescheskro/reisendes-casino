@@ -4060,6 +4060,13 @@ async function toggleCam() {
     RTC.toggleCam();
     var btn = document.getElementById('vcCamBtn');
     if (btn) btn.classList.toggle('active', RTC.camOn);
+    // Eigenen Avatar durch Video ersetzen
+    if (RTC.camOn) {
+      _activeVideos[socket.id] = RTC.stream;
+    } else {
+      delete _activeVideos[socket.id];
+    }
+    reattachSeatVideos();
   }
 }
 </script>
@@ -4253,22 +4260,24 @@ function reattachSeatVideos() {
   if (!myState || !myState.seats) return;
   myState.seats.forEach((s, idx) => {
     if (!s) return;
-    const stream = _activeVideos[s.id];
+    const peerId = s.socketId || s.id;
+    const stream = _activeVideos[peerId];
     const seatInner = document.querySelector(`.seat[data-pos="${idx}"] .seat-inner`);
     if (!seatInner) return;
-    
+
     if (stream) {
-      let vidWrap = seatInner.querySelector('#seat-vid-' + s.id);
+      let vidWrap = seatInner.querySelector('#seat-vid-' + peerId);
       if (!vidWrap) {
         vidWrap = document.createElement('div');
         vidWrap.className = 'seat-video';
-        vidWrap.id = 'seat-vid-' + s.id;
+        vidWrap.id = 'seat-vid-' + peerId;
         seatInner.appendChild(vidWrap);
       }
       if (!vidWrap.querySelector('video')) {
         const v = document.createElement('video');
         v.autoplay = true;
         v.playsInline = true;
+        if (s.isYou) v.muted = true; // Echo verhindern
         v.srcObject = stream;
         vidWrap.appendChild(v);
       }
@@ -4277,7 +4286,7 @@ function reattachSeatVideos() {
     } else {
       const avatar = seatInner.querySelector('.seat-avatar');
       if (avatar) avatar.style.visibility = 'visible';
-      const vidWrap = seatInner.querySelector('#seat-vid-' + s.id);
+      const vidWrap = seatInner.querySelector('#seat-vid-' + peerId);
       if (vidWrap) vidWrap.remove();
     }
   });

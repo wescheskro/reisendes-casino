@@ -2799,6 +2799,7 @@ function pokerTableState(table, forSocket) {
       bet: p.roundBet || 0, folded: p.folded,
       cards: isYou ? p.cards.map(cardStr) : (table.phase === 'showdown' && !p.folded ? p.cards.map(cardStr) : ['??','??']),
       isYou, isDealer: i === table.dealerSeat, isBot: !!p.isBot,
+      socketId: p.socketId || null,
       botStyle: p.isBot ? p.botStyle : null,
       peeking: !!p.peeking,
       handName: table.phase === 'showdown' && !p.folded ? bestPokerHand(p.cards, table.community).name : null,

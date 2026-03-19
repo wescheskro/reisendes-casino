@@ -29,8 +29,13 @@
   // Also try immediate
   initDoorSound();
 
+  let lastPlayTime = 0;
   function playDoorSound() {
     if (!doorAudio || !doorReady) return;
+    // Debounce: Nicht doppelt abspielen innerhalb 1.5s
+    var now = Date.now();
+    if (now - lastPlayTime < 1500) return;
+    lastPlayTime = now;
     try {
       doorAudio.currentTime = 0;
       doorAudio.play().catch(() => {});

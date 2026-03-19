@@ -1005,14 +1005,15 @@ function renderState(state) {
         if (!avEl) return;
         
         // --- VIDEO CHAT INTEGRATION ---
-        if (typeof _activeVideos !== 'undefined' && _activeVideos[s.id]) {
+        if (typeof _activeVideos !== 'undefined' && _activeVideos[s.socketId]) {
           avEl.innerHTML = '';
           avEl.style.background = '#000';
           const v = document.createElement('video');
           v.autoplay = true;
           v.playsInline = true;
+          if (s.isYou) v.muted = true; // Echo verhindern
           v.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;transform:scaleX(-1);';
-          v.srcObject = _activeVideos[s.id];
+          v.srcObject = _activeVideos[s.socketId];
           avEl.style.border = '2px solid #4CAF50';
           avEl.appendChild(v);
           return;
@@ -1460,7 +1461,17 @@ async function toggleGameMic(btn) {
 }
 async function toggleGameCam(btn) {
   if (!RTC.stream) await RTC.start(socket, 'bj-' + tableId);
-  if (RTC.stream) { RTC.toggleCam(); btn.classList.toggle('active', RTC.camOn); }
+  if (RTC.stream) {
+    RTC.toggleCam();
+    btn.classList.toggle('active', RTC.camOn);
+    // Eigenen Avatar durch Video ersetzen
+    if (RTC.camOn) {
+      _activeVideos[socket.id] = RTC.stream;
+    } else {
+      delete _activeVideos[socket.id];
+    }
+    if (typeof renderState === 'function' && typeof myState !== 'undefined' && myState) renderState(myState);
+  }
 }
 
 let vcOpen = false;
