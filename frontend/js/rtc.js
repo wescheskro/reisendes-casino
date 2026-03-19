@@ -238,9 +238,36 @@
     return _micOn;
   }
 
-  function toggleCam() {
+  async function toggleCam() {
     if (!_stream) return false;
     _camOn = !_camOn;
+
+    // Kein Video-Track vorhanden? Kamera jetzt anfordern!
+    if (_camOn && _stream.getVideoTracks().length === 0) {
+      try {
+        log('Kein Video-Track — fordere Kamera an...');
+        var vidStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        var track = vidStream.getVideoTracks()[0];
+        if (track) {
+          _stream.addTrack(track);
+          // Track zu allen bestehenden Peer-Connections hinzufügen
+          Object.keys(_pcs).forEach(function(peerId) {
+            var pc = _pcs[peerId];
+            if (pc && pc.connectionState !== 'closed') {
+              try { pc.addTrack(track, _stream); } catch(e) { log('addTrack error: ' + e); }
+            }
+          });
+          log('Video-Track hinzugefügt!');
+          showStatus('📷 Kamera aktiv!', '#27ae60');
+        }
+      } catch(e) {
+        log('Kamera FEHLER: ' + (e.name || e));
+        showStatus('📷 Kamera blockiert: ' + (e.name || 'Fehler'), '#c0392b');
+        _camOn = false;
+        return false;
+      }
+    }
+
     _stream.getVideoTracks().forEach(function(t) { t.enabled = _camOn; });
     return _camOn;
   }

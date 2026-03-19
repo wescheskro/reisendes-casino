@@ -1016,6 +1016,7 @@ function renderState(state) {
           v.srcObject = _activeVideos[s.socketId];
           avEl.style.border = '2px solid #4CAF50';
           avEl.appendChild(v);
+          v.play().catch(function(){});
           return;
         }
 
@@ -1462,7 +1463,7 @@ async function toggleGameMic(btn) {
 async function toggleGameCam(btn) {
   if (!RTC.stream) await RTC.start(socket, 'bj-' + tableId);
   if (RTC.stream) {
-    RTC.toggleCam();
+    await RTC.toggleCam();
     btn.classList.toggle('active', RTC.camOn);
     // Eigenen Avatar durch Video ersetzen
     if (RTC.camOn) {

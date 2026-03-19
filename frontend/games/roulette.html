@@ -964,7 +964,17 @@ async function toggleGameMic(btn) {
 }
 async function toggleGameCam(btn) {
   if (!RTC.stream) await RTC.start(socket, 'rl-' + tableId);
-  if (RTC.stream) { RTC.toggleCam(); btn.classList.toggle('active', RTC.camOn); }
+  if (RTC.stream) {
+    await RTC.toggleCam();
+    btn.classList.toggle('active', RTC.camOn);
+    // Eigenen Avatar durch Video ersetzen
+    if (RTC.camOn) {
+      _activeVideos[socket.id] = RTC.stream;
+    } else {
+      delete _activeVideos[socket.id];
+    }
+    if (typeof renderPlayers === 'function') setTimeout(renderPlayers, 10);
+  }
 }
 
 // ── BAXT COINS HELPER ──
@@ -2277,9 +2287,11 @@ function renderPlayers() {
           const v = document.createElement('video');
           v.autoplay = true;
           v.playsInline = true;
+          if (p.isYou) v.muted = true; // Echo verhindern
           v.style.cssText = 'width:100%;height:100%;object-fit:cover;transform:scaleX(-1);';
           v.srcObject = _activeVideos[p.id];
           ph.appendChild(v);
+          v.play().catch(function(){});
         }
       }
     });
