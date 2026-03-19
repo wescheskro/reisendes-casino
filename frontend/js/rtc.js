@@ -264,10 +264,12 @@
     
     // Füge Minimize-Button und Header-Leiste hinzu
     var header = document.createElement('div');
-    header.style.cssText = 'position:absolute;top:0;left:0;right:0;height:24px;background:rgba(0,0,0,0.6);cursor:move;z-index:10;display:flex;justify-content:flex-end;align-items:center;padding:0 4px;';
+    header.style.cssText = 'position:absolute;top:0;left:0;right:0;height:22px;background:linear-gradient(180deg,rgba(0,0,0,0.5),transparent);cursor:move;z-index:10;display:flex;justify-content:flex-end;align-items:center;padding:0 4px;border-radius:8px 8px 0 0;';
     var closeBtn = document.createElement('div');
-    closeBtn.textContent = '✖';
-    closeBtn.style.cssText = 'color:#fff;font-size:12px;cursor:pointer;padding:2px 6px;';
+    closeBtn.textContent = '✕';
+    closeBtn.style.cssText = 'color:rgba(255,255,255,0.7);font-size:11px;cursor:pointer;padding:2px 5px;border-radius:50%;transition:all 0.15s;line-height:1;';
+    closeBtn.onmouseenter = function(){ closeBtn.style.background='rgba(231,76,60,0.7)'; closeBtn.style.color='#fff'; };
+    closeBtn.onmouseleave = function(){ closeBtn.style.background='transparent'; closeBtn.style.color='rgba(255,255,255,0.7)'; };
     closeBtn.onclick = function(e) {
       e.stopPropagation();
       mv.style.display = 'none';
