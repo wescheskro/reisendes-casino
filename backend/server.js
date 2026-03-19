@@ -547,17 +547,20 @@ app.get('/api/guest/status', (req, res) => {
 app.post('/api/auth/register', async (req, res) => {
   const { phone, pin, username, email } = req.body;
 
-  if (!phone || !pin || !username) {
-    return res.status(400).json({ error: 'Phone, PIN and username required' });
+  if (!pin || !username) {
+    return res.status(400).json({ error: 'Benutzername und PIN erforderlich' });
   }
 
-  // Check if phone already exists
+  // Check if username or email already exists
   for (const [, user] of db.users) {
-    if (user.phone === phone) {
-      return res.status(409).json({ error: 'Phone already registered' });
+    if (user.username && user.username.toLowerCase() === username.toLowerCase()) {
+      return res.status(409).json({ error: 'Benutzername bereits vergeben' });
+    }
+    if (phone && user.phone === phone) {
+      return res.status(409).json({ error: 'Nummer bereits registriert' });
     }
     if (email && user.email && user.email.toLowerCase() === email.toLowerCase()) {
-      return res.status(409).json({ error: 'Email already registered' });
+      return res.status(409).json({ error: 'E-Mail bereits registriert' });
     }
   }
 
@@ -566,7 +569,7 @@ app.post('/api/auth/register', async (req, res) => {
 
   const user = {
     id: userId,
-    phone,
+    phone: phone || null,
     email: email || null,
     username,
     pin: hashedPin,
@@ -631,6 +634,7 @@ app.post('/api/auth/login', async (req, res) => {
   let foundUser = null;
   for (const [, user] of db.users) {
     if (username && user.username && user.username.toLowerCase() === username.toLowerCase()) { foundUser = user; break; }
+    if (username && user.email && user.email.toLowerCase() === username.toLowerCase()) { foundUser = user; break; }
     if (phone && user.phone === phone) { foundUser = user; break; }
   }
 
