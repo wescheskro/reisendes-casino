@@ -2191,6 +2191,9 @@
       cursor: pointer;
       transition: all .2s;
       position: relative;
+      -webkit-tap-highlight-color: rgba(212,175,55,.3);
+      touch-action: manipulation;
+      user-select: none;
     }
     .shop-pkg:hover {
       border-color: #D4AF37;
@@ -3182,13 +3185,13 @@
         <p style="color:#aaa;font-size:12px;margin:0">Einmal kaufen – für immer spielen!</p>
       </div>
       <div class="shop-packages" id="shopPackages">
-        <div class="shop-pkg" onclick="buyBaxt('starter')">
+        <div class="shop-pkg" onclick="buyBaxt('starter')" role="button" tabindex="0">
           <img src="/img/baxt-coin.png" alt="₿" style="width:36px;height:36px;animation:baxtCoinSpin 3s linear infinite;margin-bottom:4px">
           <div class="shop-pkg-coins">5.000</div>
           <div class="shop-pkg-label">Baxt Coins</div>
           <div class="shop-pkg-price">0,99&euro;</div>
         </div>
-        <div class="shop-pkg popular" onclick="buyBaxt('medium')">
+        <div class="shop-pkg popular" onclick="buyBaxt('medium')" role="button" tabindex="0">
           <div class="shop-pkg-badge">Beliebt</div>
           <img src="/img/baxt-coin.png" alt="₿" style="width:36px;height:36px;animation:baxtCoinSpin 3s linear infinite;margin-bottom:4px">
           <div class="shop-pkg-coins">25.000</div>
@@ -3196,14 +3199,14 @@
           <div class="shop-pkg-bonus">+5.000 Bonus</div>
           <div class="shop-pkg-price">3,99&euro;</div>
         </div>
-        <div class="shop-pkg" onclick="buyBaxt('large')">
+        <div class="shop-pkg" onclick="buyBaxt('large')" role="button" tabindex="0">
           <img src="/img/baxt-coin.png" alt="₿" style="width:36px;height:36px;animation:baxtCoinSpin 3s linear infinite;margin-bottom:4px">
           <div class="shop-pkg-coins">75.000</div>
           <div class="shop-pkg-label">Baxt Coins</div>
           <div class="shop-pkg-bonus">+15.000 Bonus</div>
           <div class="shop-pkg-price">9,99&euro;</div>
         </div>
-        <div class="shop-pkg" onclick="buyBaxt('vip')">
+        <div class="shop-pkg" onclick="buyBaxt('vip')" role="button" tabindex="0">
           <img src="/img/baxt-coin.png" alt="₿" style="width:36px;height:36px;animation:baxtCoinSpin 3s linear infinite;margin-bottom:4px">
           <div class="shop-pkg-coins">200.000</div>
           <div class="shop-pkg-label">Baxt Coins</div>
@@ -4178,6 +4181,7 @@
     }
 
     async function buyBaxt(packageId) {
+      event && event.stopPropagation && event.stopPropagation();
       const token = getToken();
       if (!token) {
         closeShop();
@@ -4185,6 +4189,7 @@
         showToast('Bitte zuerst registrieren!');
         return;
       }
+      showToast('Leite zur Kasse weiter...');
       try {
         const res = await fetch(API + '/api/shop/create-checkout', {
           method: 'POST',
@@ -4195,10 +4200,10 @@
         if (data.url) {
           window.location.href = data.url;
         } else if (data.error) {
-          showToast(data.error);
+          showToast(data.error || 'Fehler beim Erstellen der Zahlung');
         }
       } catch (e) {
-        showToast('Verbindungsfehler');
+        showToast('Verbindungsfehler — bitte nochmal versuchen');
       }
     }
 

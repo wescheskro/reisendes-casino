@@ -1991,7 +1991,8 @@ app.post('/api/shop/create-checkout', authMiddleware, async (req, res) => {
   const pkg = BAXT_PACKAGES[packageId];
   try {
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'paypal', 'sepa_debit'],
+      // Automatisch alle im Stripe Dashboard aktivierten Zahlungsmethoden anzeigen
+      // (Card, Google Pay, Apple Pay, PayPal, SEPA, etc.)
       line_items: [{
         price_data: {
           currency: 'eur',
