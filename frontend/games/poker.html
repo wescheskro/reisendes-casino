@@ -4269,9 +4269,8 @@ window.addEventListener('rtc:video', function(e) {
 window.addEventListener('rtc:video:remove', function(e) {
   const { peerId } = e.detail;
   delete _activeVideos[peerId];
-  const oldCont = document.getElementById('seat-vid-' + peerId);
-  if (oldCont) oldCont.remove();
   reattachSeatVideos();
+  if (typeof renderState === 'function' && myState) renderState(myState);
 });
 
 function reattachSeatVideos() {
@@ -4282,31 +4281,28 @@ function reattachSeatVideos() {
     const stream = _activeVideos[peerId];
     const seatInner = document.querySelector(`.seat[data-pos="${idx}"] .seat-inner`);
     if (!seatInner) return;
+    const avatar = seatInner.querySelector('.seat-avatar');
 
-    if (stream) {
-      let vidWrap = seatInner.querySelector('#seat-vid-' + peerId);
-      if (!vidWrap) {
-        vidWrap = document.createElement('div');
-        vidWrap.className = 'seat-video';
-        vidWrap.id = 'seat-vid-' + peerId;
-        seatInner.appendChild(vidWrap);
-      }
-      if (!vidWrap.querySelector('video')) {
+    if (stream && avatar) {
+      // Video direkt IN den Avatar-Kreis setzen (wie Bar/Blackjack)
+      if (!avatar.querySelector('video')) {
+        avatar.innerHTML = '';
+        avatar.style.background = '#000';
+        avatar.style.border = '3px solid #4CAF50';
         const v = document.createElement('video');
         v.autoplay = true;
         v.playsInline = true;
-        if (s.isYou) v.muted = true; // Echo verhindern
+        if (s.isYou) v.muted = true;
+        v.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;transform:scaleX(-1);';
         v.srcObject = stream;
-        vidWrap.appendChild(v);
+        avatar.appendChild(v);
         v.play().catch(function(){});
       }
-      const avatar = seatInner.querySelector('.seat-avatar');
-      if (avatar) avatar.style.visibility = 'hidden';
-    } else {
-      const avatar = seatInner.querySelector('.seat-avatar');
-      if (avatar) avatar.style.visibility = 'visible';
-      const vidWrap = seatInner.querySelector('#seat-vid-' + peerId);
-      if (vidWrap) vidWrap.remove();
+    } else if (avatar && avatar.querySelector('video')) {
+      // Video entfernen, Avatar wiederherstellen
+      avatar.innerHTML = '';
+      avatar.style.background = '';
+      avatar.style.border = '';
     }
   });
 }
