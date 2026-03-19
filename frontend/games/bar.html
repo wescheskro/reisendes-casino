@@ -671,12 +671,25 @@ function takeSeatAt(idx) {
   socket.emit('bar:sit', { idx, username, avatar: myAvatarUrl });
   renderSeats();
   document.getElementById('btnSeat').classList.add('active');
-  // Auto-Seat + Mic (iframe hat allow="microphone")
+  // Auto-Seat + Mic + Cam (iframe hat allow="microphone;camera")
   if (!micOn) {
     micOn = true;
+    camOn = true;
     ensureMedia().then(function() {
       var btn = document.getElementById('btnMic');
       if (btn) btn.classList.add('active');
+      var camBtn = document.getElementById('btnCam');
+      if (camBtn) camBtn.classList.add('active');
+      var myVid = document.getElementById('myVideo');
+      if (myVid) { myVid.classList.add('active'); myVid.style.display = ''; }
+      if (myStream) {
+        var localVid = document.getElementById('localVideo');
+        if (localVid) { localVid.srcObject = myStream; localVid.play().catch(function(){}); }
+      }
+      updateSeatVideo(mySeatIdx, myStream);
+      if (seats[mySeatIdx]) seats[mySeatIdx].video = true;
+      socket.emit('bar:media', { idx: mySeatIdx, video: true, audio: true });
+      renderSeats();
     });
   }
 }
