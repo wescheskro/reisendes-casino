@@ -4866,25 +4866,31 @@
         const res = await fetch(API + '/api/admin/users', {
           headers: { 'Authorization': 'Bearer ' + getToken() }
         });
-        const users = await res.json();
-        const online = users.filter(u => u.online).length;
-        countEl.textContent = users.length + ' User total · ' + online + ' online';
+        const data = await res.json();
+        const users = data.users || data;
+        const totalOnline = data.totalOnline || users.filter(u => u.online).length;
+        const totalReg = data.totalRegistered || users.filter(u => !u.isGuest).length;
+        const guests = users.filter(u => u.isGuest && u.online).length;
+        const regOnline = users.filter(u => !u.isGuest && u.online).length;
+        countEl.innerHTML = '<strong style="color:#2ecc71">' + totalOnline + ' Verbindungen</strong> · ' + regOnline + ' registrierte online · ' + guests + ' Gäste · ' + totalReg + ' User total';
         list.innerHTML = users.map(u => {
           const status = u.online ? '<span style="color:#2ecc71">● Online</span>' : '<span style="color:#666">○ Offline</span>';
           const game = u.currentGame ? '<div style="font-size:10px;color:#D4AF37">🎮 ' + u.currentGame + '</div>' : '';
           const ip = u.ip ? '<div style="font-size:10px;color:#666">IP: ' + u.ip + '</div>' : '';
           const lastSeen = !u.online && u.lastSeen ? '<div style="font-size:10px;color:#555">Zuletzt: ' + new Date(u.lastSeen).toLocaleString('de-DE') + '</div>' : '';
-          const badges = (u.isAdmin ? '👑 ' : '') + (u.banned ? '🚫 ' : '') + (u.isGuest ? '👤 ' : '');
-          return '<div class="admin-user-item" style="padding:8px;margin-bottom:4px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid rgba(255,255,255,.06)">' +
+          const badges = (u.isAdmin ? '👑 ' : '') + (u.banned ? '🚫 ' : '') + (u.isGuest ? '👤 Gast ' : '');
+          const levelStr = u.isGuest ? '' : ' <span style="color:#888;font-size:11px">Lv.' + u.level + '</span>';
+          const bgColor = u.isGuest ? 'rgba(255,255,255,.02)' : 'rgba(255,255,255,.04)';
+          const borderColor = u.online ? 'rgba(46,204,113,.15)' : 'rgba(255,255,255,.06)';
+          return '<div class="admin-user-item" style="padding:8px;margin-bottom:4px;background:' + bgColor + ';border-radius:8px;border:1px solid ' + borderColor + '">' +
             '<div style="display:flex;justify-content:space-between;align-items:center">' +
-              '<div><strong style="color:#F0E6D3">' + badges + u.username + '</strong> <span style="color:#888;font-size:11px">Lv.' + u.level + '</span> ' + status + '</div>' +
+              '<div><strong style="color:#F0E6D3">' + badges + u.username + '</strong>' + levelStr + ' ' + status + '</div>' +
               '<span style="color:#F4D03F;font-size:12px">' + (u.baxtCoins || 0).toLocaleString('de-DE') + ' ₿</span>' +
             '</div>' +
             game + ip + lastSeen +
-            (!u.isAdmin ? '<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">' +
+            (u.online && !u.isAdmin ? '<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">' +
               '<button onclick="adminKick(\'' + u.id + '\')" style="font-size:10px;padding:3px 8px;background:#e67e22;border:none;color:#fff;border-radius:4px;cursor:pointer">⚡ Kick</button>' +
-              '<button onclick="adminBan(\'' + u.id + '\',' + !u.banned + ')" style="font-size:10px;padding:3px 8px;background:' + (u.banned ? '#27ae60' : '#e74c3c') + ';border:none;color:#fff;border-radius:4px;cursor:pointer">' + (u.banned ? '✅ Entbannen' : '🚫 Bannen') + '</button>' +
-              '<button onclick="adminMakeAdmin(\'' + u.id + '\')" style="font-size:10px;padding:3px 8px;background:#8e44ad;border:none;color:#fff;border-radius:4px;cursor:pointer">👑 Admin</button>' +
+              (!u.isGuest ? '<button onclick="adminBan(\'' + u.id + '\',' + !u.banned + ')" style="font-size:10px;padding:3px 8px;background:' + (u.banned ? '#27ae60' : '#e74c3c') + ';border:none;color:#fff;border-radius:4px;cursor:pointer">' + (u.banned ? '✅ Entbannen' : '🚫 Bannen') + '</button>' : '') +
               (u.ip ? '<button onclick="adminBanIPDirect(\'' + u.ip + '\')" style="font-size:10px;padding:3px 8px;background:#c0392b;border:none;color:#fff;border-radius:4px;cursor:pointer">🚫 IP Ban</button>' : '') +
             '</div>' : '') +
           '</div>';

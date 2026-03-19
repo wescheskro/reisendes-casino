@@ -1696,17 +1696,21 @@ app.post('/api/admin/give-coins', adminMiddleware, (req, res) => {
 // ── Admin: Alle User auflisten ──
 app.get('/api/admin/users', adminMiddleware, (req, res) => {
   const users = [];
+  const seenSocketIds = new Set();
+
+  // 1. Registrierte User
   for (const [id, u] of db.users) {
-    // Online-Status + Socket-Info
     const onlineData = onlineUsers.get(id);
     const isOnline = !!onlineData;
     let ip = null;
     let currentGame = null;
+    let socketId = null;
     if (isOnline && onlineData.socketId) {
-      const sock = io.sockets.sockets.get(onlineData.socketId);
+      socketId = onlineData.socketId;
+      seenSocketIds.add(socketId);
+      const sock = io.sockets.sockets.get(socketId);
       if (sock) {
         ip = sock.handshake.headers['x-forwarded-for']?.split(',')[0]?.trim() || sock.handshake.address || null;
-        // Aktuelles Spiel erkennen
         if (sock.rlTable) currentGame = 'Roulette (Tisch ' + sock.rlTable + ')';
         else if (sock._pkTable) currentGame = 'Poker (Tisch ' + sock._pkTable + ')';
         else if (sock.barRoom) currentGame = 'Bar (Raum ' + sock.barRoom + ')';
@@ -1719,17 +1723,36 @@ app.get('/api/admin/users', adminMiddleware, (req, res) => {
     }
     const lastSeen = !isOnline ? (onlineUsers.get(id + '_lastSeen') || null) : null;
     users.push({
-      id, username: u.username, email: u.email || null,
+      id, socketId, username: u.username, email: u.email || null,
       baxtCoins: u.baxtCoins || 0, level: u.level || 1,
-      isAdmin: !!u.isAdmin, isGuest: !!u.isGuest,
+      isAdmin: !!u.isAdmin, isGuest: false,
       online: isOnline, ip, currentGame, lastSeen,
-      createdAt: u.createdAt || null,
-      banned: !!u.banned
+      createdAt: u.createdAt || null, banned: !!u.banned
     });
   }
-  // Online-User zuerst, dann nach Name sortiert
-  users.sort((a, b) => (b.online ? 1 : 0) - (a.online ? 1 : 0) || a.username.localeCompare(b.username));
-  res.json(users);
+
+  // 2. Gäste (alle verbundenen Sockets die nicht in db.users sind)
+  for (const [sockId, sock] of io.sockets.sockets) {
+    if (seenSocketIds.has(sockId)) continue;
+    if (!sock.user) continue;
+    const ip = sock.handshake.headers['x-forwarded-for']?.split(',')[0]?.trim() || sock.handshake.address || null;
+    let currentGame = null;
+    if (sock.rlTable) currentGame = 'Roulette (Tisch ' + sock.rlTable + ')';
+    else if (sock._pkTable) currentGame = 'Poker (Tisch ' + sock._pkTable + ')';
+    else if (sock.barRoom) currentGame = 'Bar (Raum ' + sock.barRoom + ')';
+    users.push({
+      id: sock.user.id, socketId: sockId,
+      username: sock.user.username || 'Gast',
+      email: null, baxtCoins: sock.user.guestBaxt || 0, level: 0,
+      isAdmin: false, isGuest: true,
+      online: true, ip, currentGame, lastSeen: null,
+      createdAt: null, banned: false
+    });
+  }
+
+  // Online zuerst, dann registrierte vor Gästen, dann nach Name
+  users.sort((a, b) => (b.online ? 1 : 0) - (a.online ? 1 : 0) || (a.isGuest ? 1 : 0) - (b.isGuest ? 1 : 0) || a.username.localeCompare(b.username));
+  res.json({ users, totalOnline: io.sockets.sockets.size, totalRegistered: db.users.size });
 });
 
 // ── Admin: User kicken (disconnect) ──
