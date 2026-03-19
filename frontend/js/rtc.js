@@ -47,11 +47,13 @@
     }
     if (_stream) {
       _stream.getAudioTracks().forEach(function(t) { t.enabled = true; });
-      _stream.getVideoTracks().forEach(function(t) { t.enabled = false; });
       _micOn = true;
-      _camOn = false;
-      log('Media OK: audio=' + _stream.getAudioTracks().length);
-      showStatus('🎤 Mic aktiv!', '#27ae60');
+      // Video direkt aktivieren wenn verfügbar
+      var hasVideo = _stream.getVideoTracks().length > 0;
+      _stream.getVideoTracks().forEach(function(t) { t.enabled = true; });
+      _camOn = hasVideo;
+      log('Media OK: audio=' + _stream.getAudioTracks().length + ' video=' + _stream.getVideoTracks().length);
+      showStatus(hasVideo ? '🎤📷 Mic + Kamera aktiv!' : '🎤 Mic aktiv!', '#27ae60');
     }
     return _stream;
   }

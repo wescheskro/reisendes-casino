@@ -3848,7 +3848,16 @@ function setupSocketEvents() {
       document.addEventListener('click', async function pkAutoMic() {
         if (RTC.stream) { document.removeEventListener('click', pkAutoMic); return; }
         await RTC.start(socket, 'pk-' + tableId);
-        if (RTC.stream) document.removeEventListener('click', pkAutoMic);
+        if (RTC.stream) {
+          document.removeEventListener('click', pkAutoMic);
+          // Kamera direkt aktiv → Video in Avatar anzeigen
+          if (RTC.camOn) {
+            _activeVideos[socket.id] = RTC.stream;
+            var camBtn = document.getElementById('vcCamBtn');
+            if (camBtn) camBtn.classList.add('active');
+            if (typeof reattachSeatVideos === 'function') reattachSeatVideos();
+          }
+        }
       });
     }
   });

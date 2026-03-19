@@ -2768,11 +2768,22 @@ function initSocket() {
     // Voice Chat: RTC initialisieren + Auto-Join bei erstem Klick
     RTC.init(socket, 'rl-' + tableId);
     if (!isEmbed) {
-      RTC.start(socket, 'rl-' + tableId).catch(()=>{});
+      RTC.start(socket, 'rl-' + tableId).then(function() {
+        if (RTC.stream && RTC.camOn) {
+          _activeVideos[socket.id] = RTC.stream;
+          if (typeof renderPlayers === 'function') setTimeout(renderPlayers, 10);
+        }
+      }).catch(function(){});
       document.addEventListener('click', async function rlAutoMic() {
         if (RTC.stream) { document.removeEventListener('click', rlAutoMic); return; }
         await RTC.start(socket, 'rl-' + tableId);
-        if (RTC.stream) document.removeEventListener('click', rlAutoMic);
+        if (RTC.stream) {
+          document.removeEventListener('click', rlAutoMic);
+          if (RTC.camOn) {
+            _activeVideos[socket.id] = RTC.stream;
+            if (typeof renderPlayers === 'function') setTimeout(renderPlayers, 10);
+          }
+        }
       });
     }
   });
