@@ -13,13 +13,14 @@
     .baxt-widget {
       position: fixed;
       top: 5px;
-      right: 8px;
+      right: max(8px, env(safe-area-inset-right, 8px));
       z-index: 9990;
       font-family: 'Segoe UI', sans-serif;
       cursor: grab;
       touch-action: none;
       user-select: none;
       -webkit-user-select: none;
+      max-width: calc(100vw - 16px);
     }
     .baxt-widget.dragging {
       cursor: grabbing;
