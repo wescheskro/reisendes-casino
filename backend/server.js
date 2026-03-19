@@ -1697,9 +1697,121 @@ app.post('/api/admin/give-coins', adminMiddleware, (req, res) => {
 app.get('/api/admin/users', adminMiddleware, (req, res) => {
   const users = [];
   for (const [id, u] of db.users) {
-    users.push({ id, username: u.username, baxtCoins: u.baxtCoins || 0, level: u.level || 1, isAdmin: !!u.isAdmin });
+    // Online-Status + Socket-Info
+    const onlineData = onlineUsers.get(id);
+    const isOnline = !!onlineData;
+    let ip = null;
+    let currentGame = null;
+    if (isOnline && onlineData.socketId) {
+      const sock = io.sockets.sockets.get(onlineData.socketId);
+      if (sock) {
+        ip = sock.handshake.headers['x-forwarded-for']?.split(',')[0]?.trim() || sock.handshake.address || null;
+        // Aktuelles Spiel erkennen
+        if (sock.rlTable) currentGame = 'Roulette (Tisch ' + sock.rlTable + ')';
+        else if (sock._pkTable) currentGame = 'Poker (Tisch ' + sock._pkTable + ')';
+        else if (sock.barRoom) currentGame = 'Bar (Raum ' + sock.barRoom + ')';
+        else {
+          for (const [, table] of tables.blackjack) {
+            if (table.players.has(id)) { currentGame = 'Blackjack (Tisch ' + table.id + ')'; break; }
+          }
+        }
+      }
+    }
+    const lastSeen = !isOnline ? (onlineUsers.get(id + '_lastSeen') || null) : null;
+    users.push({
+      id, username: u.username, email: u.email || null,
+      baxtCoins: u.baxtCoins || 0, level: u.level || 1,
+      isAdmin: !!u.isAdmin, isGuest: !!u.isGuest,
+      online: isOnline, ip, currentGame, lastSeen,
+      createdAt: u.createdAt || null,
+      banned: !!u.banned
+    });
   }
+  // Online-User zuerst, dann nach Name sortiert
+  users.sort((a, b) => (b.online ? 1 : 0) - (a.online ? 1 : 0) || a.username.localeCompare(b.username));
   res.json(users);
+});
+
+// ── Admin: User kicken (disconnect) ──
+app.post('/api/admin/kick', adminMiddleware, (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ error: 'userId erforderlich' });
+  const user = db.users.get(userId);
+  if (!user) return res.status(404).json({ error: 'User nicht gefunden' });
+  // Socket finden und disconnecten
+  let kicked = false;
+  for (const [, sock] of io.sockets.sockets) {
+    if (sock.user && sock.user.id === userId) {
+      sock.emit('admin:kicked', { reason: 'Du wurdest vom Admin gekickt.' });
+      sock.disconnect(true);
+      kicked = true;
+    }
+  }
+  console.log(`[ADMIN] ${req.user.username} hat ${user.username} gekickt (found=${kicked})`);
+  res.json({ success: true, kicked, username: user.username });
+});
+
+// ── Admin: User bannen/entbannen ──
+app.post('/api/admin/ban', adminMiddleware, (req, res) => {
+  const { userId, ban } = req.body;
+  if (!userId) return res.status(400).json({ error: 'userId erforderlich' });
+  const user = db.users.get(userId);
+  if (!user) return res.status(404).json({ error: 'User nicht gefunden' });
+  if (user.isAdmin) return res.status(403).json({ error: 'Admins können nicht gebannt werden' });
+  user.banned = !!ban;
+  saveDB();
+  // Bei Ban: sofort kicken
+  if (ban) {
+    for (const [, sock] of io.sockets.sockets) {
+      if (sock.user && sock.user.id === userId) {
+        sock.emit('admin:kicked', { reason: 'Dein Account wurde gesperrt.' });
+        sock.disconnect(true);
+      }
+    }
+  }
+  console.log(`[ADMIN] ${req.user.username} hat ${user.username} ${ban ? 'GEBANNT' : 'ENTBANNT'}`);
+  res.json({ success: true, banned: user.banned, username: user.username });
+});
+
+// ── Admin: IP blockieren ──
+if (!global.bannedIPs) global.bannedIPs = new Set();
+app.post('/api/admin/ban-ip', adminMiddleware, (req, res) => {
+  const { ip, ban } = req.body;
+  if (!ip) return res.status(400).json({ error: 'IP erforderlich' });
+  if (ban) {
+    global.bannedIPs.add(ip);
+    // Alle Sockets mit dieser IP kicken
+    let count = 0;
+    for (const [, sock] of io.sockets.sockets) {
+      const sockIp = sock.handshake.headers['x-forwarded-for']?.split(',')[0]?.trim() || sock.handshake.address;
+      if (sockIp === ip) {
+        sock.emit('admin:kicked', { reason: 'Deine IP wurde gesperrt.' });
+        sock.disconnect(true);
+        count++;
+      }
+    }
+    console.log(`[ADMIN] ${req.user.username} hat IP ${ip} geblockt (${count} Sockets getrennt)`);
+  } else {
+    global.bannedIPs.delete(ip);
+    console.log(`[ADMIN] ${req.user.username} hat IP ${ip} entblockt`);
+  }
+  res.json({ success: true, ip, banned: !!ban });
+});
+
+app.get('/api/admin/banned-ips', adminMiddleware, (req, res) => {
+  res.json([...(global.bannedIPs || [])]);
+});
+
+// ── Admin: User zum Admin machen ──
+app.post('/api/admin/make-admin', adminMiddleware, (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ error: 'userId erforderlich' });
+  const user = db.users.get(userId);
+  if (!user) return res.status(404).json({ error: 'User nicht gefunden' });
+  user.isAdmin = true;
+  saveDB();
+  console.log(`[ADMIN] ${req.user.username} hat ${user.username} zum Admin gemacht`);
+  res.json({ success: true, username: user.username });
 });
 
 // ── Admin: Game-Settings lesen/speichern ──
@@ -2239,12 +2351,23 @@ const tables = {
 
 // Socket auth
 io.use((socket, next) => {
+  // IP-Ban prüfen
+  const sockIp = socket.handshake.headers['x-forwarded-for']?.split(',')[0]?.trim() || socket.handshake.address || '';
+  if (global.bannedIPs && global.bannedIPs.has(sockIp)) {
+    return next(new Error('IP gesperrt'));
+  }
+
   const token = socket.handshake.auth?.token;
   if (token) {
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
       const user = db.users.get(decoded.userId);
-      if (user) { socket.user = user; return next(); }
+      if (user) {
+        // User-Ban prüfen
+        if (user.banned) return next(new Error('Account gesperrt'));
+        socket.user = user;
+        return next();
+      }
     } catch(e) {}
   }
   // Gast-Spieler erlauben

@@ -3298,9 +3298,20 @@
       </div>
 
       <div class="admin-section">
-        <div class="admin-section-title">ALLE USER</div>
-        <button class="admin-btn admin-btn-gold" onclick="adminLoadUsers()" style="margin-bottom:4px">👥 User laden</button>
-        <div class="admin-user-list" id="adminUserList"></div>
+        <div class="admin-section-title">👥 USER-VERWALTUNG</div>
+        <button class="admin-btn admin-btn-gold" onclick="adminLoadUsers()" style="margin-bottom:8px">🔄 User laden</button>
+        <div style="font-size:11px;color:#aaa;margin-bottom:6px" id="adminUserCount"></div>
+        <div class="admin-user-list" id="adminUserList" style="max-height:400px;overflow-y:auto"></div>
+      </div>
+
+      <div class="admin-section">
+        <div class="admin-section-title">🚫 GEBLOCKTE IPs</div>
+        <button class="admin-btn" onclick="adminLoadBannedIPs()" style="margin-bottom:4px;background:rgba(255,255,255,.08)">IPs laden</button>
+        <div id="adminBannedIPs" style="font-size:12px;color:#aaa"></div>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <input class="admin-input" type="text" id="adminBanIpInput" placeholder="IP eingeben" style="flex:1">
+          <button class="admin-btn" onclick="adminBanIP()" style="background:#e74c3c;white-space:nowrap">🚫 Blocken</button>
+        </div>
       </div>
     </div>
   </div>
@@ -4850,15 +4861,97 @@
 
     async function adminLoadUsers() {
       const list = document.getElementById('adminUserList');
+      const countEl = document.getElementById('adminUserCount');
       try {
         const res = await fetch(API + '/api/admin/users', {
           headers: { 'Authorization': 'Bearer ' + getToken() }
         });
         const users = await res.json();
-        list.innerHTML = users.map(u =>
-          '<div class="admin-user-item"><span>' + (u.isAdmin ? '👑 ' : '') + u.username + ' (Lv.' + u.level + ')</span><span>' + (u.baxtCoins || 0).toLocaleString() + ' ₿</span></div>'
-        ).join('') || '<div style="color:#aaa;font-size:12px;padding:8px">Keine User</div>';
-      } catch(e) { list.innerHTML = '<div style="color:#e74c3c;font-size:12px;padding:8px">Fehler beim Laden</div>'; }
+        const online = users.filter(u => u.online).length;
+        countEl.textContent = users.length + ' User total · ' + online + ' online';
+        list.innerHTML = users.map(u => {
+          const status = u.online ? '<span style="color:#2ecc71">● Online</span>' : '<span style="color:#666">○ Offline</span>';
+          const game = u.currentGame ? '<div style="font-size:10px;color:#D4AF37">🎮 ' + u.currentGame + '</div>' : '';
+          const ip = u.ip ? '<div style="font-size:10px;color:#666">IP: ' + u.ip + '</div>' : '';
+          const lastSeen = !u.online && u.lastSeen ? '<div style="font-size:10px;color:#555">Zuletzt: ' + new Date(u.lastSeen).toLocaleString('de-DE') + '</div>' : '';
+          const badges = (u.isAdmin ? '👑 ' : '') + (u.banned ? '🚫 ' : '') + (u.isGuest ? '👤 ' : '');
+          return '<div class="admin-user-item" style="padding:8px;margin-bottom:4px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid rgba(255,255,255,.06)">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center">' +
+              '<div><strong style="color:#F0E6D3">' + badges + u.username + '</strong> <span style="color:#888;font-size:11px">Lv.' + u.level + '</span> ' + status + '</div>' +
+              '<span style="color:#F4D03F;font-size:12px">' + (u.baxtCoins || 0).toLocaleString('de-DE') + ' ₿</span>' +
+            '</div>' +
+            game + ip + lastSeen +
+            (!u.isAdmin ? '<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">' +
+              '<button onclick="adminKick(\'' + u.id + '\')" style="font-size:10px;padding:3px 8px;background:#e67e22;border:none;color:#fff;border-radius:4px;cursor:pointer">⚡ Kick</button>' +
+              '<button onclick="adminBan(\'' + u.id + '\',' + !u.banned + ')" style="font-size:10px;padding:3px 8px;background:' + (u.banned ? '#27ae60' : '#e74c3c') + ';border:none;color:#fff;border-radius:4px;cursor:pointer">' + (u.banned ? '✅ Entbannen' : '🚫 Bannen') + '</button>' +
+              '<button onclick="adminMakeAdmin(\'' + u.id + '\')" style="font-size:10px;padding:3px 8px;background:#8e44ad;border:none;color:#fff;border-radius:4px;cursor:pointer">👑 Admin</button>' +
+              (u.ip ? '<button onclick="adminBanIPDirect(\'' + u.ip + '\')" style="font-size:10px;padding:3px 8px;background:#c0392b;border:none;color:#fff;border-radius:4px;cursor:pointer">🚫 IP Ban</button>' : '') +
+            '</div>' : '') +
+          '</div>';
+        }).join('') || '<div style="color:#aaa;font-size:12px;padding:8px">Keine User</div>';
+      } catch(e) { list.innerHTML = '<div style="color:#e74c3c;font-size:12px;padding:8px">Fehler: ' + e.message + '</div>'; }
+    }
+
+    async function adminKick(userId) {
+      if (!confirm('User wirklich kicken?')) return;
+      try {
+        const res = await fetch(API + '/api/admin/kick', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() }, body: JSON.stringify({ userId }) });
+        const data = await res.json();
+        showToast(data.username + ' wurde gekickt!');
+        adminLoadUsers();
+      } catch(e) { showToast('Fehler: ' + e.message); }
+    }
+
+    async function adminBan(userId, ban) {
+      if (!confirm('User wirklich ' + (ban ? 'bannen' : 'entbannen') + '?')) return;
+      try {
+        const res = await fetch(API + '/api/admin/ban', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() }, body: JSON.stringify({ userId, ban }) });
+        const data = await res.json();
+        showToast(data.username + ' wurde ' + (data.banned ? 'GEBANNT' : 'entbannt') + '!');
+        adminLoadUsers();
+      } catch(e) { showToast('Fehler: ' + e.message); }
+    }
+
+    async function adminMakeAdmin(userId) {
+      if (!confirm('Diesen User wirklich zum Admin machen?')) return;
+      try {
+        const res = await fetch(API + '/api/admin/make-admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() }, body: JSON.stringify({ userId }) });
+        const data = await res.json();
+        showToast(data.username + ' ist jetzt Admin!');
+        adminLoadUsers();
+      } catch(e) { showToast('Fehler: ' + e.message); }
+    }
+
+    async function adminBanIPDirect(ip) {
+      if (!confirm('IP ' + ip + ' wirklich blocken?')) return;
+      try {
+        await fetch(API + '/api/admin/ban-ip', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() }, body: JSON.stringify({ ip, ban: true }) });
+        showToast('IP ' + ip + ' geblockt!');
+        adminLoadUsers();
+      } catch(e) { showToast('Fehler: ' + e.message); }
+    }
+
+    async function adminBanIP() {
+      const ip = document.getElementById('adminBanIpInput').value.trim();
+      if (!ip) return showToast('Bitte IP eingeben');
+      await adminBanIPDirect(ip);
+      document.getElementById('adminBanIpInput').value = '';
+    }
+
+    async function adminLoadBannedIPs() {
+      try {
+        const res = await fetch(API + '/api/admin/banned-ips', { headers: { 'Authorization': 'Bearer ' + getToken() } });
+        const ips = await res.json();
+        const el = document.getElementById('adminBannedIPs');
+        if (ips.length === 0) { el.textContent = 'Keine IPs geblockt'; return; }
+        el.innerHTML = ips.map(ip => '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0"><span>' + ip + '</span><button onclick="adminUnbanIP(\'' + ip + '\')" style="font-size:10px;padding:2px 6px;background:#27ae60;border:none;color:#fff;border-radius:4px;cursor:pointer">Entblocken</button></div>').join('');
+      } catch(e) {}
+    }
+
+    async function adminUnbanIP(ip) {
+      await fetch(API + '/api/admin/ban-ip', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() }, body: JSON.stringify({ ip, ban: false }) });
+      showToast('IP ' + ip + ' entblockt');
+      adminLoadBannedIPs();
     }
 
     // =========================================================================
