@@ -392,6 +392,10 @@ function awardBaxtCoins(user, amount, reason) {
   user.baxtHistory.unshift(tx);
   if (user.baxtHistory.length > 100) user.baxtHistory.length = 100; // Max 100 Einträge
 
+  // Sofort speichern damit Coins nicht bei Server-Restart verloren gehen
+  dbDirty = true;
+  saveDB();
+
   return { coins: amount, reason, total: user.baxtCoins };
 }
 

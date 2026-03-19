@@ -2001,6 +2001,16 @@
       cursor:pointer; font-weight:600;
     }
     .admin-nav-btn.visible { display:inline-block; }
+    .admin-filter-tab {
+      padding:5px 10px; border-radius:6px; font-size:11px; font-weight:600;
+      cursor:pointer; border:1px solid rgba(255,255,255,.1);
+      background:rgba(255,255,255,.05); color:#aaa; transition:all .2s;
+    }
+    .admin-filter-tab:hover { background:rgba(255,255,255,.1); color:#F0E6D3; }
+    .admin-filter-tab.active {
+      background:linear-gradient(135deg,#D4AF37,#B8860B); color:#1a1a2e;
+      border-color:rgba(212,175,55,.5);
+    }
     .admin-user-list {
       max-height:200px; overflow-y:auto; margin-top:8px;
     }
@@ -3299,7 +3309,18 @@
 
       <div class="admin-section">
         <div class="admin-section-title">👥 USER-VERWALTUNG</div>
-        <button class="admin-btn admin-btn-gold" onclick="adminLoadUsers()" style="margin-bottom:8px">🔄 User laden</button>
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <button class="admin-btn admin-btn-gold" onclick="adminLoadUsers()" style="flex:0 0 auto">🔄 User laden</button>
+          <input class="admin-input" type="text" id="adminUserSearch" placeholder="🔍 User suchen..." oninput="adminFilterUsers()" style="flex:1;min-width:120px;margin:0">
+        </div>
+        <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap" id="adminFilterTabs">
+          <button class="admin-filter-tab active" data-filter="alle" onclick="adminSetFilter('alle')">Alle</button>
+          <button class="admin-filter-tab" data-filter="online" onclick="adminSetFilter('online')">Online</button>
+          <button class="admin-filter-tab" data-filter="registriert" onclick="adminSetFilter('registriert')">Registriert</button>
+          <button class="admin-filter-tab" data-filter="gaeste" onclick="adminSetFilter('gaeste')">Gäste</button>
+          <button class="admin-filter-tab" data-filter="offline" onclick="adminSetFilter('offline')">Offline</button>
+          <button class="admin-filter-tab" data-filter="gebannt" onclick="adminSetFilter('gebannt')">Gebannt</button>
+        </div>
         <div style="font-size:11px;color:#aaa;margin-bottom:6px" id="adminUserCount"></div>
         <div class="admin-user-list" id="adminUserList" style="max-height:400px;overflow-y:auto"></div>
       </div>
@@ -4776,6 +4797,23 @@
         if (user.avatarUrl || (user.avatarConfig && user.avatarConfig.avatarUrl)) {
           avatarEl.innerHTML = '<img src="' + (user.avatarUrl || user.avatarConfig.avatarUrl) + '">';
         }
+        // Live-Balance vom Server holen und localStorage synchronisieren
+        const token = getToken();
+        if (token) {
+          fetch(API + '/api/baxt/balance', { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+              if (data && typeof data.baxtCoins === 'number') {
+                baxtEl.textContent = '💰 ' + data.baxtCoins.toLocaleString('de-DE') + ' ₿';
+                // localStorage aktualisieren
+                try {
+                  const u = JSON.parse(localStorage.getItem('casinoUser') || '{}');
+                  if (u.id) { u.baxtCoins = data.baxtCoins; localStorage.setItem('casinoUser', JSON.stringify(u)); }
+                } catch(e) {}
+              }
+            })
+            .catch(() => {});
+        }
       } else if (guest) {
         nameEl.textContent = guest.username || 'Gast';
         rankEl.textContent = 'Gast-Modus';
@@ -4859,6 +4897,64 @@
       } catch(e) { result.className = 'admin-result error'; result.textContent = '✗ Netzwerkfehler'; }
     }
 
+    // Admin: Cached user data + filter state
+    window._adminUsers = [];
+    window._adminFilter = 'alle';
+
+    function adminSetFilter(filter) {
+      window._adminFilter = filter;
+      document.querySelectorAll('.admin-filter-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.filter === filter);
+      });
+      adminFilterUsers();
+    }
+
+    function adminFilterUsers() {
+      const search = (document.getElementById('adminUserSearch')?.value || '').toLowerCase().trim();
+      const filter = window._adminFilter || 'alle';
+      const users = window._adminUsers || [];
+
+      const filtered = users.filter(u => {
+        // Search filter
+        if (search && !u.username.toLowerCase().includes(search) && !(u.email || '').toLowerCase().includes(search) && !(u.ip || '').includes(search)) return false;
+        // Category filter
+        if (filter === 'online') return u.online;
+        if (filter === 'offline') return !u.online && !u.isGuest;
+        if (filter === 'registriert') return !u.isGuest;
+        if (filter === 'gaeste') return u.isGuest;
+        if (filter === 'gebannt') return u.banned;
+        return true;
+      });
+
+      adminRenderUsers(filtered);
+    }
+
+    function adminRenderUsers(users) {
+      const list = document.getElementById('adminUserList');
+      list.innerHTML = users.map(u => {
+        const status = u.online ? '<span style="color:#2ecc71">● Online</span>' : '<span style="color:#666">○ Offline</span>';
+        const game = u.currentGame ? '<div style="font-size:10px;color:#D4AF37">🎮 ' + u.currentGame + '</div>' : '';
+        const ip = u.ip ? '<div style="font-size:10px;color:#666">IP: ' + u.ip + '</div>' : '';
+        const lastSeen = !u.online && u.lastSeen ? '<div style="font-size:10px;color:#555">Zuletzt: ' + new Date(u.lastSeen).toLocaleString('de-DE') + '</div>' : '';
+        const badges = (u.isAdmin ? '👑 ' : '') + (u.banned ? '🚫 ' : '') + (u.isGuest ? '👤 Gast ' : '');
+        const levelStr = u.isGuest ? '' : ' <span style="color:#888;font-size:11px">Lv.' + u.level + '</span>';
+        const bgColor = u.isGuest ? 'rgba(255,255,255,.02)' : 'rgba(255,255,255,.04)';
+        const borderColor = u.online ? 'rgba(46,204,113,.15)' : 'rgba(255,255,255,.06)';
+        return '<div class="admin-user-item" style="padding:8px;margin-bottom:4px;background:' + bgColor + ';border-radius:8px;border:1px solid ' + borderColor + '">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center">' +
+            '<div><strong style="color:#F0E6D3">' + badges + u.username + '</strong>' + levelStr + ' ' + status + '</div>' +
+            '<span style="color:#F4D03F;font-size:12px">' + (u.baxtCoins || 0).toLocaleString('de-DE') + ' ₿</span>' +
+          '</div>' +
+          game + ip + lastSeen +
+          (!u.isAdmin ? '<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">' +
+            (u.online ? '<button onclick="adminKick(\'' + u.id + '\')" style="font-size:10px;padding:3px 8px;background:#e67e22;border:none;color:#fff;border-radius:4px;cursor:pointer">⚡ Kick</button>' : '') +
+            (!u.isGuest ? '<button onclick="adminBan(\'' + u.id + '\',' + !u.banned + ')" style="font-size:10px;padding:3px 8px;background:' + (u.banned ? '#27ae60' : '#e74c3c') + ';border:none;color:#fff;border-radius:4px;cursor:pointer">' + (u.banned ? '✅ Entbannen' : '🚫 Bannen') + '</button>' : '') +
+            (u.ip ? '<button onclick="adminBanIPDirect(\'' + u.ip + '\')" style="font-size:10px;padding:3px 8px;background:#c0392b;border:none;color:#fff;border-radius:4px;cursor:pointer">🚫 IP Ban</button>' : '') +
+          '</div>' : '') +
+        '</div>';
+      }).join('') || '<div style="color:#aaa;font-size:12px;padding:8px">Keine User in dieser Kategorie</div>';
+    }
+
     async function adminLoadUsers() {
       const list = document.getElementById('adminUserList');
       const countEl = document.getElementById('adminUserCount');
@@ -4868,33 +4964,29 @@
         });
         const data = await res.json();
         const users = data.users || data;
+        window._adminUsers = users;
         const totalOnline = data.totalOnline || users.filter(u => u.online).length;
         const totalReg = data.totalRegistered || users.filter(u => !u.isGuest).length;
         const guests = users.filter(u => u.isGuest && u.online).length;
         const regOnline = users.filter(u => !u.isGuest && u.online).length;
+        const banned = users.filter(u => u.banned).length;
+        const offline = users.filter(u => !u.online && !u.isGuest).length;
+
+        // Update filter tab counts
+        document.querySelectorAll('.admin-filter-tab').forEach(tab => {
+          const f = tab.dataset.filter;
+          let count = users.length;
+          if (f === 'online') count = totalOnline;
+          else if (f === 'offline') count = offline;
+          else if (f === 'registriert') count = totalReg;
+          else if (f === 'gaeste') count = guests;
+          else if (f === 'gebannt') count = banned;
+          const label = tab.textContent.replace(/\s*\(\d+\)/, '');
+          tab.textContent = label + ' (' + count + ')';
+        });
+
         countEl.innerHTML = '<strong style="color:#2ecc71">' + totalOnline + ' Verbindungen</strong> · ' + regOnline + ' registrierte online · ' + guests + ' Gäste · ' + totalReg + ' User total';
-        list.innerHTML = users.map(u => {
-          const status = u.online ? '<span style="color:#2ecc71">● Online</span>' : '<span style="color:#666">○ Offline</span>';
-          const game = u.currentGame ? '<div style="font-size:10px;color:#D4AF37">🎮 ' + u.currentGame + '</div>' : '';
-          const ip = u.ip ? '<div style="font-size:10px;color:#666">IP: ' + u.ip + '</div>' : '';
-          const lastSeen = !u.online && u.lastSeen ? '<div style="font-size:10px;color:#555">Zuletzt: ' + new Date(u.lastSeen).toLocaleString('de-DE') + '</div>' : '';
-          const badges = (u.isAdmin ? '👑 ' : '') + (u.banned ? '🚫 ' : '') + (u.isGuest ? '👤 Gast ' : '');
-          const levelStr = u.isGuest ? '' : ' <span style="color:#888;font-size:11px">Lv.' + u.level + '</span>';
-          const bgColor = u.isGuest ? 'rgba(255,255,255,.02)' : 'rgba(255,255,255,.04)';
-          const borderColor = u.online ? 'rgba(46,204,113,.15)' : 'rgba(255,255,255,.06)';
-          return '<div class="admin-user-item" style="padding:8px;margin-bottom:4px;background:' + bgColor + ';border-radius:8px;border:1px solid ' + borderColor + '">' +
-            '<div style="display:flex;justify-content:space-between;align-items:center">' +
-              '<div><strong style="color:#F0E6D3">' + badges + u.username + '</strong>' + levelStr + ' ' + status + '</div>' +
-              '<span style="color:#F4D03F;font-size:12px">' + (u.baxtCoins || 0).toLocaleString('de-DE') + ' ₿</span>' +
-            '</div>' +
-            game + ip + lastSeen +
-            (u.online && !u.isAdmin ? '<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">' +
-              '<button onclick="adminKick(\'' + u.id + '\')" style="font-size:10px;padding:3px 8px;background:#e67e22;border:none;color:#fff;border-radius:4px;cursor:pointer">⚡ Kick</button>' +
-              (!u.isGuest ? '<button onclick="adminBan(\'' + u.id + '\',' + !u.banned + ')" style="font-size:10px;padding:3px 8px;background:' + (u.banned ? '#27ae60' : '#e74c3c') + ';border:none;color:#fff;border-radius:4px;cursor:pointer">' + (u.banned ? '✅ Entbannen' : '🚫 Bannen') + '</button>' : '') +
-              (u.ip ? '<button onclick="adminBanIPDirect(\'' + u.ip + '\')" style="font-size:10px;padding:3px 8px;background:#c0392b;border:none;color:#fff;border-radius:4px;cursor:pointer">🚫 IP Ban</button>' : '') +
-            '</div>' : '') +
-          '</div>';
-        }).join('') || '<div style="color:#aaa;font-size:12px;padding:8px">Keine User</div>';
+        adminFilterUsers();
       } catch(e) { list.innerHTML = '<div style="color:#e74c3c;font-size:12px;padding:8px">Fehler: ' + e.message + '</div>'; }
     }
 
